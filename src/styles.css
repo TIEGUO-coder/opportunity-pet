@@ -28,6 +28,12 @@ body[data-view="setup"] {
   background: #eadfca;
 }
 
+body[data-view="lead"] {
+  background:
+    linear-gradient(180deg, rgba(250, 245, 235, 0.72), rgba(234, 223, 202, 0.96)),
+    #eadfca;
+}
+
 #stage {
   position: relative;
   width: 100vw;
@@ -44,12 +50,12 @@ body[data-view="setup"] {
   z-index: 2;
 }
 
-.lead-card.visible + .pet-wrap {
+body[data-view="lead"] .pet-wrap {
   left: 50%;
   right: auto;
-  bottom: -4px;
-  width: 138px;
-  height: 132px;
+  bottom: 0;
+  width: 124px;
+  height: 128px;
   transform: translateX(-50%);
   z-index: 5;
 }
@@ -275,17 +281,44 @@ body[data-view="setup"] {
   z-index: 4;
 }
 
+.lead-notice {
+  position: absolute;
+  left: 36px;
+  right: 36px;
+  top: 24px;
+  display: none;
+  box-sizing: border-box;
+  min-height: 30px;
+  padding: 6px 12px;
+  border: 1px solid rgba(202, 150, 43, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 246, 221, 0.9);
+  color: #8b5b0c;
+  font-size: 13px;
+  font-weight: 520;
+  line-height: 1.2;
+  text-align: center;
+  box-shadow: 0 10px 24px rgba(110, 82, 30, 0.12);
+  z-index: 6;
+}
+
+body[data-view="lead"] .lead-notice {
+  display: block;
+}
+
 .lead-card {
-  left: 16px;
-  right: 16px;
-  top: 14px;
-  max-height: calc(100vh - 118px);
-  padding: 16px;
+  left: 42px;
+  right: 42px;
+  top: 78px;
+  box-sizing: border-box;
+  min-height: 210px;
+  max-height: none;
+  padding: 17px 18px 28px;
   border-color: rgba(78, 70, 56, 0.22);
-  border-radius: 18px;
+  border-radius: 16px;
   background: rgba(242, 238, 229, 0.97);
   box-shadow:
-    0 14px 30px rgba(45, 35, 20, 0.18),
+    0 16px 32px rgba(45, 35, 20, 0.14),
     0 0 0 1px rgba(255, 252, 245, 0.42) inset;
   backdrop-filter: none;
   overflow: visible;
@@ -312,33 +345,53 @@ body[data-view="setup"] {
 
 .close-card {
   position: absolute;
-  right: 15px;
-  top: 14px;
+  right: 11px;
+  top: 10px;
+  opacity: 0.42;
 }
 
 .eyebrow {
-  margin: 0 0 7px;
+  margin: 0 0 10px;
   color: #7b776e;
-  font-size: 12px;
+  font-size: 15px;
   font-weight: 900;
   letter-spacing: 0;
 }
 
 h1 {
   margin: 0;
-  max-width: 330px;
+  max-width: 410px;
   color: #272420;
-  font-size: 22px;
+  font-size: 28px;
   line-height: 1.1;
   letter-spacing: 0;
 }
 
 .summary {
-  margin: 10px 0 12px;
+  margin: 12px 0 14px;
   color: #59544d;
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 750;
   line-height: 1.22;
+}
+
+.lead-card .eyebrow {
+  margin-bottom: 22px;
+  font-size: 11px;
+}
+
+.lead-card h1 {
+  max-width: 210px;
+  font-size: 23px;
+  font-weight: 520;
+  line-height: 1.08;
+}
+
+.lead-card .summary {
+  margin: 12px 0;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.42;
 }
 
 .photo-drop {
@@ -578,12 +631,12 @@ h1 {
 }
 
 .lead-card .status-pill {
-  margin-bottom: 18px;
-  padding: 7px 18px;
+  margin-bottom: 0;
+  padding: 6px 17px;
   background: #e3e7dd;
   color: #5a7165;
-  font-size: 15px;
-  font-weight: 650;
+  font-size: 12px;
+  font-weight: 520;
 }
 
 .evidence-grid {
@@ -625,8 +678,11 @@ dd {
 
 .action-stack {
   display: grid;
-  gap: 9px;
-  position: relative;
+  gap: 8px;
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: -130px;
   z-index: 6;
 }
 
@@ -641,11 +697,11 @@ button {
 .secondary-action,
 .review-action {
   width: 100%;
-  min-height: 44px;
-  padding: 8px 14px;
-  border-radius: 14px;
-  font-size: 17px;
-  font-weight: 650;
+  min-height: 38px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 520;
 }
 
 .primary-action {
