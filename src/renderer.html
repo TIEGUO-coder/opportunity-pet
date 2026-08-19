@@ -19,34 +19,25 @@
         </label>
         <div class="pipeline-steps" aria-label="Pet generation pipeline">
           <span id="stepPhotos" class="active">1 Photo set</span>
-          <span id="stepIdentity">2 Identity sheet</span>
+          <span id="stepIdentity">2 Pet style</span>
           <span id="stepSprite">3 Animated scout</span>
         </div>
-        <p id="assetNote" class="asset-note">Upload 3-5 angles or moments: face, side body, standing, sleeping, and any distinctive markings. These photos are source material, not the final pet.</p>
+        <p id="assetNote" class="asset-note">Upload 3-5 angles or moments: face, side body, standing, sleeping, and distinctive markings. Then generate a ready-to-use animated scout locally.</p>
         <input id="petNameInput" class="name-input" type="text" placeholder="Pet name, e.g. 铁锅">
-        <div class="prompt-grid">
-          <button type="button" id="copyIdentityPrompt" class="primary-action">Copy identity prompt</button>
+        <button type="button" id="generatePet" class="review-action">Generate animated scout</button>
+        <details class="advanced-assets">
+          <summary>Advanced asset import</summary>
+          <p>Optional: import a professionally generated sprite sheet if you already have one.</p>
           <label class="import-button">
-            <input id="identitySheetInput" type="file" accept="image/*">
-            Import identity sheet
+              <input id="spriteSheetInput" type="file" accept="image/*">
+              Import sprite sheet
           </label>
-          <button type="button" id="copySpritePrompt" class="primary-action">Copy sprite prompt</button>
-          <label class="import-button">
-            <input id="spriteSheetInput" type="file" accept="image/*">
-            Import sprite sheet
-          </label>
-        </div>
-        <div class="asset-preview-strip">
-          <figure>
-            <img id="identityPreview" alt="">
-            <figcaption>Identity sheet</figcaption>
-          </figure>
           <figure>
             <img id="spritePreview" alt="">
             <figcaption>Sprite sheet</figcaption>
           </figure>
-        </div>
-        <button type="button" id="startScouting" class="review-action">Start scouting with imported pet</button>
+          <button type="button" id="startScouting" class="review-action">Start scouting with imported sheet</button>
+        </details>
         <button type="button" id="createPet" class="secondary-action">Use Tieguo dev sample</button>
       </section>
 

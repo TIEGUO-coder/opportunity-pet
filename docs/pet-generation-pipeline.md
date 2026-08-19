@@ -1,31 +1,30 @@
 # Pet Generation Pipeline
 
-Opportunity Pet should not use uploaded pet photos as the desktop pet itself. The photos are only source material. The user can use their own AI image tool to infer the pet's identity from 3-5 photos, generate a multi-view identity sheet, then turn the whole animal into a consistent animated character.
+Opportunity Pet should be usable immediately after download. The user uploads 3-5 pet photos, and the app generates a local animated scout from that photo set without requiring prompt copying, paid APIs, or external image tools.
 
 ## Required Output
 
-Generate one transparent sprite sheet per pet:
+Generate four local action loops per pet:
 
 - `idle`: calm standing or sitting loop
 - `scout`: walking/searching loop for bringing back leads
 - `sleep`: resting loop
 - `celebrate`: approval/click feedback loop
 
-Each action should have 4 frames. The character must preserve the uploaded pet's recognizable body shape, fur markings, face shape, ears, tail, and color pattern.
+Each action should have 4 frames. The local MVP uses the uploaded photo set as visual source material and creates transparent PNG data frames in the renderer. A professionally generated 4x4 sprite sheet can still be imported as an advanced replacement.
 
 ## Product Flow
 
 1. User uploads 3-5 pet photos and names the pet.
-2. The app gives the user an identity-sheet prompt to paste into their AI image tool.
-3. The user imports the generated multi-view identity sheet and can regenerate externally if needed.
-4. The app gives the user a sprite-sheet prompt based on the approved identity sheet.
-5. The user imports the generated transparent 4x4 sprite sheet.
-6. The app extracts frames locally in the browser/Electron renderer.
-7. Only then does the pet begin scouting for product opportunities.
+2. User clicks Generate animated scout.
+3. The renderer creates idle, walk, sleep, and celebrate frames from the uploaded photo set.
+4. The generated frame loops are saved locally.
+5. The pet begins scouting for product opportunities.
+6. Advanced users can import a transparent 4x4 sprite sheet to replace the local generated frames.
 
-## No Built-In AI Billing
+## No Required AI Billing
 
-The MVP does not call a paid image generation API. Users provide their own AI image tool. Opportunity Pet owns the workflow, prompts, import, slicing, preview, and lead interaction.
+The MVP does not call a paid image generation API. Opportunity Pet owns the upload, local animation, optional sprite import, slicing, preview, and lead interaction. A future AI mode can be added behind an explicit user-provided API key.
 
 ## Photo Requirements
 
@@ -37,34 +36,6 @@ Ask for 3-5 images:
 - sleeping/resting pose
 - distinctive details such as tail, ears, markings, or scars
 
-## Generator Prompt Template
-
-```text
-Use case: stylized-concept
-Asset type: transparent 2D desktop pet sprite sheet
-Primary request: Infer the pet's identity from the reference photo set and create a multi-view character identity sheet.
-Input images: 3-5 source pet references showing different angles, poses, and distinctive markings.
-Subject: preserve the whole animal's body shape, markings, face, ears, tail, fur colors, and distinctive traits across all views.
-Style/medium: polished 2D desktop pet sprite, cute but still recognizable as the source pet.
-Composition/framing: front view, side view, back view, 45-degree view, sleeping/resting pose, and one distinctive-detail callout.
-Scene/backdrop: transparent background.
-Constraints: consistent character identity across all views; no props; no cropping.
-Avoid: using any source photo as a flat sticker, changing species, generic cat/dog markings, extra animals, watermark.
-```
-
-After identity approval, generate the animation sprite sheet from the identity sheet:
-
-```text
-Use case: stylized-concept
-Asset type: transparent 2D desktop pet sprite sheet
-Primary request: Turn the approved pet identity sheet into a complete animated desktop scout pet character.
-Input images: Image 1 is the approved pet identity sheet.
-Composition/framing: 4 rows, 4 frames per row. Rows are idle, scout/walk, sleep, celebrate. Full body visible in every frame.
-Scene/backdrop: transparent background.
-Constraints: preserve the approved pet identity exactly; consistent scale across frames; no text; no watermark.
-Avoid: changing markings, changing body shape, cropped tail or paws, extra animals.
-```
-
 ## MVP Rule
 
-The lead-discovery flow must not begin until an imported or generated sprite profile exists. Tieguo frames may be used as a development sample, but they are not the user-personalized pet.
+The lead-discovery flow must not begin until a local generated or imported sprite profile exists. Tieguo frames may be used as a development sample, but they are not the user-personalized pet.

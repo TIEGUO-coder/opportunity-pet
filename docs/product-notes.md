@@ -6,8 +6,8 @@ It is not a bookmark tool. The pet should bring back judged opportunities: what 
 
 ## Core Loop
 
-1. The user uploads their own pet photo.
-2. Opportunity Pet generates the whole pet as a consistent animated scout character.
+1. The user uploads 3-5 photos of their own pet.
+2. Opportunity Pet generates a local animated scout from the photo set.
 3. The generated pet scouts for opportunities from GitHub and OSS signals.
 4. The pet brings back a money lead as a compact card.
 5. The user approves, skips, or reviews the plan.
@@ -33,4 +33,4 @@ Each card should answer:
 
 ## MVP Boundary
 
-The current MVP ends before grilling. It prepares the Grilling Brief, but does not yet run the grilling workflow or route to MAH. The uploaded photo is not the pet UI by itself; it is source material for the animated pet generator.
+The current MVP ends before grilling. It prepares the Grilling Brief, but does not yet run the grilling workflow or route to MAH. The uploaded photo set is source material for the animated pet generator.

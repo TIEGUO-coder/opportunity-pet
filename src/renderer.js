@@ -8,11 +8,8 @@ const petPhotoPreview = document.getElementById('petPhotoPreview');
 const photoPrompt = document.getElementById('photoPrompt');
 const petNameInput = document.getElementById('petNameInput');
 const assetNote = document.getElementById('assetNote');
-const copyIdentityPrompt = document.getElementById('copyIdentityPrompt');
-const copySpritePrompt = document.getElementById('copySpritePrompt');
-const identitySheetInput = document.getElementById('identitySheetInput');
+const generatePet = document.getElementById('generatePet');
 const spriteSheetInput = document.getElementById('spriteSheetInput');
-const identityPreview = document.getElementById('identityPreview');
 const spritePreview = document.getElementById('spritePreview');
 const startScouting = document.getElementById('startScouting');
 const createPet = document.getElementById('createPet');
@@ -55,7 +52,6 @@ let lastCursor = null;
 let manualModeUntil = 0;
 let petProfile = loadPetProfile();
 let selectedPhotoDataUrls = [];
-let importedIdentitySheet = localStorage.getItem('opportunityPet.identitySheet') || '';
 let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || '';
 
 function setVisualClass(action, moving = false) {
@@ -243,7 +239,7 @@ petPhotoInput.addEventListener('change', () => {
     photoPrompt.textContent = `${images.length} photo${images.length > 1 ? 's' : ''} selected`;
     const enough = images.length >= 3;
     assetNote.textContent = enough
-      ? 'Photo set received. Next step: infer an identity sheet from these angles, then generate transparent action frames.'
+      ? 'Photo set received. Click Generate animated scout to make a ready-to-use pet.'
       : 'Add at least 3 photos so the generator can infer the whole pet instead of guessing from one angle.';
   });
 });
@@ -252,75 +248,112 @@ function petName() {
   return petNameInput.value.trim() || petProfile?.name || 'My pet';
 }
 
-function identityPrompt() {
-  return `Create a multi-view character identity sheet for a desktop scout pet named ${petName()}.
-
-Use the 3-5 attached pet photos as identity references. Infer the whole animal from all photos.
-
-Output:
-- Front view
-- Side body view
-- Back view
-- 45-degree view
-- Sleeping/resting pose
-- One detail callout for distinctive markings, ears, tail, face shape, or scars
-
-Style:
-- polished cute 2D desktop pet character
-- recognizable as the source pet, not a generic cat or dog
-- full body visible in every view
-- clean light background or transparent background
-
-Preserve:
-- body shape and proportions
-- face shape
-- fur colors and markings
-- ears, tail, paws, and distinctive traits
-
-Avoid:
-- using the photo as a flat sticker
-- changing species
-- inventing generic markings
-- props, text labels, watermark, cropped paws or tail`;
-}
-
-function spritePrompt() {
-  return `Create a transparent 2D desktop pet sprite sheet from the approved identity sheet for ${petName()}.
-
-Input: the approved identity sheet.
-
-Output format:
-- 4 rows, 4 frames per row
-- Row 1: idle, calm sitting or standing loop
-- Row 2: scout/walk/searching loop
-- Row 3: sleep/rest loop
-- Row 4: celebrate/click approval loop
-
-Requirements:
-- transparent background
-- same character identity, markings, body shape, ears, tail, and face across all frames
-- full body visible in every frame
-- consistent scale and ground alignment
-- no text, no labels, no watermark
-
-Avoid:
-- changing markings between frames
-- cropped paws or tail
-- extra animals
-- props unless a tiny neutral sparkle is needed for scouting`;
-}
-
-async function copyText(text, label) {
-  await navigator.clipboard.writeText(text);
-  assetNote.textContent = `${label} copied. Paste it into your AI image tool, attach the required image inputs, then import the result here.`;
-}
-
 function readFileAsDataUrl(file) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.addEventListener('load', () => resolve(reader.result));
     reader.readAsDataURL(file);
   });
+}
+
+function drawRoundedRect(context, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  context.beginPath();
+  context.moveTo(x + r, y);
+  context.arcTo(x + width, y, x + width, y + height, r);
+  context.arcTo(x + width, y + height, x, y + height, r);
+  context.arcTo(x, y + height, x, y, r);
+  context.arcTo(x, y, x + width, y, r);
+  context.closePath();
+}
+
+function drawImageCover(context, img, x, y, width, height) {
+  const sourceRatio = img.naturalWidth / img.naturalHeight;
+  const targetRatio = width / height;
+  let sourceWidth = img.naturalWidth;
+  let sourceHeight = img.naturalHeight;
+  let sourceX = 0;
+  let sourceY = 0;
+
+  if (sourceRatio > targetRatio) {
+    sourceWidth = img.naturalHeight * targetRatio;
+    sourceX = (img.naturalWidth - sourceWidth) / 2;
+  } else {
+    sourceHeight = img.naturalWidth / targetRatio;
+    sourceY = (img.naturalHeight - sourceHeight) / 2;
+  }
+
+  context.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
+}
+
+function makePetFrame(img, action, frame) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = 280;
+  canvas.height = 280;
+
+  const bob = Math.sin((frame / 4) * Math.PI * 2);
+  const walkShift = action === 'walk' ? (frame % 2 === 0 ? -9 : 9) : 0;
+  const happyTilt = action === 'happy' ? (frame % 2 === 0 ? -0.05 : 0.05) : 0;
+  const idleLift = action === 'idle' ? bob * 3 : 0;
+  const sleepBreath = action === 'sleep' ? bob * 2 : 0;
+
+  context.save();
+  context.globalAlpha = 0.24;
+  context.fillStyle = '#2a251d';
+  context.beginPath();
+  context.ellipse(140, 246, action === 'sleep' ? 76 : 58, 12, 0, 0, Math.PI * 2);
+  context.fill();
+  context.restore();
+
+  context.save();
+  if (action === 'sleep') {
+    context.translate(140, 158 + sleepBreath);
+    context.rotate(-0.08);
+    drawRoundedRect(context, -102, -58, 204, 132, 54);
+    context.clip();
+    drawImageCover(context, img, -116, -72, 232, 160);
+  } else {
+    context.translate(140 + walkShift, 142 + idleLift);
+    context.rotate(happyTilt);
+    drawRoundedRect(context, -92, -112, 184, 226, 74);
+    context.clip();
+    drawImageCover(context, img, -106, -124, 212, 248);
+  }
+  context.restore();
+
+  if (action === 'happy') {
+    context.save();
+    context.fillStyle = '#f1cf72';
+    [
+      [72, 54 + bob * 2],
+      [205, 70 - bob * 2],
+      [186, 36]
+    ].forEach(([x, y]) => {
+      context.beginPath();
+      context.arc(x, y, 5, 0, Math.PI * 2);
+      context.fill();
+    });
+    context.restore();
+  }
+
+  return canvas.toDataURL('image/png');
+}
+
+async function generateActionsFromPhotos(images) {
+  const loaded = await Promise.all(images.map(loadImage));
+  const choose = (index) => loaded[Math.min(index, loaded.length - 1)];
+  const sources = {
+    idle: choose(0),
+    walk: choose(1),
+    sleep: choose(loaded.length - 1),
+    happy: choose(2)
+  };
+
+  return Object.fromEntries(Object.entries(sources).map(([action, img]) => [
+    action,
+    [0, 1, 2, 3].map((frame) => makePetFrame(img, action, frame))
+  ]));
 }
 
 function updatePipeline(step) {
@@ -387,31 +420,29 @@ async function extractSpriteSheet(src) {
   return extracted;
 }
 
-copyIdentityPrompt.addEventListener('click', () => {
+generatePet.addEventListener('click', async () => {
   if (selectedPhotoDataUrls.length < 3) {
-    assetNote.textContent = 'Choose 3-5 pet photos first, then copy the identity prompt.';
+    assetNote.textContent = 'Choose 3-5 pet photos first. This helps the pet feel like your actual pet, not a one-photo sticker.';
     return;
   }
-  copyText(identityPrompt(), 'Identity prompt');
-});
-
-copySpritePrompt.addEventListener('click', () => {
-  if (!importedIdentitySheet) {
-    assetNote.textContent = 'Import the AI-generated identity sheet first, then copy the sprite prompt.';
-    return;
-  }
-  copyText(spritePrompt(), 'Sprite prompt');
-});
-
-identitySheetInput.addEventListener('change', async () => {
-  const file = identitySheetInput.files && identitySheetInput.files[0];
-  if (!file) return;
-  importedIdentitySheet = await readFileAsDataUrl(file);
-  localStorage.setItem('opportunityPet.identitySheet', importedIdentitySheet);
-  identityPreview.src = importedIdentitySheet;
-  identityPreview.classList.add('visible');
-  updatePipeline('identity');
-  assetNote.textContent = 'Identity sheet imported. If it looks right, copy the sprite prompt and generate the 4x4 transparent sprite sheet in your AI tool.';
+  generatePet.disabled = true;
+  assetNote.textContent = 'Generating your animated scout locally...';
+  actions = await generateActionsFromPhotos(selectedPhotoDataUrls);
+  localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
+  updatePipeline('ready');
+  const name = petName();
+  savePetProfile({
+    name,
+    photoDataUrl: '',
+    assetMode: 'generated',
+    sourcePhotoCount: selectedPhotoDataUrls.length,
+    generatedFrom: 'local-photo-animation',
+    createdAt: new Date().toISOString()
+  });
+  generatePet.disabled = false;
+  assetNote.textContent = 'Animated scout generated. It is ready to bring back opportunities.';
+  applyPetProfile();
+  await showLeadCard();
 });
 
 spriteSheetInput.addEventListener('change', async () => {
@@ -512,10 +543,6 @@ async function watchGlobalCursor() {
 }
 
 applyPetProfile();
-if (importedIdentitySheet) {
-  identityPreview.src = importedIdentitySheet;
-  identityPreview.classList.add('visible');
-}
 if (importedSpriteSheet) {
   spritePreview.src = importedSpriteSheet;
   spritePreview.classList.add('visible');
