@@ -1,15 +1,15 @@
 window.OPPORTUNITIES = [
   {
-    title: 'DoorDash Menu Glow-Up',
+    title: 'Google Review Reply Helper',
     type: 'Underserved',
-    summary: 'Independent restaurants on DoorDash, Uber Eats, Toast, and Google Maps lose orders when their food photos look dark, rushed, or inconsistent.',
-    evidence: 'Look for public menus with weak photos, repeated specials, inconsistent Google Business images, and owners posting food promos manually.',
-    risk: 'Any experiment must preserve the real food. Misleading images can hurt trust fast.',
-    v1: 'Try a small open-source workflow that turns a few real dish photos into cleaner menu crops, combo covers, and social promo squares.',
+    summary: 'Many U.S. local businesses get Google reviews every week, but owners either ignore them or write rushed replies that make the business look less trustworthy.',
+    evidence: 'Look at public Google Business profiles for dentists, cleaners, salons, auto shops, and restaurants with unanswered reviews or repeated copy-paste replies.',
+    risk: 'Replies must sound specific and human. A bland AI answer can make an already unhappy customer feel even more ignored.',
+    v1: 'Try a tiny browser helper that drafts review replies from the review text, business type, tone, and whether the owner wants to apologize, thank, clarify, or invite follow-up.',
     grillQuestions: [
-      'Which U.S. restaurant niche is easiest to observe: pizza, tacos, wings, coffee, food trucks, or ghost kitchens?',
-      'Can one before/after make the dish look more orderable without lying?',
-      'What would you test first: image cleanup, menu crops, promo layouts, or review-photo mining?'
+      'Which local niche has the clearest public examples: dentists, salons, cleaners, auto shops, restaurants, or gyms?',
+      'What makes a reply feel genuinely local instead of generated?',
+      'Is the first experiment a Chrome extension, a paste-in web tool, or a Google Business workflow guide?'
     ]
   },
   {
