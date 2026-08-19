@@ -1,41 +1,41 @@
 window.OPPORTUNITIES = [
   {
-    title: 'AI Resource Pack Shop',
+    title: 'Product Photo Ad Kit',
     type: 'Underserved',
-    summary: 'Builders keep asking for reusable prompts, assets, workflows, and starter packs, but most resources are scattered across posts and repo READMEs.',
-    evidence: 'Repeated resource-list repos, prompt packs, and issue comments asking for templates.',
-    risk: 'Could become a generic directory if the packs are not opinionated and task-specific.',
-    v1: 'Ship 12 curated packs for one audience: AI builders shipping tiny SaaS/tools in a weekend.',
+    summary: 'Small Shopify, Etsy, and Amazon sellers need fresh ad creatives every week, but hiring designers or learning ad tools is too slow for low-ticket products.',
+    evidence: 'Seller forums repeatedly ask for cheaper product photo edits, background swaps, ad sizes, and short launch creatives.',
+    risk: 'Generic AI image tools already exist; this wins only if it outputs seller-ready bundles with exact marketplace and ad dimensions.',
+    v1: 'Upload 3 product photos and generate a ready-to-post kit: 5 ad images, 3 listing banners, 2 promo captions, and export sizes for Meta, TikTok, Etsy, and Amazon.',
     grillQuestions: [
-      'Who buys the first pack and what job are they already trying to finish?',
-      'What makes this more than a list of links?',
-      'What proof shows people will pay instead of bookmarking?'
+      'Which seller niche has the highest repeat need: jewelry, skincare, print-on-demand, food, or pet products?',
+      'Can the first version make one product look more sellable in under five minutes?',
+      'What proof shows sellers will pay monthly instead of using a one-off AI editor?'
     ]
   },
   {
-    title: 'OSS Issue Digest Bot',
+    title: 'Refund Rescue Inbox',
     type: 'Overloaded',
-    summary: 'Maintainers with busy repos need weekly issue summaries that separate real user pain from noise.',
-    evidence: 'High issue volume, stale triage labels, and repeated duplicate bug reports.',
-    risk: 'GitHub notification fatigue is already high; the digest must save time immediately.',
-    v1: 'Generate a weekly maintainer brief from issues, PRs, labels, and release notes for one repo.',
+    summary: 'Tiny SaaS teams lose money when angry cancellation emails sit in support queues without a fast save offer or product feedback loop.',
+    evidence: 'Support teams already tag refund, cancellation, billing, and churn emails manually, but founders rarely review them in time.',
+    risk: 'Must avoid sounding manipulative; the value is fast triage plus useful recovery options.',
+    v1: 'Connect Gmail or Help Scout, detect high-risk refund emails, draft a save response, and summarize the real churn reason for the founder.',
     grillQuestions: [
-      'Which maintainer segment feels this pain weekly?',
-      'What summary would they forward to collaborators?',
-      'What signal beats GitHub’s native notifications?'
+      'Who has urgent enough refund pain to install this today?',
+      'What recovery offer is acceptable without damaging trust?',
+      'Can it prove saved revenue in the first week?'
     ]
   },
   {
-    title: 'Legacy API Testing Migration Helper',
-    type: 'Stalled',
-    summary: 'Older API testing projects have users asking for modern runtime support, but migration paths are unclear.',
-    evidence: 'Open issues around Node/runtime upgrades, abandoned plugins, and stale release cadence.',
-    risk: 'Migration tools are only valuable when the target ecosystem is obvious.',
-    v1: 'A CLI that scans an old test collection and produces a modernized migration checklist.',
+    title: 'Compliance Screenshot Vault',
+    type: 'Overloaded',
+    summary: 'Agencies and regulated teams need proof of what a landing page, ad, or pricing page looked like when a campaign went live.',
+    evidence: 'Teams still paste screenshots into folders and docs, then scramble when clients, platforms, or legal reviewers ask what changed.',
+    risk: 'Needs a narrow first audience; generic website archiving is too broad.',
+    v1: 'A scheduled screenshot vault for agencies: capture pages, ads, and pricing every day, annotate changes, and export a client-ready proof packet.',
     grillQuestions: [
-      'What exact old-to-new migration is painful enough?',
-      'Can the first version be useful without full conversion?',
-      'Where does distribution happen: CLI, GitHub Action, or hosted checker?'
+      'Which buyer has the clearest budget: ad agencies, fintech marketers, healthcare clinics, or franchise operators?',
+      'What proof packet would save them from a real dispute?',
+      'Can this start as a Chrome extension plus scheduled crawler?'
     ]
   }
 ];
