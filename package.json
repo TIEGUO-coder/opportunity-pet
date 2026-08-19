@@ -1,0 +1,25 @@
+{
+  "name": "opportunity-pet",
+  "version": "0.1.0",
+  "description": "A desktop scout pet that brings product opportunities back for review.",
+  "main": "src/main.js",
+  "scripts": {
+    "install:electron": "npx install-electron --no",
+    "prepare:assets": "node scripts/extract-sprites.js",
+    "start": "electron .",
+    "check": "node scripts/verify-assets.js"
+  },
+  "keywords": [
+    "desktop-pet",
+    "electron",
+    "opportunity",
+    "ai-builder"
+  ],
+  "author": "",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "electron": "latest",
+    "pngjs": "latest"
+  }
+}

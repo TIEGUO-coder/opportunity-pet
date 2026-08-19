@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>铁锅桌宠</title>
+    <link rel="stylesheet" href="./styles.css">
+  </head>
+  <body>
+    <main id="stage" aria-label="铁锅桌宠">
+      <section id="petSetup" class="pet-setup">
+        <p class="eyebrow">CREATE YOUR SCOUT PET</p>
+        <h1>Bring your own pet.</h1>
+        <p class="summary">Upload a pet photo. Opportunity Pet will turn it into the scout that brings product leads back to you.</p>
+        <label class="photo-drop">
+          <input id="petPhotoInput" type="file" accept="image/*">
+          <img id="petPhotoPreview" alt="">
+          <span id="photoPrompt">Choose pet photo</span>
+        </label>
+        <input id="petNameInput" class="name-input" type="text" placeholder="Pet name, e.g. 铁锅">
+        <button type="button" id="createPet" class="review-action">Create scout pet</button>
+      </section>
+
+      <section id="leadToast" class="lead-toast" aria-live="polite">
+        <span class="spark">✦</span>
+        <span id="toastText">Ding! I found a money lead.</span>
+      </section>
+
+      <section id="leadCard" class="lead-card" aria-live="polite">
+        <button type="button" id="closeCard" class="icon-button close-card" title="收起">×</button>
+        <p id="cardEyebrow" class="eyebrow">YOUR PET FOUND A LEAD</p>
+        <h1 id="leadTitle">AI Resource Pack Shop</h1>
+        <p id="leadSummary" class="summary"></p>
+        <div id="leadStatus" class="status-pill">Waiting for owner approval</div>
+
+        <div class="evidence-grid">
+          <article>
+            <span>Type</span>
+            <strong id="leadType"></strong>
+          </article>
+          <article>
+            <span>Evidence</span>
+            <strong id="leadEvidence"></strong>
+          </article>
+          <article>
+            <span>Risk</span>
+            <strong id="leadRisk"></strong>
+          </article>
+        </div>
+
+        <div class="action-stack">
+          <button type="button" id="approveLead" class="primary-action">✓ This is actionable</button>
+          <button type="button" id="skipLead" class="secondary-action">⌕ Not this one. Keep scouting.</button>
+          <button type="button" id="reviewPlan" class="review-action">☷ Review the plan</button>
+        </div>
+
+        <section id="briefPanel" class="brief-panel">
+          <h2>Grilling Brief</h2>
+          <dl>
+            <div>
+              <dt>Opportunity</dt>
+              <dd id="briefOpportunity"></dd>
+            </div>
+            <div>
+              <dt>V1 Cut</dt>
+              <dd id="briefV1"></dd>
+            </div>
+            <div>
+              <dt>Questions to Grill</dt>
+              <dd id="briefQuestions"></dd>
+            </div>
+          </dl>
+        </section>
+      </section>
+
+      <div id="petWrap" class="pet-wrap">
+        <img id="pet" alt="铁锅" draggable="false">
+        <div id="fallbackPet" aria-hidden="true">
+          <div class="ear left"></div>
+          <div class="ear right"></div>
+          <div class="face">
+            <span class="eye left"></span>
+            <span class="eye right"></span>
+            <span class="nose"></span>
+          </div>
+          <div class="body"></div>
+          <div class="tail"></div>
+        </div>
+      </div>
+
+      <nav id="controls" aria-label="桌宠控制">
+        <button type="button" id="scoutNow" title="侦察">⌕</button>
+        <button type="button" id="pin" title="切换置顶">⌾</button>
+        <button type="button" id="quit" title="退出">×</button>
+      </nav>
+    </main>
+    <script src="./opportunities.js"></script>
+    <script src="./renderer.js"></script>
+  </body>
+</html>
