@@ -1,6 +1,6 @@
 # Pet Generation Pipeline
 
-Opportunity Pet should not use uploaded pet photos as the desktop pet itself. The photos are only source material. The product needs to infer the pet's identity from 3-5 photos, generate a multi-view identity sheet, then turn the whole animal into a consistent animated character.
+Opportunity Pet should not use uploaded pet photos as the desktop pet itself. The photos are only source material. The user can use their own AI image tool to infer the pet's identity from 3-5 photos, generate a multi-view identity sheet, then turn the whole animal into a consistent animated character.
 
 ## Required Output
 
@@ -16,12 +16,16 @@ Each action should have 4 frames. The character must preserve the uploaded pet's
 ## Product Flow
 
 1. User uploads 3-5 pet photos and names the pet.
-2. The app sends the photo set to an identity-sheet generator.
-3. The user reviews the multi-view identity sheet and can request corrections.
-4. The app sends the approved identity sheet to the sprite generator.
-5. The generator returns a transparent sprite sheet.
-6. The app extracts frames into action folders.
+2. The app gives the user an identity-sheet prompt to paste into their AI image tool.
+3. The user imports the generated multi-view identity sheet and can regenerate externally if needed.
+4. The app gives the user a sprite-sheet prompt based on the approved identity sheet.
+5. The user imports the generated transparent 4x4 sprite sheet.
+6. The app extracts frames locally in the browser/Electron renderer.
 7. Only then does the pet begin scouting for product opportunities.
+
+## No Built-In AI Billing
+
+The MVP does not call a paid image generation API. Users provide their own AI image tool. Opportunity Pet owns the workflow, prompts, import, slicing, preview, and lead interaction.
 
 ## Photo Requirements
 
@@ -63,4 +67,4 @@ Avoid: changing markings, changing body shape, cropped tail or paws, extra anima
 
 ## MVP Rule
 
-The lead-discovery flow must not begin until a generated sprite profile exists. Tieguo frames may be used as a development sample, but they are not the user-personalized pet.
+The lead-discovery flow must not begin until an imported or generated sprite profile exists. Tieguo frames may be used as a development sample, but they are not the user-personalized pet.

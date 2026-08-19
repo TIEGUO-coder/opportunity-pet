@@ -410,6 +410,11 @@ h1 {
   box-shadow: inset 0 0 0 1px rgba(100, 119, 104, 0.22);
 }
 
+.pipeline-steps span.done {
+  background: rgba(101, 119, 104, 0.78);
+  color: #fffdf5;
+}
+
 .photo-drop input {
   display: none;
 }
@@ -459,6 +464,76 @@ h1 {
   font-size: 13px;
   font-weight: 750;
   line-height: 1.25;
+}
+
+.prompt-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+  margin: 12px 0;
+}
+
+.prompt-grid .primary-action,
+.prompt-grid .import-button {
+  min-height: 44px;
+  padding: 9px 10px;
+  font-size: 14px;
+}
+
+.import-button {
+  display: grid;
+  place-items: center;
+  border-radius: 14px;
+  background: #dad5ca;
+  color: #59554d;
+  font-weight: 900;
+  text-align: center;
+  cursor: pointer;
+}
+
+.import-button input {
+  display: none;
+}
+
+.asset-preview-strip {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 12px 0;
+}
+
+.asset-preview-strip figure {
+  margin: 0;
+  padding: 8px;
+  border-radius: 14px;
+  background: rgba(255, 252, 243, 0.58);
+}
+
+.asset-preview-strip img {
+  display: none;
+  width: 100%;
+  aspect-ratio: 1.25;
+  border-radius: 10px;
+  object-fit: contain;
+  background:
+    linear-gradient(45deg, rgba(80, 100, 86, 0.09) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(80, 100, 86, 0.09) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(80, 100, 86, 0.09) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(80, 100, 86, 0.09) 75%);
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-size: 16px 16px;
+}
+
+.asset-preview-strip img.visible {
+  display: block;
+}
+
+.asset-preview-strip figcaption {
+  margin-top: 6px;
+  color: #7b776e;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
 }
 
 .status-pill {
