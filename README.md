@@ -1,6 +1,6 @@
 # Opportunity Pet
 
-Opportunity Pet is a desktop scout pet workflow. A user imports 3-5 photos of their own pet, generates a ready-to-use animated scout locally, and then the pet brings back product opportunity cards for approval before the idea moves into a grilling/planning step.
+Opportunity Pet is a free, open-source desktop scout pet workflow. A user imports 3-5 photos of their own pet, generates a ready-to-use animated scout locally, and then the pet brings back product opportunity cards for the user to explore however they want.
 
 Tieguo is only the default test pet in this local prototype.
 
@@ -12,9 +12,11 @@ Tieguo is only the default test pet in this local prototype.
 - Slice imported sprite sheets into 16 local action frames in the app.
 - Show a small always-on-top Electron desktop pet.
 - Open an opportunity card with approval actions.
-- Prepare a Grilling Brief before handing the idea to a stricter planning flow.
+- Prepare a Grilling Brief when the user wants to stress-test a lead.
 
 The current version does not pay for or call an image generation API. The default generator runs locally in the Electron renderer. Local mock opportunities live in `src/opportunities.js`; Tieguo remains a development sample.
+
+Opportunity Pet does not charge users, promise revenue, or decide what the user should build. It only surfaces practical money-adjacent leads, public signals to inspect, and small experiments a GitHub user could try.
 
 ## Run
 
@@ -39,5 +41,5 @@ npm run start
 3. Opportunity Pet creates local idle, walk, sleep, and happy frame loops.
 4. The animated pet scouts for leads and brings back opportunity cards.
 5. User approves, skips, or sends the idea to Grill-me.
-6. Approved leads become Grilling Briefs.
+6. Approved leads become Grilling Briefs for further thinking.
 7. Later: Grilling output routes into MAH routemap.

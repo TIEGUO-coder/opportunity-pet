@@ -1,8 +1,8 @@
 # Product Notes
 
-Opportunity Pet turns product discovery into a small desktop companion loop.
+Opportunity Pet turns product discovery into a small free desktop companion loop.
 
-It is not a bookmark tool. The pet should bring back judged opportunities: what the opportunity is, why it exists, what evidence supports it, what the first version could be, and what needs grilling before the user commits time.
+It is not a paid product, a bookmark tool, or a promise that the user will make money. The pet should bring back practical leads: what the opportunity is, why it might exist, what public signals support it, what a small experiment could be, and what needs grilling before the user commits time.
 
 ## Core Loop
 
@@ -10,7 +10,7 @@ It is not a bookmark tool. The pet should bring back judged opportunities: what 
 2. Opportunity Pet generates a local animated scout from the photo set.
 3. The generated pet scouts for opportunities from GitHub and OSS signals.
 4. The pet brings back a money lead as a compact card.
-5. The user approves, skips, or reviews the plan.
+5. The user approves, skips, or reviews the lead.
 6. Approved leads become a Grilling Brief.
 7. Later, grilled projects route into MAH routemap.
 
@@ -28,7 +28,7 @@ Each card should answer:
 - Why is it worth looking at?
 - What evidence supports it?
 - What is the risk?
-- What should v1 be?
+- What small experiment could be tried?
 - What should be grilled next?
 
 ## MVP Boundary
