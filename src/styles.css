@@ -23,15 +23,8 @@ body {
   font-family: ui-rounded, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
-body[data-view="lead"],
 body[data-view="setup"] {
   background: #eadfca;
-}
-
-body[data-view="lead"] {
-  background:
-    linear-gradient(180deg, rgba(250, 245, 235, 0.72), rgba(234, 223, 202, 0.96)),
-    #eadfca;
 }
 
 #stage {
@@ -53,11 +46,11 @@ body[data-view="lead"] {
 body[data-view="lead"] .pet-wrap {
   left: 50%;
   right: auto;
-  bottom: 0;
-  width: 82px;
-  height: 88px;
+  bottom: 2px;
+  width: 54px;
+  height: 58px;
   transform: translateX(-50%);
-  z-index: 5;
+  z-index: 3;
 }
 
 #petWrap.dragging {
@@ -283,18 +276,18 @@ body[data-view="lead"] .pet-wrap {
 
 .lead-notice {
   position: absolute;
-  left: 22px;
-  right: 22px;
-  top: 17px;
+  left: 24px;
+  right: 24px;
+  top: 12px;
   display: none;
   box-sizing: border-box;
-  min-height: 25px;
-  padding: 5px 10px;
+  min-height: 22px;
+  padding: 4px 9px;
   border: 1px solid rgba(202, 150, 43, 0.55);
   border-radius: 999px;
   background: rgba(255, 246, 221, 0.9);
   color: #8b5b0c;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 520;
   line-height: 1.2;
   text-align: center;
@@ -307,13 +300,13 @@ body[data-view="lead"] .lead-notice {
 }
 
 .lead-card {
-  left: 30px;
-  right: 30px;
-  top: 58px;
+  left: 24px;
+  right: 24px;
+  top: 44px;
   box-sizing: border-box;
-  min-height: 154px;
+  min-height: 122px;
   max-height: none;
-  padding: 13px 14px 22px;
+  padding: 10px 12px 17px;
   border-color: rgba(78, 70, 56, 0.22);
   border-radius: 16px;
   background: rgba(242, 238, 229, 0.97);
@@ -328,9 +321,9 @@ body[data-view="lead"] .lead-notice {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -12px;
-  width: 24px;
-  height: 24px;
+  bottom: -9px;
+  width: 18px;
+  height: 18px;
   background: rgba(242, 238, 229, 0.97);
   border-right: 1px solid rgba(78, 70, 56, 0.18);
   border-bottom: 1px solid rgba(78, 70, 56, 0.18);
@@ -376,22 +369,22 @@ h1 {
 }
 
 .lead-card .eyebrow {
-  margin-bottom: 17px;
-  font-size: 9px;
+  margin-bottom: 12px;
+  font-size: 8px;
 }
 
 .lead-card h1 {
-  max-width: 170px;
-  font-size: 18px;
+  max-width: 180px;
+  font-size: 15px;
   font-weight: 520;
   line-height: 1.08;
 }
 
 .lead-card .summary {
-  margin: 9px 0;
-  font-size: 10.5px;
-  font-weight: 500;
-  line-height: 1.42;
+  margin: 7px 0;
+  font-size: 9px;
+  font-weight: 520;
+  line-height: 1.32;
 }
 
 .photo-drop {
@@ -632,10 +625,10 @@ h1 {
 
 .lead-card .status-pill {
   margin-bottom: 0;
-  padding: 5px 13px;
+  padding: 4px 10px;
   background: #e3e7dd;
   color: #5a7165;
-  font-size: 10px;
+  font-size: 8.5px;
   font-weight: 520;
 }
 
@@ -678,11 +671,11 @@ dd {
 
 .action-stack {
   display: grid;
-  gap: 7px;
+  gap: 6px;
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: -103px;
+  left: 12px;
+  right: 12px;
+  bottom: -78px;
   z-index: 6;
 }
 
@@ -697,10 +690,10 @@ button {
 .secondary-action,
 .review-action {
   width: 100%;
-  min-height: 30px;
-  padding: 5px 10px;
-  border-radius: 10px;
-  font-size: 12px;
+  min-height: 25px;
+  padding: 4px 8px;
+  border-radius: 9px;
+  font-size: 10px;
   font-weight: 520;
 }
 

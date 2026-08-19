@@ -6,7 +6,7 @@ let petWindow;
 const windowSizes = {
   pet: { width: 120, height: 130 },
   setup: { width: 540, height: 560 },
-  lead: { width: 300, height: 340 }
+  lead: { width: 280, height: 300 }
 };
 
 function clampWindowPosition(x, y, width, height) {
