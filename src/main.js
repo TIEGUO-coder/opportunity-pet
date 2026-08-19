@@ -4,9 +4,9 @@ const path = require('path');
 let petWindow;
 
 const windowSizes = {
-  pet: { width: 170, height: 180 },
+  pet: { width: 120, height: 130 },
   setup: { width: 540, height: 560 },
-  lead: { width: 360, height: 430 }
+  lead: { width: 300, height: 340 }
 };
 
 function clampWindowPosition(x, y, width, height) {

@@ -42,10 +42,10 @@ body[data-view="lead"] {
 
 .pet-wrap {
   position: absolute;
-  right: 16px;
-  bottom: 8px;
-  width: 132px;
-  height: 118px;
+  right: 8px;
+  bottom: 4px;
+  width: 96px;
+  height: 92px;
   cursor: grab;
   z-index: 2;
 }
@@ -54,8 +54,8 @@ body[data-view="lead"] .pet-wrap {
   left: 50%;
   right: auto;
   bottom: 0;
-  width: 124px;
-  height: 128px;
+  width: 82px;
+  height: 88px;
   transform: translateX(-50%);
   z-index: 5;
 }
@@ -283,18 +283,18 @@ body[data-view="lead"] .pet-wrap {
 
 .lead-notice {
   position: absolute;
-  left: 36px;
-  right: 36px;
-  top: 24px;
+  left: 22px;
+  right: 22px;
+  top: 17px;
   display: none;
   box-sizing: border-box;
-  min-height: 30px;
-  padding: 6px 12px;
+  min-height: 25px;
+  padding: 5px 10px;
   border: 1px solid rgba(202, 150, 43, 0.55);
   border-radius: 999px;
   background: rgba(255, 246, 221, 0.9);
   color: #8b5b0c;
-  font-size: 13px;
+  font-size: 11px;
   font-weight: 520;
   line-height: 1.2;
   text-align: center;
@@ -307,13 +307,13 @@ body[data-view="lead"] .lead-notice {
 }
 
 .lead-card {
-  left: 42px;
-  right: 42px;
-  top: 78px;
+  left: 30px;
+  right: 30px;
+  top: 58px;
   box-sizing: border-box;
-  min-height: 210px;
+  min-height: 154px;
   max-height: none;
-  padding: 17px 18px 28px;
+  padding: 13px 14px 22px;
   border-color: rgba(78, 70, 56, 0.22);
   border-radius: 16px;
   background: rgba(242, 238, 229, 0.97);
@@ -328,9 +328,9 @@ body[data-view="lead"] .lead-notice {
   content: "";
   position: absolute;
   left: 50%;
-  bottom: -17px;
-  width: 34px;
-  height: 34px;
+  bottom: -12px;
+  width: 24px;
+  height: 24px;
   background: rgba(242, 238, 229, 0.97);
   border-right: 1px solid rgba(78, 70, 56, 0.18);
   border-bottom: 1px solid rgba(78, 70, 56, 0.18);
@@ -345,8 +345,8 @@ body[data-view="lead"] .lead-notice {
 
 .close-card {
   position: absolute;
-  right: 11px;
-  top: 10px;
+  right: 8px;
+  top: 7px;
   opacity: 0.42;
 }
 
@@ -376,20 +376,20 @@ h1 {
 }
 
 .lead-card .eyebrow {
-  margin-bottom: 22px;
-  font-size: 11px;
+  margin-bottom: 17px;
+  font-size: 9px;
 }
 
 .lead-card h1 {
-  max-width: 210px;
-  font-size: 23px;
+  max-width: 170px;
+  font-size: 18px;
   font-weight: 520;
   line-height: 1.08;
 }
 
 .lead-card .summary {
-  margin: 12px 0;
-  font-size: 13px;
+  margin: 9px 0;
+  font-size: 10.5px;
   font-weight: 500;
   line-height: 1.42;
 }
@@ -632,10 +632,10 @@ h1 {
 
 .lead-card .status-pill {
   margin-bottom: 0;
-  padding: 6px 17px;
+  padding: 5px 13px;
   background: #e3e7dd;
   color: #5a7165;
-  font-size: 12px;
+  font-size: 10px;
   font-weight: 520;
 }
 
@@ -678,11 +678,11 @@ dd {
 
 .action-stack {
   display: grid;
-  gap: 8px;
+  gap: 7px;
   position: absolute;
-  left: 18px;
-  right: 18px;
-  bottom: -130px;
+  left: 14px;
+  right: 14px;
+  bottom: -103px;
   z-index: 6;
 }
 
@@ -697,10 +697,10 @@ button {
 .secondary-action,
 .review-action {
   width: 100%;
-  min-height: 38px;
-  padding: 7px 12px;
-  border-radius: 12px;
-  font-size: 15px;
+  min-height: 30px;
+  padding: 5px 10px;
+  border-radius: 10px;
+  font-size: 12px;
   font-weight: 520;
 }
 
