@@ -1,7 +1,6 @@
 const pet = document.getElementById('pet');
 const petWrap = document.getElementById('petWrap');
 const fallbackPet = document.getElementById('fallbackPet');
-const leadToast = document.getElementById('leadToast');
 const leadCard = document.getElementById('leadCard');
 const petSetup = document.getElementById('petSetup');
 const petPhotoInput = document.getElementById('petPhotoInput');
@@ -65,7 +64,7 @@ function setVisualClass(action, moving = false) {
   const target = pet.complete && pet.naturalWidth > 0 ? pet : fallbackPet;
   if (moving && action === 'walk') target.classList.add('bob');
   if (action === 'happy') target.classList.add('happy');
-  if (action === 'walk' && leadToast.classList.contains('visible')) target.classList.add('scouting');
+  if (action === 'walk' && leadCard.classList.contains('visible')) target.classList.add('scouting');
 }
 
 function showFrame() {
@@ -111,7 +110,6 @@ function animateWhileCursorMoves() {
 
 function setLeadText(lead) {
   const petName = petProfile?.name || 'Your pet';
-  document.getElementById('toastText').textContent = `Ding! ${petName} found a money lead.`;
   document.getElementById('cardEyebrow').textContent = `${petName.toUpperCase()} FOUND A LEAD`;
   document.getElementById('leadTitle').textContent = lead.title;
   document.getElementById('leadSummary').textContent = lead.summary;
@@ -139,13 +137,14 @@ function savePetProfile(profile) {
 function applyPetProfile() {
   if (!petProfile) {
     petSetup.classList.add('visible');
-    leadToast.classList.remove('visible');
+    document.body.dataset.view = 'setup';
     bridge.setMode('lead');
     return;
   }
 
   petSetup.classList.remove('visible');
   document.body.dataset.hasPet = 'true';
+  document.body.dataset.view = 'pet';
   if (petProfile.photoDataUrl) {
     pet.classList.toggle('photo-pet', petProfile.assetMode !== 'generated');
     pet.src = petProfile.assetMode === 'generated' ? actions.idle[0] : petProfile.photoDataUrl;
@@ -161,21 +160,11 @@ function nextLead() {
   setLeadText(currentLead);
 }
 
-async function showLeadToast() {
+async function showLeadCard() {
   if (!opportunities.length || leadCard.classList.contains('visible')) return;
   nextLead();
-  leadToast.classList.add('visible');
-  startAnimation('walk', 260, true);
-  manualModeUntil = Date.now() + 1800;
-  await bridge.setMode('pet');
-  clearTimeout(settleTimer);
-  settleTimer = setTimeout(() => stopAnimationOnFirstFrame('idle'), 1600);
-}
-
-async function openLeadCard() {
-  if (!currentLead) nextLead();
-  leadToast.classList.remove('visible');
   leadCard.classList.add('visible');
+  document.body.dataset.view = 'lead';
   briefPanel.classList.remove('visible');
   document.getElementById('leadStatus').textContent = 'Waiting for owner approval';
   startAnimation('happy', 320, false);
@@ -186,6 +175,7 @@ async function openLeadCard() {
 async function closeLeadCardView() {
   leadCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
+  document.body.dataset.view = 'pet';
   await bridge.setMode('pet');
   stopAnimationOnFirstFrame('idle');
   scheduleScouting();
@@ -194,7 +184,7 @@ async function closeLeadCardView() {
 function scheduleScouting() {
   clearTimeout(scoutingTimer);
   if (!petProfile) return;
-  scoutingTimer = setTimeout(showLeadToast, 7000);
+  scoutingTimer = setTimeout(showLeadCard, 7000);
 }
 
 function approveCurrentLead() {
@@ -453,7 +443,7 @@ startScouting.addEventListener('click', async () => {
     createdAt: new Date().toISOString()
   });
   applyPetProfile();
-  await showLeadToast();
+  await showLeadCard();
 });
 
 createPet.addEventListener('click', async () => {
@@ -468,14 +458,13 @@ createPet.addEventListener('click', async () => {
     createdAt: new Date().toISOString()
   });
   applyPetProfile();
-  await showLeadToast();
+  await showLeadCard();
 });
-leadToast.addEventListener('click', openLeadCard);
 closeCard.addEventListener('click', closeLeadCardView);
 approveLead.addEventListener('click', approveCurrentLead);
 skipLead.addEventListener('click', skipCurrentLead);
 reviewPlan.addEventListener('click', reviewCurrentPlan);
-scoutNow.addEventListener('click', showLeadToast);
+scoutNow.addEventListener('click', showLeadCard);
 
 petWrap.addEventListener('pointerdown', (event) => {
   dragging = { x: event.screenX, y: event.screenY, moved: false };
@@ -497,7 +486,7 @@ petWrap.addEventListener('pointermove', (event) => {
 petWrap.addEventListener('pointerup', (event) => {
   petWrap.releasePointerCapture(event.pointerId);
   petWrap.classList.remove('dragging');
-  if (dragging && !dragging.moved) showLeadToast();
+  if (dragging && !dragging.moved) showLeadCard();
   dragging = null;
 });
 
