@@ -46,11 +46,11 @@ body[data-view="setup"] {
 body[data-view="lead"] .pet-wrap {
   left: 50%;
   right: auto;
-  bottom: 2px;
-  width: 54px;
-  height: 58px;
+  bottom: 10px;
+  width: 92px;
+  height: 102px;
   transform: translateX(-50%);
-  z-index: 3;
+  z-index: 4;
 }
 
 #petWrap.dragging {
