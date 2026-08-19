@@ -7,12 +7,13 @@ Tieguo is only the default test pet in this local prototype.
 ## Current MVP
 
 - Import a pet photo and pet name.
+- Treat the uploaded photo as source material for generated pet animation assets.
 - Show a small always-on-top Electron desktop pet.
 - Surface a "Ding! I found a money lead." toast.
 - Open an opportunity card with type, evidence, risk, and approval actions.
 - Prepare a Grilling Brief before handing the idea to a stricter planning flow.
 
-The current version uses local mock opportunities from `src/opportunities.js`. The next step is replacing those mocks with live GitHub/OSS Goldmine signals and replacing the uploaded-photo placeholder with generated pet animation assets.
+The current version uses local mock opportunities from `src/opportunities.js` and Tieguo as a development sample. The intended product flow is documented in `docs/pet-generation-pipeline.md`: uploaded photos must become generated sprite animations before the pet starts scouting.
 
 ## Run
 
@@ -33,8 +34,8 @@ npm run start
 ## Product Path
 
 1. User imports a pet photo.
-2. Opportunity Pet creates a scout pet profile.
-3. The pet scouts for leads and brings back opportunity cards.
+2. Opportunity Pet generates a complete animated sprite character from that photo.
+3. The generated pet scouts for leads and brings back opportunity cards.
 4. User approves, skips, or reviews the plan.
 5. Approved leads become Grilling Briefs.
 6. Later: Grilling output routes into MAH routemap.

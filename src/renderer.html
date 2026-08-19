@@ -9,17 +9,23 @@
   <body>
     <main id="stage" aria-label="铁锅桌宠">
       <section id="petSetup" class="pet-setup">
-        <p class="eyebrow">CREATE YOUR SCOUT PET</p>
-        <h1>Bring your own pet.</h1>
-        <p class="summary">Upload a pet photo. Opportunity Pet will turn it into the scout that brings product leads back to you.</p>
+        <p class="eyebrow">GENERATE YOUR SCOUT PET</p>
+        <h1>Turn your pet into the scout.</h1>
+        <p class="summary">Upload a full pet photo first. Opportunity Pet should generate the whole animal as an animated character before it starts bringing back leads.</p>
         <label class="photo-drop">
           <input id="petPhotoInput" type="file" accept="image/*">
           <img id="petPhotoPreview" alt="">
           <span id="photoPrompt">Choose pet photo</span>
         </label>
-        <p class="asset-note">MVP uses your photo as an animated scout preview. Generated sprite animations come next.</p>
+        <div class="pipeline-steps" aria-label="Pet generation pipeline">
+          <span class="active">1 Photo source</span>
+          <span>2 Animated character</span>
+          <span>3 Scout leads</span>
+        </div>
+        <p id="assetNote" class="asset-note">The uploaded photo is source material, not the final pet. The final pet should be a transparent sprite sheet with idle, scout, sleep, and celebrate actions.</p>
         <input id="petNameInput" class="name-input" type="text" placeholder="Pet name, e.g. 铁锅">
-        <button type="button" id="createPet" class="review-action">Create scout pet</button>
+        <button type="button" id="generatePet" class="review-action">Generate animated pet</button>
+        <button type="button" id="createPet" class="secondary-action">Use Tieguo dev sample</button>
       </section>
 
       <section id="leadToast" class="lead-toast" aria-live="polite">

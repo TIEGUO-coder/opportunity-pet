@@ -8,6 +8,8 @@ const petPhotoInput = document.getElementById('petPhotoInput');
 const petPhotoPreview = document.getElementById('petPhotoPreview');
 const photoPrompt = document.getElementById('photoPrompt');
 const petNameInput = document.getElementById('petNameInput');
+const assetNote = document.getElementById('assetNote');
+const generatePet = document.getElementById('generatePet');
 const createPet = document.getElementById('createPet');
 const closeCard = document.getElementById('closeCard');
 const scoutNow = document.getElementById('scoutNow');
@@ -46,6 +48,7 @@ let dragging = null;
 let lastCursor = null;
 let manualModeUntil = 0;
 let petProfile = loadPetProfile();
+let selectedPhotoDataUrl = '';
 
 function setVisualClass(action, moving = false) {
   pet.className = petProfile && petProfile.photoDataUrl && petProfile.assetMode !== 'generated' ? 'photo-pet' : '';
@@ -57,10 +60,6 @@ function setVisualClass(action, moving = false) {
 }
 
 function showFrame() {
-  if (petProfile && petProfile.photoDataUrl && petProfile.assetMode !== 'generated') {
-    pet.src = petProfile.photoDataUrl;
-    return;
-  }
   const frames = actions[currentAction];
   pet.src = frames[frameIndex % frames.length];
   frameIndex += 1;
@@ -131,8 +130,8 @@ function applyPetProfile() {
   petSetup.classList.remove('visible');
   document.body.dataset.hasPet = 'true';
   if (petProfile.photoDataUrl) {
-    pet.classList.add('photo-pet');
-    pet.src = petProfile.photoDataUrl;
+    pet.classList.toggle('photo-pet', petProfile.assetMode !== 'generated');
+    pet.src = petProfile.assetMode === 'generated' ? actions.idle[0] : petProfile.photoDataUrl;
   } else {
     pet.classList.remove('photo-pet');
   }
@@ -220,20 +219,31 @@ petPhotoInput.addEventListener('change', () => {
   if (!file) return;
   const reader = new FileReader();
   reader.addEventListener('load', () => {
-    petPhotoPreview.src = reader.result;
+    selectedPhotoDataUrl = reader.result;
+    petPhotoPreview.src = selectedPhotoDataUrl;
     petPhotoPreview.classList.add('visible');
     photoPrompt.textContent = 'Photo selected';
+    assetNote.textContent = 'Photo received. Next step: generate a full-body animated sprite sheet from this pet, then extract transparent action frames.';
   });
   reader.readAsDataURL(file);
 });
 
+generatePet.addEventListener('click', () => {
+  if (!selectedPhotoDataUrl && !petPhotoPreview.src) {
+    assetNote.textContent = 'Choose a pet photo first. A full-body photo gives the generator enough shape, markings, and posture information.';
+    return;
+  }
+  assetNote.textContent = 'Generation backend is not wired into this local app yet. In the finished product, this button sends the photo to the sprite generator and returns idle/scout/sleep/celebrate transparent frames. For now, use the Tieguo dev sample to test the lead flow.';
+});
+
 createPet.addEventListener('click', async () => {
-  const photoDataUrl = petPhotoPreview.src || '';
+  const photoDataUrl = selectedPhotoDataUrl || petPhotoPreview.src || '';
   const name = petNameInput.value.trim() || 'Your pet';
   savePetProfile({
     name,
     photoDataUrl,
-    assetMode: photoDataUrl ? 'photo-placeholder' : 'default-teiguo',
+    assetMode: 'generated',
+    generatedFrom: photoDataUrl ? 'uploaded-photo-dev-sample' : 'default-teiguo',
     createdAt: new Date().toISOString()
   });
   applyPetProfile();
