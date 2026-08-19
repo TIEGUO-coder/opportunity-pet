@@ -134,7 +134,7 @@ function applyPetProfile() {
   if (!petProfile) {
     petSetup.classList.add('visible');
     document.body.dataset.view = 'setup';
-    bridge.setMode('lead');
+    bridge.setMode('setup');
     return;
   }
 
@@ -256,17 +256,6 @@ function readFileAsDataUrl(file) {
   });
 }
 
-function drawRoundedRect(context, x, y, width, height, radius) {
-  const r = Math.min(radius, width / 2, height / 2);
-  context.beginPath();
-  context.moveTo(x + r, y);
-  context.arcTo(x + width, y, x + width, y + height, r);
-  context.arcTo(x + width, y + height, x, y + height, r);
-  context.arcTo(x, y + height, x, y, r);
-  context.arcTo(x, y, x + width, y, r);
-  context.closePath();
-}
-
 function drawImageCover(context, img, x, y, width, height) {
   const sourceRatio = img.naturalWidth / img.naturalHeight;
   const targetRatio = width / height;
@@ -299,25 +288,13 @@ function makePetFrame(img, action, frame) {
   const sleepBreath = action === 'sleep' ? bob * 2 : 0;
 
   context.save();
-  context.globalAlpha = 0.24;
-  context.fillStyle = '#2a251d';
-  context.beginPath();
-  context.ellipse(140, 246, action === 'sleep' ? 76 : 58, 12, 0, 0, Math.PI * 2);
-  context.fill();
-  context.restore();
-
-  context.save();
   if (action === 'sleep') {
     context.translate(140, 158 + sleepBreath);
     context.rotate(-0.08);
-    drawRoundedRect(context, -102, -58, 204, 132, 54);
-    context.clip();
     drawImageCover(context, img, -116, -72, 232, 160);
   } else {
     context.translate(140 + walkShift, 142 + idleLift);
     context.rotate(happyTilt);
-    drawRoundedRect(context, -92, -112, 184, 226, 74);
-    context.clip();
     drawImageCover(context, img, -106, -124, 212, 248);
   }
   context.restore();

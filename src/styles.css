@@ -47,9 +47,9 @@ body[data-view="setup"] {
 .lead-card.visible + .pet-wrap {
   left: 50%;
   right: auto;
-  bottom: -8px;
-  width: 186px;
-  height: 178px;
+  bottom: -4px;
+  width: 138px;
+  height: 132px;
   transform: translateX(-50%);
   z-index: 5;
 }
@@ -72,42 +72,14 @@ body[data-view="setup"] {
 
 #pet.photo-pet {
   left: 50%;
-  bottom: 18px;
-  max-width: 86%;
-  max-height: 86%;
-  border: 3px solid rgba(255, 252, 243, 0.9);
-  border-radius: 34% 42% 38% 44%;
-  background:
-    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.7), transparent 30%),
-    rgba(255, 252, 243, 0.82);
-  object-fit: cover;
-  box-shadow:
-    inset 0 0 0 1px rgba(43, 36, 27, 0.08),
-    0 5px 0 rgba(101, 119, 104, 0.18);
-}
-
-.pet-wrap:has(#pet.photo-pet)::before,
-.pet-wrap:has(#pet.photo-pet)::after {
-  content: "";
-  position: absolute;
-  bottom: 91px;
-  width: 28px;
-  height: 34px;
-  border: 3px solid rgba(255, 252, 243, 0.9);
-  border-bottom: 0;
-  background: #d8c29e;
-  clip-path: polygon(50% 0, 100% 100%, 0 100%);
-  z-index: -1;
-}
-
-.pet-wrap:has(#pet.photo-pet)::before {
-  left: 28px;
-  transform: rotate(-19deg);
-}
-
-.pet-wrap:has(#pet.photo-pet)::after {
-  right: 28px;
-  transform: rotate(18deg);
+  bottom: 0;
+  max-width: 100%;
+  max-height: 100%;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+  box-shadow: none;
 }
 
 .photo-feet {
@@ -125,10 +97,6 @@ body[data-view="setup"] {
   border-radius: 999px;
   background: rgba(255, 252, 243, 0.94);
   box-shadow: inset 0 -2px 0 rgba(43, 36, 27, 0.16);
-}
-
-.pet-wrap:has(#pet.photo-pet) .photo-feet {
-  display: flex;
 }
 
 .pet-wrap:has(#pet.photo-pet.bob) .photo-feet span:first-child,
@@ -308,13 +276,13 @@ body[data-view="setup"] {
 }
 
 .lead-card {
-  left: 22px;
-  right: 22px;
-  top: 18px;
-  max-height: calc(100vh - 154px);
-  padding: 22px;
+  left: 16px;
+  right: 16px;
+  top: 14px;
+  max-height: calc(100vh - 118px);
+  padding: 16px;
   border-color: rgba(78, 70, 56, 0.22);
-  border-radius: 20px;
+  border-radius: 18px;
   background: rgba(242, 238, 229, 0.97);
   box-shadow:
     0 14px 30px rgba(45, 35, 20, 0.18),
@@ -349,26 +317,26 @@ body[data-view="setup"] {
 }
 
 .eyebrow {
-  margin: 0 0 10px;
+  margin: 0 0 7px;
   color: #7b776e;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 900;
   letter-spacing: 0;
 }
 
 h1 {
   margin: 0;
-  max-width: 410px;
+  max-width: 330px;
   color: #272420;
-  font-size: 28px;
+  font-size: 22px;
   line-height: 1.1;
   letter-spacing: 0;
 }
 
 .summary {
-  margin: 12px 0 14px;
+  margin: 10px 0 12px;
   color: #59544d;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 750;
   line-height: 1.22;
 }
@@ -610,11 +578,11 @@ h1 {
 }
 
 .lead-card .status-pill {
-  margin-bottom: 28px;
-  padding: 9px 22px;
+  margin-bottom: 18px;
+  padding: 7px 18px;
   background: #e3e7dd;
   color: #5a7165;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 650;
 }
 
@@ -657,7 +625,7 @@ dd {
 
 .action-stack {
   display: grid;
-  gap: 12px;
+  gap: 9px;
   position: relative;
   z-index: 6;
 }
@@ -673,10 +641,10 @@ button {
 .secondary-action,
 .review-action {
   width: 100%;
-  min-height: 54px;
-  padding: 10px 18px;
-  border-radius: 16px;
-  font-size: 20px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  font-size: 17px;
   font-weight: 650;
 }
 
