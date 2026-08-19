@@ -57,6 +57,19 @@ body[data-view="lead"] .pet-wrap {
   cursor: grabbing;
 }
 
+.pet-wrap.pacing {
+  animation: paceAround 1.35s ease-in-out infinite;
+}
+
+.pet-wrap.found #pet {
+  animation: faceOwner 420ms ease-out both;
+}
+
+.pet-wrap.rolling #pet {
+  transform-origin: 50% 78%;
+  animation: rollOnce 700ms ease-in-out 2;
+}
+
 #pet {
   position: absolute;
   left: 50%;
@@ -796,6 +809,43 @@ button {
   }
   50% {
     transform: translateX(-50%) translateY(-2px);
+  }
+}
+
+@keyframes paceAround {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-18px);
+  }
+  50% {
+    transform: translateX(0);
+  }
+  75% {
+    transform: translateX(18px);
+  }
+}
+
+@keyframes faceOwner {
+  0% {
+    transform: translateX(-50%) scale(0.94) rotate(-4deg);
+  }
+  100% {
+    transform: translateX(-50%) scale(1) rotate(0);
+  }
+}
+
+@keyframes rollOnce {
+  0% {
+    transform: translateX(-50%) rotate(0) translateY(0);
+  }
+  45% {
+    transform: translateX(-50%) rotate(185deg) translateY(5px);
+  }
+  100% {
+    transform: translateX(-50%) rotate(360deg) translateY(0);
   }
 }
 

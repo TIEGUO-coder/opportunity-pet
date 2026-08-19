@@ -53,6 +53,26 @@ let manualModeUntil = 0;
 let petProfile = loadPetProfile();
 let selectedPhotoDataUrls = [];
 let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || '';
+let petMotionTimer = null;
+let isScouting = false;
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function setPetMotion(motion, duration = 0) {
+  clearTimeout(petMotionTimer);
+  petWrap.classList.remove('pacing', 'found', 'rolling');
+  if (motion) petWrap.classList.add(motion);
+  if (motion && duration > 0) {
+    petMotionTimer = setTimeout(() => {
+      petWrap.classList.remove(motion);
+      if (motion === 'rolling') petWrap.classList.add('found');
+    }, duration);
+  }
+}
 
 function setVisualClass(action, moving = false) {
   pet.className = petProfile && petProfile.photoDataUrl && petProfile.assetMode !== 'generated' ? 'photo-pet' : '';
@@ -163,15 +183,32 @@ async function showLeadCard() {
   document.body.dataset.view = 'lead';
   briefPanel.classList.remove('visible');
   document.getElementById('leadStatus').textContent = 'Waiting for owner approval';
-  startAnimation('happy', 320, false);
+  stopAnimationOnFirstFrame('idle');
+  setPetMotion('found');
   manualModeUntil = Date.now() + 1600;
   await bridge.setMode('lead');
+}
+
+async function scoutForLead() {
+  if (isScouting || leadCard.classList.contains('visible')) return;
+  isScouting = true;
+  clearTimeout(scoutingTimer);
+  document.body.dataset.view = 'pet';
+  setPetMotion('pacing');
+  stopAnimationOnFirstFrame('idle');
+  manualModeUntil = Date.now() + 2200;
+  await bridge.setMode('pet');
+  await wait(1700);
+  setPetMotion('');
+  await showLeadCard();
+  isScouting = false;
 }
 
 async function closeLeadCardView() {
   leadCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
   document.body.dataset.view = 'pet';
+  setPetMotion('');
   await bridge.setMode('pet');
   stopAnimationOnFirstFrame('idle');
   scheduleScouting();
@@ -180,28 +217,32 @@ async function closeLeadCardView() {
 function scheduleScouting() {
   clearTimeout(scoutingTimer);
   if (!petProfile) return;
-  scoutingTimer = setTimeout(showLeadCard, 7000);
+  scoutingTimer = setTimeout(scoutForLead, 7000);
 }
 
 function approveCurrentLead() {
   document.getElementById('leadStatus').textContent = 'Marked actionable. Ready for grilling.';
   leadCard.dataset.approved = 'true';
-  startAnimation('happy', 260, false);
+  stopAnimationOnFirstFrame('idle');
+  setPetMotion('found');
 }
 
-function skipCurrentLead() {
+async function skipCurrentLead() {
   leadCard.dataset.approved = 'false';
+  leadCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
-  nextLead();
-  document.getElementById('leadStatus').textContent = 'Still scouting. Fresh lead queued.';
-  startAnimation('walk', 280, true);
+  setPetMotion('');
+  document.body.dataset.view = 'pet';
+  await bridge.setMode('pet');
+  await scoutForLead();
 }
 
 function reviewCurrentPlan() {
   document.getElementById('leadStatus').textContent = 'Grilling brief prepared.';
   leadCard.dataset.approved = 'true';
   briefPanel.classList.add('visible');
-  startAnimation('happy', 320, false);
+  stopAnimationOnFirstFrame('idle');
+  setPetMotion('rolling', 1400);
 }
 
 function handleImageError() {
@@ -419,7 +460,7 @@ generatePet.addEventListener('click', async () => {
   generatePet.disabled = false;
   assetNote.textContent = 'Animated scout generated. It is ready to bring back opportunities.';
   applyPetProfile();
-  await showLeadCard();
+  await scoutForLead();
 });
 
 spriteSheetInput.addEventListener('change', async () => {
@@ -451,7 +492,7 @@ startScouting.addEventListener('click', async () => {
     createdAt: new Date().toISOString()
   });
   applyPetProfile();
-  await showLeadCard();
+  await scoutForLead();
 });
 
 createPet.addEventListener('click', async () => {
@@ -466,13 +507,13 @@ createPet.addEventListener('click', async () => {
     createdAt: new Date().toISOString()
   });
   applyPetProfile();
-  await showLeadCard();
+  await scoutForLead();
 });
 closeCard.addEventListener('click', closeLeadCardView);
 approveLead.addEventListener('click', approveCurrentLead);
 skipLead.addEventListener('click', skipCurrentLead);
 reviewPlan.addEventListener('click', reviewCurrentPlan);
-scoutNow.addEventListener('click', showLeadCard);
+scoutNow.addEventListener('click', scoutForLead);
 
 petWrap.addEventListener('pointerdown', (event) => {
   dragging = { x: event.screenX, y: event.screenY, moved: false };
@@ -494,7 +535,7 @@ petWrap.addEventListener('pointermove', (event) => {
 petWrap.addEventListener('pointerup', (event) => {
   petWrap.releasePointerCapture(event.pointerId);
   petWrap.classList.remove('dragging');
-  if (dragging && !dragging.moved) showLeadCard();
+  if (dragging && !dragging.moved) scoutForLead();
   dragging = null;
 });
 
