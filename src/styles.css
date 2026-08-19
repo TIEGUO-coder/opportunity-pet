@@ -414,18 +414,26 @@ h1 {
   display: none;
 }
 
-#petPhotoPreview {
+.photo-preview-grid {
   display: none;
   width: 100%;
-  max-height: 230px;
-  object-fit: contain;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 8px;
 }
 
-#petPhotoPreview.visible {
-  display: block;
+.photo-preview-grid.visible {
+  display: grid;
 }
 
-#petPhotoPreview.visible + #photoPrompt {
+.photo-preview-grid img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 0 0 1px rgba(58, 52, 42, 0.14);
+}
+
+.photo-preview-grid.visible + #photoPrompt {
   display: none;
 }
 

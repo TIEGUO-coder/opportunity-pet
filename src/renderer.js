@@ -48,7 +48,7 @@ let dragging = null;
 let lastCursor = null;
 let manualModeUntil = 0;
 let petProfile = loadPetProfile();
-let selectedPhotoDataUrl = '';
+let selectedPhotoDataUrls = [];
 
 function setVisualClass(action, moving = false) {
   pet.className = petProfile && petProfile.photoDataUrl && petProfile.assetMode !== 'generated' ? 'photo-pet' : '';
@@ -215,35 +215,49 @@ function handleImageLoad() {
 pet.addEventListener('error', handleImageError);
 pet.addEventListener('load', handleImageLoad);
 petPhotoInput.addEventListener('change', () => {
-  const file = petPhotoInput.files && petPhotoInput.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.addEventListener('load', () => {
-    selectedPhotoDataUrl = reader.result;
-    petPhotoPreview.src = selectedPhotoDataUrl;
+  const files = Array.from(petPhotoInput.files || []).slice(0, 5);
+  if (!files.length) return;
+  selectedPhotoDataUrls = [];
+  petPhotoPreview.innerHTML = '';
+
+  Promise.all(files.map((file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => resolve(reader.result));
+    reader.readAsDataURL(file);
+  }))).then((images) => {
+    selectedPhotoDataUrls = images;
     petPhotoPreview.classList.add('visible');
-    photoPrompt.textContent = 'Photo selected';
-    assetNote.textContent = 'Photo received. Next step: generate a full-body animated sprite sheet from this pet, then extract transparent action frames.';
+    images.forEach((src, index) => {
+      const img = document.createElement('img');
+      img.src = src;
+      img.alt = `Pet source ${index + 1}`;
+      petPhotoPreview.appendChild(img);
+    });
+    photoPrompt.textContent = `${images.length} photo${images.length > 1 ? 's' : ''} selected`;
+    const enough = images.length >= 3;
+    assetNote.textContent = enough
+      ? 'Photo set received. Next step: infer an identity sheet from these angles, then generate transparent action frames.'
+      : 'Add at least 3 photos so the generator can infer the whole pet instead of guessing from one angle.';
   });
-  reader.readAsDataURL(file);
 });
 
 generatePet.addEventListener('click', () => {
-  if (!selectedPhotoDataUrl && !petPhotoPreview.src) {
-    assetNote.textContent = 'Choose a pet photo first. A full-body photo gives the generator enough shape, markings, and posture information.';
+  if (selectedPhotoDataUrls.length < 3) {
+    assetNote.textContent = 'Choose 3-5 pet photos first. One photo is too easy to misread; multiple angles make the generated pet consistent.';
     return;
   }
-  assetNote.textContent = 'Generation backend is not wired into this local app yet. In the finished product, this button sends the photo to the sprite generator and returns idle/scout/sleep/celebrate transparent frames. For now, use the Tieguo dev sample to test the lead flow.';
+  assetNote.textContent = 'Generation backend is not wired into this local app yet. Final flow: photos -> identity sheet -> approved sprite sheet -> idle/scout/sleep/celebrate frames. For now, use the Tieguo dev sample to test the lead flow.';
 });
 
 createPet.addEventListener('click', async () => {
-  const photoDataUrl = selectedPhotoDataUrl || petPhotoPreview.src || '';
+  const photoDataUrl = selectedPhotoDataUrls[0] || '';
   const name = petNameInput.value.trim() || 'Your pet';
   savePetProfile({
     name,
     photoDataUrl,
     assetMode: 'generated',
-    generatedFrom: photoDataUrl ? 'uploaded-photo-dev-sample' : 'default-teiguo',
+    sourcePhotoCount: selectedPhotoDataUrls.length,
+    generatedFrom: photoDataUrl ? 'photo-set-dev-sample' : 'default-teiguo',
     createdAt: new Date().toISOString()
   });
   applyPetProfile();

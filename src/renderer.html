@@ -11,18 +11,18 @@
       <section id="petSetup" class="pet-setup">
         <p class="eyebrow">GENERATE YOUR SCOUT PET</p>
         <h1>Turn your pet into the scout.</h1>
-        <p class="summary">Upload a full pet photo first. Opportunity Pet should generate the whole animal as an animated character before it starts bringing back leads.</p>
+        <p class="summary">Upload 3-5 pet photos first. Opportunity Pet should infer a character sheet, then generate the whole animal as an animated scout before it starts bringing back leads.</p>
         <label class="photo-drop">
-          <input id="petPhotoInput" type="file" accept="image/*">
-          <img id="petPhotoPreview" alt="">
-          <span id="photoPrompt">Choose pet photo</span>
+          <input id="petPhotoInput" type="file" accept="image/*" multiple>
+          <div id="petPhotoPreview" class="photo-preview-grid" aria-label="Selected pet photos"></div>
+          <span id="photoPrompt">Choose 3-5 pet photos</span>
         </label>
         <div class="pipeline-steps" aria-label="Pet generation pipeline">
-          <span class="active">1 Photo source</span>
-          <span>2 Animated character</span>
-          <span>3 Scout leads</span>
+          <span class="active">1 Photo set</span>
+          <span>2 Identity sheet</span>
+          <span>3 Animated scout</span>
         </div>
-        <p id="assetNote" class="asset-note">The uploaded photo is source material, not the final pet. The final pet should be a transparent sprite sheet with idle, scout, sleep, and celebrate actions.</p>
+        <p id="assetNote" class="asset-note">Upload 3-5 angles or moments: face, side body, standing, sleeping, and any distinctive markings. These photos are source material, not the final pet.</p>
         <input id="petNameInput" class="name-input" type="text" placeholder="Pet name, e.g. 铁锅">
         <button type="button" id="generatePet" class="review-action">Generate animated pet</button>
         <button type="button" id="createPet" class="secondary-action">Use Tieguo dev sample</button>
