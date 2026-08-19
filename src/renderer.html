@@ -17,6 +17,7 @@
           <img id="petPhotoPreview" alt="">
           <span id="photoPrompt">Choose pet photo</span>
         </label>
+        <p class="asset-note">MVP uses your photo as an animated scout preview. Generated sprite animations come next.</p>
         <input id="petNameInput" class="name-input" type="text" placeholder="Pet name, e.g. 铁锅">
         <button type="button" id="createPet" class="review-action">Create scout pet</button>
       </section>
@@ -74,7 +75,16 @@
       </section>
 
       <div id="petWrap" class="pet-wrap">
+        <div id="petSparkles" class="pet-sparkles" aria-hidden="true">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
         <img id="pet" alt="铁锅" draggable="false">
+        <div class="photo-feet" aria-hidden="true">
+          <span></span>
+          <span></span>
+        </div>
         <div id="fallbackPet" aria-hidden="true">
           <div class="ear left"></div>
           <div class="ear right"></div>

@@ -63,12 +63,111 @@ body {
 }
 
 #pet.photo-pet {
+  left: 50%;
+  bottom: 18px;
   max-width: 86%;
   max-height: 86%;
   border: 3px solid rgba(255, 252, 243, 0.9);
-  border-radius: 32px;
-  background: rgba(255, 252, 243, 0.82);
+  border-radius: 34% 42% 38% 44%;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.7), transparent 30%),
+    rgba(255, 252, 243, 0.82);
   object-fit: cover;
+  box-shadow:
+    inset 0 0 0 1px rgba(43, 36, 27, 0.08),
+    0 5px 0 rgba(101, 119, 104, 0.18);
+}
+
+.pet-wrap:has(#pet.photo-pet)::before,
+.pet-wrap:has(#pet.photo-pet)::after {
+  content: "";
+  position: absolute;
+  bottom: 91px;
+  width: 28px;
+  height: 34px;
+  border: 3px solid rgba(255, 252, 243, 0.9);
+  border-bottom: 0;
+  background: #d8c29e;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  z-index: -1;
+}
+
+.pet-wrap:has(#pet.photo-pet)::before {
+  left: 28px;
+  transform: rotate(-19deg);
+}
+
+.pet-wrap:has(#pet.photo-pet)::after {
+  right: 28px;
+  transform: rotate(18deg);
+}
+
+.photo-feet {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  display: none;
+  gap: 34px;
+  transform: translateX(-50%);
+}
+
+.photo-feet span {
+  width: 24px;
+  height: 13px;
+  border-radius: 999px;
+  background: rgba(255, 252, 243, 0.94);
+  box-shadow: inset 0 -2px 0 rgba(43, 36, 27, 0.16);
+}
+
+.pet-wrap:has(#pet.photo-pet) .photo-feet {
+  display: flex;
+}
+
+.pet-wrap:has(#pet.photo-pet.bob) .photo-feet span:first-child,
+.pet-wrap:has(#pet.photo-pet.scouting) .photo-feet span:first-child {
+  animation: footstep 520ms ease-in-out infinite;
+}
+
+.pet-wrap:has(#pet.photo-pet.bob) .photo-feet span:last-child,
+.pet-wrap:has(#pet.photo-pet.scouting) .photo-feet span:last-child {
+  animation: footstep 520ms ease-in-out 260ms infinite;
+}
+
+.pet-sparkles {
+  position: absolute;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+}
+
+.pet-sparkles span {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #f7d36c;
+  box-shadow: 0 0 0 3px rgba(247, 211, 108, 0.18);
+}
+
+.pet-sparkles span:nth-child(1) {
+  left: 18px;
+  top: 18px;
+}
+
+.pet-sparkles span:nth-child(2) {
+  right: 20px;
+  top: 30px;
+}
+
+.pet-sparkles span:nth-child(3) {
+  left: 50%;
+  top: 4px;
+}
+
+.pet-wrap:has(#pet.photo-pet.happy) .pet-sparkles,
+.pet-wrap:has(#pet.photo-pet.scouting) .pet-sparkles {
+  display: block;
+  animation: sparkleFloat 900ms ease-in-out infinite;
 }
 
 #fallbackPet {
@@ -321,6 +420,14 @@ h1 {
   outline: none;
 }
 
+.asset-note {
+  margin: -2px 0 12px;
+  color: #777067;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+}
+
 .status-pill {
   display: inline-flex;
   max-width: 100%;
@@ -507,5 +614,27 @@ button {
   }
   50% {
     transform: translateX(-50%) translateY(-4px);
+  }
+}
+
+@keyframes footstep {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0);
+  }
+  50% {
+    transform: translateY(-3px) rotate(-7deg);
+  }
+}
+
+@keyframes sparkleFloat {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-5px);
   }
 }

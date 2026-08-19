@@ -48,7 +48,7 @@ let manualModeUntil = 0;
 let petProfile = loadPetProfile();
 
 function setVisualClass(action, moving = false) {
-  pet.className = '';
+  pet.className = petProfile && petProfile.photoDataUrl && petProfile.assetMode !== 'generated' ? 'photo-pet' : '';
   fallbackPet.className = fallbackPet.className.replace(/\b(bob|happy|scouting)\b/g, '').trim();
   const target = pet.complete && pet.naturalWidth > 0 ? pet : fallbackPet;
   if (moving && action === 'walk') target.classList.add('bob');
