@@ -46,9 +46,9 @@ body[data-view="setup"] {
 body[data-view="lead"] .pet-wrap {
   left: 50%;
   right: auto;
-  bottom: 10px;
-  width: 92px;
-  height: 102px;
+  bottom: 12px;
+  width: 108px;
+  height: 120px;
   transform: translateX(-50%);
   z-index: 4;
 }

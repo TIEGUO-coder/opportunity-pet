@@ -227,6 +227,21 @@ function approveCurrentLead() {
   setPetMotion('found');
 }
 
+function buildGrillingBrief() {
+  if (!currentLead) return '';
+  return `Use the grilling skill on this opportunity. Ask me one question at a time, give your recommended answer for each question, and do not move forward until I answer.
+
+Opportunity: ${currentLead.title}
+Type: ${currentLead.type}
+Why it might matter: ${currentLead.summary}
+Public signals to inspect: ${currentLead.evidence}
+Risk: ${currentLead.risk}
+Small experiment: ${currentLead.v1}
+
+Questions to start with:
+${currentLead.grillQuestions.map((question) => `- ${question}`).join('\n')}`;
+}
+
 async function skipCurrentLead() {
   leadCard.dataset.approved = 'false';
   leadCard.classList.remove('visible');
@@ -237,12 +252,17 @@ async function skipCurrentLead() {
   await scoutForLead();
 }
 
-function reviewCurrentPlan() {
-  document.getElementById('leadStatus').textContent = 'Grilling brief prepared.';
+async function reviewCurrentPlan() {
+  document.getElementById('leadStatus').textContent = 'Grilling brief copied.';
   leadCard.dataset.approved = 'true';
   briefPanel.classList.add('visible');
   stopAnimationOnFirstFrame('idle');
   setPetMotion('rolling', 1400);
+  try {
+    await navigator.clipboard.writeText(buildGrillingBrief());
+  } catch {
+    document.getElementById('leadStatus').textContent = 'Grilling brief prepared.';
+  }
 }
 
 function handleImageError() {
