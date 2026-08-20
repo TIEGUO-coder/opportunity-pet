@@ -33,11 +33,10 @@ function makeStrip(actionIndex) {
 async function main() {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'opportunity-pet-generation-'));
   const fakeStrips = path.join(tempRoot, 'fake-strips');
-  const fakeCodex = path.join(tempRoot, 'fake-codex');
+  const fakeCodex = path.join(tempRoot, 'fake-codex.js');
   fs.mkdirSync(fakeStrips, { recursive: true });
   ACTIONS.forEach((action, index) => fs.writeFileSync(path.join(fakeStrips, `${action}.png`), makeStrip(index)));
-  fs.writeFileSync(fakeCodex, `#!/usr/bin/env node
-const fs = require('fs');
+  fs.writeFileSync(fakeCodex, `const fs = require('fs');
 const path = require('path');
 const output = path.join(process.cwd(), 'output');
 fs.mkdirSync(output, { recursive: true });
@@ -46,7 +45,6 @@ for (const action of ${JSON.stringify(ACTIONS)}) {
 }
 fs.writeFileSync(path.join(output, 'manifest.json'), JSON.stringify({ version: 1 }));
 `);
-  fs.chmodSync(fakeCodex, 0o755);
 
   const previousFixturePath = process.env.OPPORTUNITY_PET_FAKE_STRIPS;
   process.env.OPPORTUNITY_PET_FAKE_STRIPS = fakeStrips;

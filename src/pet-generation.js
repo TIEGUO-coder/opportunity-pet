@@ -139,10 +139,20 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
     photoPaths.forEach((photo) => args.push('--image', photo));
     args.push(prompt);
 
-    const child = spawn(codexPath, args, { cwd: jobDir, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const isNodeScript = path.extname(codexPath).toLowerCase() === '.js';
+    const executable = isNodeScript ? process.execPath : codexPath;
+    const spawnArgs = isNodeScript ? [codexPath, ...args] : args;
+    const child = spawn(executable, spawnArgs, { cwd: jobDir, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
     let output = '';
+    let settled = false;
+    const writeLog = () => {
+      fs.writeFileSync(path.join(jobDir, 'codex.log'), output);
+    };
     const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
       child.kill();
+      writeLog();
       reject(new Error('Codex generation timed out after 20 minutes.'));
     }, GENERATION_TIMEOUT_MS);
 
@@ -156,12 +166,17 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
     child.stdout.on('data', collect);
     child.stderr.on('data', collect);
     child.on('error', (error) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
+      writeLog();
       reject(error);
     });
     child.on('close', (code) => {
+      if (settled) return;
+      settled = true;
       clearTimeout(timer);
-      fs.writeFileSync(path.join(jobDir, 'codex.log'), output);
+      writeLog();
       if (code === 0) resolve(output);
       else reject(new Error(`Codex exited with code ${code}. Open Codex once, confirm you are signed in, and try again.`));
     });
