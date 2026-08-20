@@ -1,35 +1,73 @@
 # Opportunity Pet
 
-Opportunity Pet is a free, open-source desktop scout pet workflow. A user imports 3-5 photos of their own pet, generates a ready-to-use animated scout with their signed-in Codex, and then the pet brings back product opportunity cards for the user to explore however they want.
+> A tiny desktop pet that brings back product opportunities, asks whether they are worth chasing, and turns the good ones into a brief for serious project planning.
 
-Tieguo is only the default test pet in this local prototype.
+![Opportunity Pet sprite sheet](assets/source/teiguo-expressive-spritesheet.png)
 
-## Current MVP
+Opportunity Pet is a free, open-source experiment for builders who collect too many ideas and execute too few of them.
 
-- Import 3-5 pet photos and a pet name.
-- Generate a multi-view character sheet and six identity-consistent task states with one click.
-- Call the user's own Codex CLI; no Opportunity Pet API key or prompt copying is required.
-- Fall back to basic local photo motion when Codex is unavailable.
-- Optionally import a professionally generated sprite sheet; legacy 4x4 sheets remain supported.
-- Show a small Electron desktop pet with optional always-on-top, minimize, and change-pet controls.
-- Open an opportunity card with approval actions.
-- Copy a Grill-with-docs handoff brief when the user wants to stress-test a lead and turn it into routemap-ready material.
+You give it 3-5 photos of your own pet. It creates a small animated scout. The pet wanders around your desktop, brings back a money-adjacent opportunity card, and lets you either reject it, approve it, or copy a Grill-with-docs brief for deeper planning.
 
-The AI path requires the Codex CLI to be installed and signed in. It uses the user's Codex access and may count against that account's usage limits, but Opportunity Pet does not require a separate image API key or operate a paid backend. Selected photos are copied to the app's user-data directory for the generation job and those temporary input copies are deleted afterward. Generated action assets remain local. Tieguo remains a development sample.
+It is deliberately a little silly. That is the point. The pet is the hook; the real loop is:
 
-Opportunity Pet does not charge users, promise revenue, or decide what the user should build. It only surfaces practical money-adjacent leads, public signals to inspect, and small experiments a GitHub user could try.
+```text
+notice a lead -> stress-test it -> turn it into tasks -> keep the work moving
+```
+
+That loop is the part we care about. If the idea of ongoing AI work feels interesting, look at the system this experiment is pointing toward: [MAH Product System](https://dev.mah.bot/product).
+
+## Why This Exists
+
+Most AI project ideas die in one of three places:
+
+- They stay as bookmarks.
+- They become a giant prompt nobody wants to run twice.
+- They start in a chat window and lose context before anything real ships.
+
+Opportunity Pet makes that failure mode visible and playful. A pet brings you a lead. You make one small decision. The next step is not "vibe harder"; it is a structured brief that can become a routemap, tasks, scheduled follow-ups, and reviewable work.
+
+This repo is the toy version of a larger question:
+
+> What if AI work did not live inside one disappearing chat, but inside an ongoing project system with context, agents, recovery, and human decisions?
+
+That is the MAH-shaped question.
+
+## What It Does Today
+
+- Imports 3-5 pet photos and a pet name.
+- Uses the user's signed-in Codex CLI to generate a personalized animated pet action pack.
+- Creates six action states: idle, side-walk scout, curled sleep, happy response, butterfly chase, and yawn.
+- Falls back to basic local photo animation when Codex is unavailable.
+- Runs as a small transparent Electron desktop pet.
+- Lets the pet scout demo opportunity cards.
+- Copies a Grill-with-docs brief for leads the user wants to stress-test.
+- Includes packaged desktop downloads for macOS, Windows, and Linux.
+
+Tieguo is only the default development sample. Your pet is supposed to replace him.
+
+## The Demo Loop
+
+1. Import a few photos of your pet.
+2. Generate a tiny animated scout.
+3. Let it bring back an opportunity card.
+4. Approve the lead or send the pet back out.
+5. Copy the Grill-with-docs brief.
+6. Turn the fuzzy lead into a routemap-ready plan.
+7. Continue the work in a real ongoing-work system such as [MAH](https://dev.mah.bot/product).
+
+The current opportunities are intentionally simple examples for GitHub builders: local-business review tools, home-service quote helpers, resale listing polishers, and similar small experiments that can be researched from public signals.
 
 ## Download
 
-Open the repository's **Releases** page and download the file for your system:
+Open the repository's **Releases** page and download the build for your system:
 
-- macOS: ARM64 for Apple Silicon, or x64 for Intel Macs (`.dmg` or `.zip`)
-- Windows: clearly named Setup or Portable `.exe`
+- macOS: Apple Silicon or Intel `.dmg` / `.zip`
+- Windows: Setup or Portable `.exe`
 - Linux: `.AppImage`
 
 These early community builds are not code-signed. macOS may require right-clicking the app and choosing **Open** the first time. Windows SmartScreen may require **More info > Run anyway**. Only download builds from this repository.
 
-## Run from source
+## Run From Source
 
 ```bash
 npm install
@@ -47,7 +85,7 @@ npm run install:electron
 npm run start
 ```
 
-## Build an installable app
+## Build The Desktop App
 
 ```bash
 npm ci
@@ -55,14 +93,30 @@ npm run check
 npm run dist
 ```
 
-Build output is written to `release/`. The included GitHub Actions workflow builds macOS, Windows, and Linux artifacts. Creating a tag such as `v0.1.0` also publishes those artifacts to a GitHub Release.
+Build output is written to `release/`. The included GitHub Actions workflow builds macOS, Windows, and Linux artifacts. Creating a tag such as `v0.1.0` publishes those artifacts to a GitHub Release.
 
-## Product Path
+## Privacy And Boundaries
 
-1. User imports 3-5 pet photos.
-2. User clicks Generate with Codex.
-3. The bundled `pet-action-pack` skill first infers a multi-view identity sheet, then creates idle, side-walk, sleep, response, butterfly-chase, and yawn states.
-4. The animated pet scouts for leads and brings back opportunity cards.
-5. User approves, skips, or copies a Grill-with-docs brief.
-6. Approved leads become Grill-with-docs prompts that can become routemap candidates.
-7. Later: Grilling output routes into MAH routemap.
+Opportunity Pet does not run a paid backend and does not require an Opportunity Pet API key.
+
+The AI generation path uses your signed-in Codex CLI and may count against that account's usage limits. Selected photos are copied into the app's local user-data directory for the generation job, then temporary input copies are deleted. Generated action assets remain local.
+
+Opportunity Pet does not promise revenue, choose what you should build, or automate business decisions. It only turns "maybe this is interesting" into a small decision point and a planning brief.
+
+## How This Points To MAH
+
+Opportunity Pet is not trying to explain MAH in full. It is trying to make one feeling obvious:
+
+> A good AI workflow should keep moving after the first prompt.
+
+MAH is built around that ongoing-work layer: project context, planned multi-agent execution, background continuity, recovery, and decision-ready review. If this pet makes you want a bigger system behind the loop, start here:
+
+[Explore MAH Product System ->](https://dev.mah.bot/product)
+
+## Roadmap
+
+- Replace static demo opportunities with pluggable opportunity sources.
+- Add a cleaner handoff into Grill-with-docs and MAH routemap flows.
+- Improve generated pet quality checks with visual regression tests.
+- Add a short demo video or GIF once the flow is stable enough to show in one glance.
+- Keep the project weird enough that people actually remember it.
