@@ -17,6 +17,7 @@ const createPet = document.getElementById('createPet');
 const closeCard = document.getElementById('closeCard');
 const scoutNow = document.getElementById('scoutNow');
 const pin = document.getElementById('pin');
+const minimize = document.getElementById('minimize');
 const quit = document.getElementById('quit');
 const approveLead = document.getElementById('approveLead');
 const skipLead = document.getElementById('skipLead');
@@ -27,6 +28,7 @@ const bridge = window.teiguoWindow || {
   moveBy: () => Promise.resolve(),
   setAlwaysOnTop: (enabled) => Promise.resolve(Boolean(enabled)),
   setMode: () => Promise.resolve(),
+  minimize: () => Promise.resolve(),
   getCursorPosition: () => Promise.resolve(null),
   getCodexStatus: () => Promise.resolve({ available: false }),
   generatePetWithCodex: () => Promise.resolve({ ok: false, error: 'Codex integration is unavailable.' }),
@@ -64,7 +66,7 @@ let scoutingTimer = null;
 let ambientTimer = null;
 let currentLeadIndex = -1;
 let currentLead = null;
-let pinned = true;
+let pinned = false;
 let dragging = null;
 let lastCursor = null;
 let manualModeUntil = 0;
@@ -74,6 +76,8 @@ let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || 
 let petMotionTimer = null;
 let isScouting = false;
 let codexAvailable = false;
+
+pin.style.opacity = '0.48';
 
 function wait(ms) {
   return new Promise((resolve) => {
@@ -199,8 +203,12 @@ function savePetProfile(profile) {
 function applyPetProfile() {
   if (!petProfile) {
     petSetup.classList.add('visible');
+    petSetup.scrollTop = 0;
     document.body.dataset.view = 'setup';
     bridge.setMode('setup');
+    requestAnimationFrame(() => {
+      petSetup.scrollTop = 0;
+    });
     return;
   }
 
@@ -742,6 +750,11 @@ pin.addEventListener('click', async (event) => {
   event.stopPropagation();
   pinned = await bridge.setAlwaysOnTop(!pinned);
   pin.style.opacity = pinned ? '1' : '0.48';
+});
+
+minimize.addEventListener('click', (event) => {
+  event.stopPropagation();
+  bridge.minimize();
 });
 
 quit.addEventListener('click', (event) => {

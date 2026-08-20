@@ -11,7 +11,7 @@ Tieguo is only the default test pet in this local prototype.
 - Call the user's own Codex CLI; no Opportunity Pet API key or prompt copying is required.
 - Fall back to basic local photo motion when Codex is unavailable.
 - Optionally import a professionally generated sprite sheet; legacy 4x4 sheets remain supported.
-- Show a small always-on-top Electron desktop pet.
+- Show a small Electron desktop pet with optional always-on-top mode and a minimize control.
 - Open an opportunity card with approval actions.
 - Prepare a Grill-with-docs handoff when the user wants to stress-test a lead and turn it into routemap-ready material.
 
@@ -19,7 +19,17 @@ The AI path requires the Codex CLI to be installed and signed in. It uses the us
 
 Opportunity Pet does not charge users, promise revenue, or decide what the user should build. It only surfaces practical money-adjacent leads, public signals to inspect, and small experiments a GitHub user could try.
 
-## Run
+## Download
+
+Open the repository's **Releases** page and download the file for your system:
+
+- macOS: `.dmg` or `.zip`
+- Windows: installer `.exe` or portable `.exe`
+- Linux: `.AppImage`
+
+These early community builds are not code-signed. macOS may require right-clicking the app and choosing **Open** the first time. Windows SmartScreen may require **More info > Run anyway**. Only download builds from this repository.
+
+## Run from source
 
 ```bash
 npm install
@@ -36,6 +46,16 @@ If Electron's postinstall download fails:
 npm run install:electron
 npm run start
 ```
+
+## Build an installable app
+
+```bash
+npm ci
+npm run check
+npm run dist
+```
+
+Build output is written to `release/`. The included GitHub Actions workflow builds macOS, Windows, and Linux artifacts. Creating a tag such as `v0.1.0` also publishes those artifacts to a GitHub Release.
 
 ## Product Path
 

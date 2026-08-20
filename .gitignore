@@ -1,4 +1,5 @@
 node_modules/
+release/
 npm-debug.log*
 .DS_Store
 微信图片_*.jpg

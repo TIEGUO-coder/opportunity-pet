@@ -6,7 +6,7 @@ let petWindow;
 
 const windowSizes = {
   pet: { width: 120, height: 130 },
-  setup: { width: 540, height: 560 },
+  setup: { width: 280, height: 450 },
   lead: { width: 280, height: 450 }
 };
 
@@ -32,10 +32,10 @@ function createWindow() {
     transparent: true,
     resizable: false,
     hasShadow: false,
-    alwaysOnTop: true,
-    skipTaskbar: true,
+    alwaysOnTop: false,
+    skipTaskbar: false,
     backgroundColor: '#00000000',
-    title: '铁锅桌宠',
+    title: 'Opportunity Pet',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -43,7 +43,6 @@ function createWindow() {
     }
   });
 
-  petWindow.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
   petWindow.loadFile(path.join(__dirname, 'renderer.html'));
 }
 
@@ -51,7 +50,12 @@ app.whenReady().then(() => {
   createWindow();
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    if (BrowserWindow.getAllWindows().length === 0) {
+      createWindow();
+      return;
+    }
+    if (petWindow?.isMinimized()) petWindow.restore();
+    petWindow?.show();
   });
 });
 
@@ -82,6 +86,12 @@ ipcMain.handle('window:set-mode', (_event, mode) => {
   const nextY = y + oldHeight - size.height;
   const next = clampWindowPosition(nextX, nextY, size.width, size.height);
   petWindow.setBounds({ x: next.x, y: next.y, width: size.width, height: size.height }, true);
+  return true;
+});
+
+ipcMain.handle('window:minimize', () => {
+  if (!petWindow) return false;
+  petWindow.minimize();
   return true;
 });
 

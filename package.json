@@ -7,7 +7,9 @@
     "install:electron": "npx install-electron --no",
     "prepare:assets": "node scripts/extract-sprites.js",
     "start": "electron .",
-    "check": "node scripts/verify-assets.js && node scripts/test-pet-generation.js"
+    "check": "node scripts/verify-assets.js && node scripts/test-pet-generation.js",
+    "dist": "electron-builder --publish never",
+    "dist:dir": "electron-builder --dir"
   },
   "keywords": [
     "desktop-pet",
@@ -15,13 +17,48 @@
     "opportunity",
     "ai-builder"
   ],
-  "author": "",
-  "license": "UNLICENSED",
+  "author": "TIEGUO-coder",
+  "license": "MIT",
   "private": true,
   "dependencies": {
     "pngjs": "latest"
   },
   "devDependencies": {
-    "electron": "latest"
+    "electron": "latest",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.tieguocoder.opportunitypet",
+    "productName": "Opportunity Pet",
+    "asar": false,
+    "artifactName": "Opportunity-Pet-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "skills/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "category": "Utility",
+      "target": [
+        "AppImage"
+      ]
+    }
   }
 }
