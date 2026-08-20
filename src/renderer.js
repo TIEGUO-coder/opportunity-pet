@@ -35,15 +35,29 @@ const defaultActions = {
   idle: ['../assets/teiguo/idle/idle_001.png', '../assets/teiguo/idle/idle_002.png', '../assets/teiguo/idle/idle_003.png', '../assets/teiguo/idle/idle_004.png'],
   walk: ['../assets/teiguo/walk/walk_001.png', '../assets/teiguo/walk/walk_002.png', '../assets/teiguo/walk/walk_003.png', '../assets/teiguo/walk/walk_004.png'],
   sleep: ['../assets/teiguo/sleep/sleep_001.png', '../assets/teiguo/sleep/sleep_002.png', '../assets/teiguo/sleep/sleep_003.png', '../assets/teiguo/sleep/sleep_004.png'],
-  happy: ['../assets/teiguo/happy/happy_001.png', '../assets/teiguo/happy/happy_002.png', '../assets/teiguo/happy/happy_003.png', '../assets/teiguo/happy/happy_004.png']
+  happy: ['../assets/teiguo/happy/happy_001.png', '../assets/teiguo/happy/happy_002.png', '../assets/teiguo/happy/happy_003.png', '../assets/teiguo/happy/happy_004.png'],
+  chase: ['../assets/teiguo/chase/chase_001.png', '../assets/teiguo/chase/chase_002.png', '../assets/teiguo/chase/chase_003.png', '../assets/teiguo/chase/chase_004.png'],
+  yawn: ['../assets/teiguo/yawn/yawn_001.png', '../assets/teiguo/yawn/yawn_002.png', '../assets/teiguo/yawn/yawn_003.png', '../assets/teiguo/yawn/yawn_004.png']
 };
-let actions = loadImportedActions() || defaultActions;
+
+function withActionFallbacks(imported) {
+  if (!imported) return defaultActions;
+  return {
+    ...defaultActions,
+    ...imported,
+    chase: imported.chase || imported.happy || defaultActions.chase,
+    yawn: imported.yawn || imported.idle || defaultActions.yawn
+  };
+}
+
+let actions = withActionFallbacks(loadImportedActions());
 
 let currentAction = 'idle';
 let frameIndex = 0;
 let animationTimer = null;
 let settleTimer = null;
 let scoutingTimer = null;
+let ambientTimer = null;
 let currentLeadIndex = -1;
 let currentLead = null;
 let pinned = true;
@@ -64,12 +78,12 @@ function wait(ms) {
 
 function setPetMotion(motion, duration = 0) {
   clearTimeout(petMotionTimer);
-  petWrap.classList.remove('pacing', 'found', 'rolling');
+  petWrap.classList.remove('pacing', 'found', 'chasing', 'resting');
   if (motion) petWrap.classList.add(motion);
   if (motion && duration > 0) {
     petMotionTimer = setTimeout(() => {
       petWrap.classList.remove(motion);
-      if (motion === 'rolling') petWrap.classList.add('found');
+      if (motion === 'chasing') petWrap.classList.add('found');
     }, duration);
   }
 }
@@ -78,7 +92,7 @@ function setVisualClass(action, moving = false) {
   pet.className = petProfile && petProfile.photoDataUrl && petProfile.assetMode !== 'generated' ? 'photo-pet' : '';
   fallbackPet.className = fallbackPet.className.replace(/\b(bob|happy|scouting)\b/g, '').trim();
   const target = pet.complete && pet.naturalWidth > 0 ? pet : fallbackPet;
-  if (moving && action === 'walk') target.classList.add('bob');
+  if (moving && action === 'walk' && !petWrap.classList.contains('pacing')) target.classList.add('bob');
   if (action === 'happy') target.classList.add('happy');
   if (action === 'walk' && leadCard.classList.contains('visible')) target.classList.add('scouting');
 }
@@ -106,6 +120,29 @@ function startAnimation(action, speed = 260, moving = false) {
   animationTimer = setInterval(showFrame, speed);
 }
 
+function playActionOnce(action, speed = 240, nextAction = 'idle', onComplete) {
+  const frames = actions[action];
+  if (!frames || !frames.length) {
+    stopAnimationOnFirstFrame(nextAction);
+    if (onComplete) onComplete();
+    return;
+  }
+
+  currentAction = action;
+  frameIndex = 0;
+  clearInterval(animationTimer);
+  showFrame();
+  setVisualClass(action, true);
+  animationTimer = setInterval(() => {
+    if (frameIndex >= frames.length) {
+      stopAnimationOnFirstFrame(nextAction);
+      if (onComplete) onComplete();
+      return;
+    }
+    showFrame();
+  }, speed);
+}
+
 function stopAnimationOnFirstFrame(action = 'idle') {
   clearInterval(animationTimer);
   animationTimer = null;
@@ -116,11 +153,15 @@ function stopAnimationOnFirstFrame(action = 'idle') {
 }
 
 function animateWhileCursorMoves() {
-  if (Date.now() < manualModeUntil || leadCard.classList.contains('visible')) return;
+  if (Date.now() < manualModeUntil || leadCard.classList.contains('visible') || isScouting) return;
+  clearTimeout(ambientTimer);
   if (currentAction !== 'walk' || !animationTimer) startAnimation('walk', 300, true);
   clearTimeout(settleTimer);
   settleTimer = setTimeout(() => {
-    if (Date.now() >= manualModeUntil) stopAnimationOnFirstFrame('idle');
+    if (Date.now() >= manualModeUntil) {
+      stopAnimationOnFirstFrame('idle');
+      scheduleAmbient();
+    }
   }, 850);
 }
 
@@ -186,6 +227,7 @@ async function showLeadCard() {
   stopAnimationOnFirstFrame('idle');
   setPetMotion('found');
   manualModeUntil = Date.now() + 1600;
+  clearTimeout(ambientTimer);
   await bridge.setMode('lead');
 }
 
@@ -193,12 +235,13 @@ async function scoutForLead() {
   if (isScouting || leadCard.classList.contains('visible')) return;
   isScouting = true;
   clearTimeout(scoutingTimer);
+  clearTimeout(ambientTimer);
   document.body.dataset.view = 'pet';
   setPetMotion('pacing');
-  stopAnimationOnFirstFrame('idle');
+  startAnimation('walk', 190, true);
   manualModeUntil = Date.now() + 2200;
   await bridge.setMode('pet');
-  await wait(1700);
+  await wait(1900);
   setPetMotion('');
   await showLeadCard();
   isScouting = false;
@@ -211,13 +254,46 @@ async function closeLeadCardView() {
   setPetMotion('');
   await bridge.setMode('pet');
   stopAnimationOnFirstFrame('idle');
+  scheduleAmbient();
   scheduleScouting();
 }
 
 function scheduleScouting() {
   clearTimeout(scoutingTimer);
   if (!petProfile) return;
-  scoutingTimer = setTimeout(scoutForLead, 7000);
+  scoutingTimer = setTimeout(scoutForLead, 18000);
+}
+
+function scheduleAmbient() {
+  clearTimeout(ambientTimer);
+  if (!petProfile || isScouting || leadCard.classList.contains('visible')) return;
+  const delay = 8500 + Math.round(Math.random() * 5000);
+  ambientTimer = setTimeout(runAmbientAction, delay);
+}
+
+function runAmbientAction() {
+  if (!petProfile || isScouting || leadCard.classList.contains('visible') || Date.now() < manualModeUntil) {
+    scheduleAmbient();
+    return;
+  }
+
+  manualModeUntil = Date.now() + 5200;
+  if (Math.random() < 0.52) {
+    setPetMotion('resting');
+    playActionOnce('yawn', 360, 'idle', () => {
+      setPetMotion('');
+      scheduleAmbient();
+    });
+    return;
+  }
+
+  setPetMotion('resting');
+  startAnimation('sleep', 620, false);
+  ambientTimer = setTimeout(() => {
+    setPetMotion('');
+    stopAnimationOnFirstFrame('idle');
+    scheduleAmbient();
+  }, 4600);
 }
 
 function approveCurrentLead() {
@@ -276,8 +352,8 @@ async function reviewCurrentPlan() {
   document.getElementById('leadStatus').textContent = 'Grill-with-docs brief copied.';
   leadCard.dataset.approved = 'true';
   briefPanel.classList.add('visible');
-  stopAnimationOnFirstFrame('idle');
-  setPetMotion('rolling', 1400);
+  setPetMotion('chasing', 1500);
+  playActionOnce('chase', 330, 'idle', () => setPetMotion('found'));
   try {
     await navigator.clipboard.writeText(buildGrillingBrief());
   } catch {
@@ -320,7 +396,7 @@ petPhotoInput.addEventListener('change', () => {
     photoPrompt.textContent = `${images.length} photo${images.length > 1 ? 's' : ''} selected`;
     const enough = images.length >= 3;
     assetNote.textContent = enough
-      ? 'Photo set received. Click Generate animated scout to make a ready-to-use pet.'
+      ? 'Photo set received. Front, side, and resting views will drive different task actions.'
       : 'Add at least 3 photos so the generator can infer the whole pet instead of guessing from one angle.';
   });
 });
@@ -356,6 +432,23 @@ function drawImageCover(context, img, x, y, width, height) {
   context.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
 }
 
+function drawButterfly(context, x, y, flap) {
+  context.save();
+  context.translate(x, y);
+  context.rotate(-0.16);
+  context.fillStyle = '#f2bd35';
+  context.strokeStyle = '#6e4a16';
+  context.lineWidth = 2;
+  context.beginPath();
+  context.ellipse(-6, 0, 7, 11 - flap, -0.45, 0, Math.PI * 2);
+  context.ellipse(6, 0, 7, 11 + flap, 0.45, 0, Math.PI * 2);
+  context.fill();
+  context.stroke();
+  context.fillStyle = '#4f3515';
+  context.fillRect(-1, -5, 2, 12);
+  context.restore();
+}
+
 function makePetFrame(img, action, frame) {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
@@ -367,18 +460,31 @@ function makePetFrame(img, action, frame) {
   const happyTilt = action === 'happy' ? (frame % 2 === 0 ? -0.05 : 0.05) : 0;
   const idleLift = action === 'idle' ? bob * 3 : 0;
   const sleepBreath = action === 'sleep' ? bob * 2 : 0;
+  const yawnStretch = action === 'yawn' ? 1 + Math.sin((frame / 3) * Math.PI) * 0.045 : 1;
 
   context.save();
   if (action === 'sleep') {
     context.translate(140, 158 + sleepBreath);
     context.rotate(-0.08);
     drawImageCover(context, img, -116, -72, 232, 160);
+  } else if (action === 'walk') {
+    context.translate(140 + walkShift, 154 + Math.abs(bob) * -3);
+    drawImageCover(context, img, -122, -84, 244, 178);
+  } else if (action === 'chase') {
+    const progress = frame / 3;
+    context.translate(132 + progress * 18, 158 - Math.sin(progress * Math.PI) * 20);
+    drawImageCover(context, img, -116, -82, 232, 170);
   } else {
     context.translate(140 + walkShift, 142 + idleLift);
     context.rotate(happyTilt);
+    context.scale(1 / yawnStretch, yawnStretch);
     drawImageCover(context, img, -106, -124, 212, 248);
   }
   context.restore();
+
+  if (action === 'chase') {
+    drawButterfly(context, 56 + frame * 22, 62 - Math.sin((frame / 3) * Math.PI) * 14, frame % 2 ? 3 : -2);
+  }
 
   if (action === 'happy') {
     context.save();
@@ -405,7 +511,9 @@ async function generateActionsFromPhotos(images) {
     idle: choose(0),
     walk: choose(1),
     sleep: choose(loaded.length - 1),
-    happy: choose(2)
+    happy: choose(2),
+    chase: choose(1),
+    yawn: choose(0)
   };
 
   return Object.fromEntries(Object.entries(sources).map(([action, img]) => [
@@ -485,7 +593,7 @@ generatePet.addEventListener('click', async () => {
   }
   generatePet.disabled = true;
   assetNote.textContent = 'Generating your animated scout locally...';
-  actions = await generateActionsFromPhotos(selectedPhotoDataUrls);
+  actions = withActionFallbacks(await generateActionsFromPhotos(selectedPhotoDataUrls));
   localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
   updatePipeline('ready');
   const name = petName();
@@ -498,7 +606,7 @@ generatePet.addEventListener('click', async () => {
     createdAt: new Date().toISOString()
   });
   generatePet.disabled = false;
-  assetNote.textContent = 'Animated scout generated. It is ready to bring back opportunities.';
+  assetNote.textContent = 'Six-action scout generated: idle, side walk, curled rest, response, butterfly chase, and yawn.';
   applyPetProfile();
   await scoutForLead();
 });
@@ -510,11 +618,11 @@ spriteSheetInput.addEventListener('change', async () => {
   localStorage.setItem('opportunityPet.spriteSheet', importedSpriteSheet);
   spritePreview.src = importedSpriteSheet;
   spritePreview.classList.add('visible');
-  actions = await extractSpriteSheet(importedSpriteSheet);
+  actions = withActionFallbacks(await extractSpriteSheet(importedSpriteSheet));
   localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
   updatePipeline('ready');
   stopAnimationOnFirstFrame('idle');
-  assetNote.textContent = 'Sprite sheet imported and sliced into 16 frames. You can now start scouting with this pet.';
+  assetNote.textContent = 'Legacy sheet imported. Missing chase and yawn states will use compatible fallback actions.';
 });
 
 startScouting.addEventListener('click', async () => {
@@ -607,5 +715,6 @@ if (importedSpriteSheet) {
   updatePipeline('ready');
 }
 stopAnimationOnFirstFrame('idle');
+scheduleAmbient();
 scheduleScouting();
 setInterval(watchGlobalCursor, 180);

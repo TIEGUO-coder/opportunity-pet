@@ -11,7 +11,7 @@
       <section id="petSetup" class="pet-setup">
         <p class="eyebrow">GENERATE YOUR SCOUT PET</p>
         <h1>Turn your pet into the scout.</h1>
-        <p class="summary">Upload 3-5 pet photos first. Opportunity Pet should infer a character sheet, then generate the whole animal as an animated scout before it starts bringing back leads.</p>
+        <p class="summary">Upload 3-5 pet photos. Front, side, full-body, and resting views become a six-action scout before it starts bringing back leads.</p>
         <label class="photo-drop">
           <input id="petPhotoInput" type="file" accept="image/*" multiple>
           <div id="petPhotoPreview" class="photo-preview-grid" aria-label="Selected pet photos"></div>
@@ -22,7 +22,7 @@
           <span id="stepIdentity">2 Pet style</span>
           <span id="stepSprite">3 Animated scout</span>
         </div>
-        <p id="assetNote" class="asset-note">Upload 3-5 angles or moments: face, side body, standing, sleeping, and distinctive markings. Then generate a ready-to-use animated scout locally.</p>
+        <p id="assetNote" class="asset-note">Best order: front view, side full-body view, standing view, then sleeping or curled-up view. Distinct markings should be visible in more than one photo.</p>
         <input id="petNameInput" class="name-input" type="text" placeholder="Pet name, e.g. 铁锅">
         <button type="button" id="generatePet" class="review-action">Generate animated scout</button>
         <details class="advanced-assets">
@@ -34,7 +34,7 @@
           </label>
           <figure>
             <img id="spritePreview" alt="">
-            <figcaption>Sprite sheet</figcaption>
+            <figcaption>Legacy 4x4 sprite sheet</figcaption>
           </figure>
           <button type="button" id="startScouting" class="review-action">Start scouting with imported sheet</button>
         </details>

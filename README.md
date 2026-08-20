@@ -8,8 +8,8 @@ Tieguo is only the default test pet in this local prototype.
 
 - Import 3-5 pet photos and a pet name.
 - Generate a local animated pet from the photo set with one click.
-- Optionally import a professionally generated 4x4 sprite sheet.
-- Slice imported sprite sheets into 16 local action frames in the app.
+- Generate six local task states from front, side, full-body, and resting photos.
+- Optionally import a professionally generated sprite sheet; legacy 4x4 sheets remain supported.
 - Show a small always-on-top Electron desktop pet.
 - Open an opportunity card with approval actions.
 - Prepare a Grill-with-docs handoff when the user wants to stress-test a lead and turn it into routemap-ready material.
@@ -38,7 +38,7 @@ npm run start
 
 1. User imports 3-5 pet photos.
 2. User clicks Generate animated scout.
-3. Opportunity Pet creates local idle, walk, sleep, and happy frame loops.
+3. Opportunity Pet creates local idle, side-walk, sleep, response, butterfly-chase, and yawn states.
 4. The animated pet scouts for leads and brings back opportunity cards.
 5. User approves, skips, or sends the idea to Grill-with-docs.
 6. Approved leads become Grill-with-docs briefs that can become routemap candidates.

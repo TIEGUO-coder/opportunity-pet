@@ -4,6 +4,8 @@ const { PNG } = require('pngjs');
 
 const root = path.resolve(__dirname, '..');
 const source = path.join(root, 'assets', 'source', 'teiguo-generated-spritesheet.png');
+const expressiveSource = path.join(root, 'assets', 'source', 'teiguo-expressive-spritesheet.png');
+const scoutWalkSource = path.join(root, 'assets', 'source', 'teiguo-scout-walk-spritesheet.png');
 const outRoot = path.join(root, 'assets', 'teiguo');
 const actions = ['idle', 'walk', 'sleep', 'happy'];
 const alphaThreshold = 20;
@@ -39,13 +41,13 @@ function despill(r, g, b, alpha) {
   return [r, Math.min(g, cap), b];
 }
 
-function makeCellMask(sheet, col, row) {
-  const cellWidth = Math.floor(sheet.width / 4);
-  const cellHeight = Math.floor(sheet.height / 4);
+function makeCellMask(sheet, col, row, columns = 4, rows = 4) {
+  const cellWidth = Math.floor(sheet.width / columns);
+  const cellHeight = Math.floor(sheet.height / rows);
   const startX = col * cellWidth;
   const startY = row * cellHeight;
-  const endX = col === 3 ? sheet.width : startX + cellWidth;
-  const endY = row === 3 ? sheet.height : startY + cellHeight;
+  const endX = col === columns - 1 ? sheet.width : startX + cellWidth;
+  const endY = row === rows - 1 ? sheet.height : startY + cellHeight;
   const width = endX - startX;
   const height = endY - startY;
   const alpha = new Uint8Array(width * height);
@@ -112,8 +114,8 @@ function largestComponentBounds(mask) {
   return best || { count: 0, minX: 0, minY: 0, maxX: mask.width - 1, maxY: mask.height - 1 };
 }
 
-function cropCell(sheet, col, row) {
-  const mask = makeCellMask(sheet, col, row);
+function cropCell(sheet, col, row, columns = 4, rows = 4) {
+  const mask = makeCellMask(sheet, col, row, columns, rows);
   const bounds = largestComponentBounds(mask);
 
   const pad = 4;
@@ -142,6 +144,107 @@ function cropCell(sheet, col, row) {
       frame.data[targetIdx + 1] = ng;
       frame.data[targetIdx + 2] = nb;
       frame.data[targetIdx + 3] = alpha === 0 ? 0 : Math.min(alpha, sheet.data[sourceIdx + 3]);
+    }
+  }
+
+  return frame;
+}
+
+function cropAlphaCell(sheet, col, row, columns, rows) {
+  const cellWidth = Math.floor(sheet.width / columns);
+  const cellHeight = Math.floor(sheet.height / rows);
+  const startX = col * cellWidth;
+  const startY = row * cellHeight;
+  const width = col === columns - 1 ? sheet.width - startX : cellWidth;
+  const height = row === rows - 1 ? sheet.height - startY : cellHeight;
+  const foreground = new Uint8Array(width * height);
+  const visited = new Uint8Array(width * height);
+  const components = [];
+
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const start = y * width + x;
+      const sourceIdx = (sheet.width * (startY + y) + startX + x) << 2;
+      if (visited[start] || sheet.data[sourceIdx + 3] <= alphaThreshold) continue;
+      const pixels = [];
+      let hasButterflyColor = false;
+      let componentMaxY = y;
+      const queue = [start];
+      visited[start] = 1;
+
+      for (let q = 0; q < queue.length; q += 1) {
+        const index = queue[q];
+        const cx = index % width;
+        const cy = Math.floor(index / width);
+        componentMaxY = Math.max(componentMaxY, cy);
+        const pixelIdx = (sheet.width * (startY + cy) + startX + cx) << 2;
+        pixels.push(index);
+        if (sheet.data[pixelIdx] > 155 && sheet.data[pixelIdx + 1] > 90 && sheet.data[pixelIdx + 2] < 85) {
+          hasButterflyColor = true;
+        }
+
+        for (const [nx, ny] of [[cx - 1, cy], [cx + 1, cy], [cx, cy - 1], [cx, cy + 1]]) {
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const next = ny * width + nx;
+          const nextIdx = (sheet.width * (startY + ny) + startX + nx) << 2;
+          if (visited[next] || sheet.data[nextIdx + 3] <= alphaThreshold) continue;
+          visited[next] = 1;
+          queue.push(next);
+        }
+      }
+
+      components.push({ pixels, hasButterflyColor, maxY: componentMaxY });
+    }
+  }
+
+  components.sort((a, b) => b.pixels.length - a.pixels.length);
+  components.forEach((component, index) => {
+    const isButterfly = row === 0
+      && component.hasButterflyColor
+      && component.pixels.length > 20
+      && component.maxY < height * 0.62;
+    if (index !== 0 && !isButterfly) return;
+    component.pixels.forEach((pixel) => { foreground[pixel] = 1; });
+  });
+
+  let minX = width;
+  let minY = height;
+  let maxX = -1;
+  let maxY = -1;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      if (!foreground[y * width + x]) continue;
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  if (maxX < minX || maxY < minY) return new PNG({ width: 1, height: 1 });
+  const pad = 4;
+  minX = Math.max(0, minX - pad);
+  minY = Math.max(0, minY - pad);
+  maxX = Math.min(width - 1, maxX + pad);
+  maxY = Math.min(height - 1, maxY + pad);
+  const frame = new PNG({ width: maxX - minX + 1, height: maxY - minY + 1 });
+
+  for (let y = 0; y < frame.height; y += 1) {
+    for (let x = 0; x < frame.width; x += 1) {
+      const sourceIdx = (sheet.width * (startY + minY + y) + startX + minX + x) << 2;
+      const targetIdx = (frame.width * y + x) << 2;
+      const foregroundIdx = (minY + y) * width + minX + x;
+      if (!foreground[foregroundIdx] || sheet.data[sourceIdx + 3] <= alphaThreshold) {
+        frame.data[targetIdx] = 0;
+        frame.data[targetIdx + 1] = 0;
+        frame.data[targetIdx + 2] = 0;
+        frame.data[targetIdx + 3] = 0;
+        continue;
+      }
+      frame.data[targetIdx] = sheet.data[sourceIdx];
+      frame.data[targetIdx + 1] = sheet.data[sourceIdx + 1];
+      frame.data[targetIdx + 2] = sheet.data[sourceIdx + 2];
+      frame.data[targetIdx + 3] = sheet.data[sourceIdx + 3];
     }
   }
 
@@ -191,7 +294,38 @@ function main() {
     });
   });
 
-  console.log(`Extracted ${actions.length * 4} transparent frames into ${outRoot}`);
+  if (!fs.existsSync(scoutWalkSource)) {
+    throw new Error(`Missing scout walk spritesheet: ${scoutWalkSource}`);
+  }
+
+  const scoutWalkSheet = readPng(scoutWalkSource);
+  const scoutWalkFrames = [];
+  for (let col = 0; col < 4; col += 1) {
+    scoutWalkFrames.push(cropCell(scoutWalkSheet, col, 0, 4, 1));
+  }
+  normalizeActionFrames(scoutWalkFrames).forEach((frame, col) => {
+    const file = path.join(outRoot, 'walk', `walk_${String(col + 1).padStart(3, '0')}.png`);
+    writePng(file, frame);
+  });
+
+  if (!fs.existsSync(expressiveSource)) {
+    throw new Error(`Missing expressive spritesheet: ${expressiveSource}`);
+  }
+
+  const expressiveSheet = readPng(expressiveSource);
+  ['chase', 'yawn'].forEach((action, row) => {
+    const frames = [];
+    for (let col = 0; col < 4; col += 1) {
+      frames.push(cropAlphaCell(expressiveSheet, col, row, 4, 2));
+    }
+
+    normalizeActionFrames(frames).forEach((frame, col) => {
+      const file = path.join(outRoot, action, `${action}_${String(col + 1).padStart(3, '0')}.png`);
+      writePng(file, frame);
+    });
+  });
+
+  console.log(`Extracted ${(actions.length + 2) * 4} transparent frames into ${outRoot}`);
 }
 
 main();
