@@ -1,6 +1,6 @@
 {
   "name": "opportunity-pet",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A desktop scout pet that brings product opportunities back for review.",
   "main": "src/main.js",
   "scripts": {
@@ -53,6 +53,12 @@
         "nsis",
         "portable"
       ]
+    },
+    "nsis": {
+      "artifactName": "Opportunity-Pet-Setup-${version}-${arch}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Opportunity-Pet-Portable-${version}-${arch}.${ext}"
     },
     "linux": {
       "category": "Utility",

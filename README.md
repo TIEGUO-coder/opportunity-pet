@@ -23,8 +23,8 @@ Opportunity Pet does not charge users, promise revenue, or decide what the user 
 
 Open the repository's **Releases** page and download the file for your system:
 
-- macOS: `.dmg` or `.zip`
-- Windows: installer `.exe` or portable `.exe`
+- macOS: ARM64 for Apple Silicon, or x64 for Intel Macs (`.dmg` or `.zip`)
+- Windows: clearly named Setup or Portable `.exe`
 - Linux: `.AppImage`
 
 These early community builds are not code-signed. macOS may require right-clicking the app and choosing **Open** the first time. Windows SmartScreen may require **More info > Run anyway**. Only download builds from this repository.
