@@ -9,6 +9,7 @@ const photoPrompt = document.getElementById('photoPrompt');
 const petNameInput = document.getElementById('petNameInput');
 const assetNote = document.getElementById('assetNote');
 const generatePet = document.getElementById('generatePet');
+const generateLocalPet = document.getElementById('generateLocalPet');
 const spriteSheetInput = document.getElementById('spriteSheetInput');
 const spritePreview = document.getElementById('spritePreview');
 const startScouting = document.getElementById('startScouting');
@@ -27,6 +28,9 @@ const bridge = window.teiguoWindow || {
   setAlwaysOnTop: (enabled) => Promise.resolve(Boolean(enabled)),
   setMode: () => Promise.resolve(),
   getCursorPosition: () => Promise.resolve(null),
+  getCodexStatus: () => Promise.resolve({ available: false }),
+  generatePetWithCodex: () => Promise.resolve({ ok: false, error: 'Codex integration is unavailable.' }),
+  onGenerationProgress: () => () => {},
   quit: () => window.close()
 };
 
@@ -69,6 +73,7 @@ let selectedPhotoDataUrls = [];
 let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || '';
 let petMotionTimer = null;
 let isScouting = false;
+let codexAvailable = false;
 
 function wait(ms) {
   return new Promise((resolve) => {
@@ -200,6 +205,7 @@ function applyPetProfile() {
   }
 
   petSetup.classList.remove('visible');
+  pet.alt = petProfile.name || 'Opportunity Pet';
   document.body.dataset.hasPet = 'true';
   document.body.dataset.view = 'pet';
   if (petProfile.photoDataUrl) {
@@ -586,14 +592,14 @@ async function extractSpriteSheet(src) {
   return extracted;
 }
 
-generatePet.addEventListener('click', async () => {
-  if (selectedPhotoDataUrls.length < 3) {
-    assetNote.textContent = 'Choose 3-5 pet photos first. This helps the pet feel like your actual pet, not a one-photo sticker.';
-    return;
-  }
-  generatePet.disabled = true;
-  assetNote.textContent = 'Generating your animated scout locally...';
-  actions = withActionFallbacks(await generateActionsFromPhotos(selectedPhotoDataUrls));
+function setGenerationBusy(busy) {
+  generatePet.disabled = busy || !codexAvailable;
+  generateLocalPet.disabled = busy;
+  petPhotoInput.disabled = busy;
+}
+
+async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {}) {
+  actions = withActionFallbacks(nextActions);
   localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
   updatePipeline('ready');
   const name = petName();
@@ -602,13 +608,56 @@ generatePet.addEventListener('click', async () => {
     photoDataUrl: '',
     assetMode: 'generated',
     sourcePhotoCount: selectedPhotoDataUrls.length,
-    generatedFrom: 'local-photo-animation',
-    createdAt: new Date().toISOString()
+    generatedFrom,
+    createdAt: new Date().toISOString(),
+    ...extraProfile
   });
-  generatePet.disabled = false;
-  assetNote.textContent = 'Six-action scout generated: idle, side walk, curled rest, response, butterfly chase, and yawn.';
   applyPetProfile();
   await scoutForLead();
+}
+
+generatePet.addEventListener('click', async () => {
+  if (selectedPhotoDataUrls.length < 3) {
+    assetNote.textContent = 'Choose 3-5 pet photos first. This helps the pet feel like your actual pet, not a one-photo sticker.';
+    return;
+  }
+  setGenerationBusy(true);
+  updatePipeline('identity');
+  assetNote.textContent = 'Starting Codex and building a consistent multi-view character sheet...';
+  try {
+    const result = await bridge.generatePetWithCodex({
+      petName: petName(),
+      photos: selectedPhotoDataUrls
+    });
+    if (!result.ok) {
+      assetNote.textContent = result.error || 'Codex could not generate the action pack. The local fallback is still available.';
+      updatePipeline('photos');
+      return;
+    }
+    await activateGeneratedPet(result.actions, 'codex-action-pack', { generationJobId: result.jobId });
+    assetNote.textContent = 'Codex action pack ready: six identity-consistent actions were generated and imported.';
+  } catch (error) {
+    assetNote.textContent = `Codex generation failed: ${error.message || error}`;
+    updatePipeline('photos');
+  } finally {
+    setGenerationBusy(false);
+  }
+});
+
+generateLocalPet.addEventListener('click', async () => {
+  if (selectedPhotoDataUrls.length < 3) {
+    assetNote.textContent = 'Choose 3-5 pet photos first.';
+    return;
+  }
+  setGenerationBusy(true);
+  assetNote.textContent = 'Building a basic local motion pack from the supplied views...';
+  try {
+    const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
+    await activateGeneratedPet(localActions, 'local-photo-animation');
+    assetNote.textContent = 'Local fallback ready. It animates supplied views but does not invent new poses.';
+  } finally {
+    setGenerationBusy(false);
+  }
 });
 
 spriteSheetInput.addEventListener('change', async () => {
@@ -709,6 +758,20 @@ async function watchGlobalCursor() {
 }
 
 applyPetProfile();
+bridge.onGenerationProgress((message) => {
+  assetNote.textContent = message;
+  if (/six action|generating|checking/i.test(message)) updatePipeline('sprite');
+});
+bridge.getCodexStatus().then((status) => {
+  codexAvailable = Boolean(status && status.available);
+  generatePet.disabled = !codexAvailable;
+  if (!codexAvailable && !petProfile) {
+    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI pose generation, or use the local fallback.';
+  }
+}).catch(() => {
+  codexAvailable = false;
+  generatePet.disabled = true;
+});
 if (importedSpriteSheet) {
   spritePreview.src = importedSpriteSheet;
   spritePreview.classList.add('visible');

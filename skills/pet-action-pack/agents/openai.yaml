@@ -1,0 +1,4 @@
+interface:
+  display_name: "Pet Action Pack"
+  short_description: "Generate a six-action desktop pet from photos"
+  default_prompt: "Use $pet-action-pack to turn my uploaded pet photos into a complete Opportunity Pet action pack."

@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
+const { findCodexExecutable, generatePetWithCodex } = require('./pet-generation');
 
 let petWindow;
 
@@ -86,6 +87,16 @@ ipcMain.handle('window:set-mode', (_event, mode) => {
 
 ipcMain.handle('cursor:get-position', () => {
   return screen.getCursorScreenPoint();
+});
+
+ipcMain.handle('pet:codex-status', () => ({ available: Boolean(findCodexExecutable()) }));
+
+ipcMain.handle('pet:generate-with-codex', async (event, payload) => {
+  return generatePetWithCodex(payload || {}, {
+    userDataPath: app.getPath('userData'),
+    skillPath: path.join(app.getAppPath(), 'skills', 'pet-action-pack', 'SKILL.md'),
+    onProgress: (message) => event.sender.send('pet:generation-progress', message)
+  });
 });
 
 ipcMain.handle('window:quit', () => {

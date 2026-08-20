@@ -1,6 +1,6 @@
 # Pet Generation Pipeline
 
-Opportunity Pet should be usable immediately after download. The user uploads 3-5 pet photos, and the app generates a local animated scout from that photo set without requiring prompt copying, paid APIs, or external image tools.
+Opportunity Pet should be usable immediately after download. The user uploads 3-5 pet photos, and the app asks the user's signed-in Codex to generate a personalized animated scout without prompt copying or a project-owned API key. A basic offline motion fallback remains available.
 
 ## Required Output
 
@@ -13,20 +13,26 @@ Generate six local action states per pet:
 - `chase`: one-shot butterfly chase when handing a lead to Grill-with-docs
 - `yawn`: one-shot front-facing yawn during low-frequency idle behavior
 
-Each action has 4 frames. The local MVP maps uploaded front, side, full-body, and resting photos to the matching actions and creates PNG data frames in the renderer. A professionally generated action sheet can still replace these local motion frames.
+Each action has 4 frames. The Codex path first generates a multi-view character sheet, then generates one four-frame strip per action. The Electron main process removes chroma green when necessary, crops each frame, aligns the ground line, validates the output, and stores the transparent PNG frames in the app user-data directory.
 
 ## Product Flow
 
 1. User uploads 3-5 pet photos and names the pet.
-2. User clicks Generate animated scout.
-3. The renderer creates idle, side-walk, sleep, response, chase, and yawn frames from the uploaded photo set.
-4. The generated frame loops are saved locally.
-5. The pet begins scouting for product opportunities.
-6. Advanced users can import a transparent 4x4 legacy sheet; missing chase and yawn states receive compatible fallbacks.
+2. User clicks Generate with Codex.
+3. Electron saves temporary input copies and invokes `codex exec` with the bundled `pet-action-pack` skill.
+4. Codex infers a multi-view identity sheet and creates six action strips.
+5. Electron slices, cleans, aligns, validates, and saves 24 local transparent frames.
+6. Temporary input copies are deleted.
+7. The generated pet begins scouting for product opportunities.
+8. If Codex is unavailable, the user can choose the explicitly labeled local fallback.
 
-## No Required AI Billing
+## Account And Cost Boundary
 
-The MVP does not call a paid image generation API. Opportunity Pet owns upload, local motion mapping, optional sprite import, slicing, preview, and lead interaction. Local transforms cannot invent a truly new side view or open mouth that is absent from the source photos. High-fidelity pose synthesis therefore remains an optional AI action-pack step rather than a hidden claim of the offline renderer.
+Opportunity Pet does not run a paid generation backend or require an `OPENAI_API_KEY`. High-fidelity generation uses the user's installed, signed-in Codex and may consume that account's included or paid usage. The offline fallback does not call AI, but it cannot invent a truly new side view or open mouth that is absent from the source photos.
+
+## Privacy Boundary
+
+The AI button is the explicit consent boundary for sending selected photos through the user's Codex. Temporary copies under the app user-data directory are deleted after success or failure. Generated character sheets, action strips, aligned frames, manifests, and a local Codex log remain in the job directory so the pet can be reused and generation failures can be diagnosed.
 
 ## Photo Requirements
 

@@ -7,7 +7,7 @@ It is not a paid product, a bookmark tool, or a promise that the user will make 
 ## Core Loop
 
 1. The user uploads 3-5 photos of their own pet.
-2. Opportunity Pet generates a local animated scout from the photo set.
+2. Opportunity Pet uses the user's Codex to infer a multi-view identity and generate the six-action scout, with a basic local fallback.
 3. The generated pet scouts for opportunities from GitHub and OSS signals.
 4. The pet brings back a money lead as a compact card.
 5. The user approves, skips, or reviews the lead.

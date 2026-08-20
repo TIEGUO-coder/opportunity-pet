@@ -7,7 +7,7 @@
     "install:electron": "npx install-electron --no",
     "prepare:assets": "node scripts/extract-sprites.js",
     "start": "electron .",
-    "check": "node scripts/verify-assets.js"
+    "check": "node scripts/verify-assets.js && node scripts/test-pet-generation.js"
   },
   "keywords": [
     "desktop-pet",
@@ -18,8 +18,10 @@
   "author": "",
   "license": "UNLICENSED",
   "private": true,
-  "devDependencies": {
-    "electron": "latest",
+  "dependencies": {
     "pngjs": "latest"
+  },
+  "devDependencies": {
+    "electron": "latest"
   }
 }
