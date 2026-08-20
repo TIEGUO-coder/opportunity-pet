@@ -12,7 +12,7 @@ Tieguo is only the default test pet in this local prototype.
 - Slice imported sprite sheets into 16 local action frames in the app.
 - Show a small always-on-top Electron desktop pet.
 - Open an opportunity card with approval actions.
-- Prepare a Grilling Brief when the user wants to stress-test a lead.
+- Prepare a Grill-with-docs handoff when the user wants to stress-test a lead and turn it into routemap-ready material.
 
 The current version does not pay for or call an image generation API. The default generator runs locally in the Electron renderer. Local mock opportunities live in `src/opportunities.js`; Tieguo remains a development sample.
 
@@ -40,6 +40,6 @@ npm run start
 2. User clicks Generate animated scout.
 3. Opportunity Pet creates local idle, walk, sleep, and happy frame loops.
 4. The animated pet scouts for leads and brings back opportunity cards.
-5. User approves, skips, or sends the idea to Grill-me.
-6. Approved leads become Grilling Briefs for further thinking.
+5. User approves, skips, or sends the idea to Grill-with-docs.
+6. Approved leads become Grill-with-docs briefs that can become routemap candidates.
 7. Later: Grilling output routes into MAH routemap.

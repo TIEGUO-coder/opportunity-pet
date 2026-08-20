@@ -229,7 +229,27 @@ function approveCurrentLead() {
 
 function buildGrillingBrief() {
   if (!currentLead) return '';
-  return `Use the grilling skill on this opportunity. Ask me one question at a time, give your recommended answer for each question, and do not move forward until I answer.
+  return `Use grill-with-docs on this opportunity lead.
+
+Interview me one question at a time. For each question, give your recommended answer first, then wait for my response.
+
+As we resolve terms or durable decisions, use domain-modeling discipline:
+- Capture stable vocabulary in CONTEXT.md only when a term is actually resolved.
+- Create an ADR only for decisions that are hard to reverse, surprising without context, and based on a real trade-off.
+
+Do not write implementation code during the grilling session.
+
+When we reach shared understanding, produce a routemap-ready brief with these sections:
+- Goal
+- Target user / situation
+- Public signals to inspect
+- Key assumptions
+- Smallest useful experiment
+- Validation tasks
+- Build tasks
+- Distribution or sharing tasks
+- Risks to recheck
+- Out of scope
 
 Opportunity: ${currentLead.title}
 Type: ${currentLead.type}
@@ -253,7 +273,7 @@ async function skipCurrentLead() {
 }
 
 async function reviewCurrentPlan() {
-  document.getElementById('leadStatus').textContent = 'Grilling brief copied.';
+  document.getElementById('leadStatus').textContent = 'Grill-with-docs brief copied.';
   leadCard.dataset.approved = 'true';
   briefPanel.classList.add('visible');
   stopAnimationOnFirstFrame('idle');
@@ -261,7 +281,7 @@ async function reviewCurrentPlan() {
   try {
     await navigator.clipboard.writeText(buildGrillingBrief());
   } catch {
-    document.getElementById('leadStatus').textContent = 'Grilling brief prepared.';
+    document.getElementById('leadStatus').textContent = 'Grill-with-docs brief prepared.';
   }
 }
 
