@@ -46,6 +46,11 @@ function createWindow() {
   petWindow.loadFile(path.join(__dirname, 'renderer.html'));
 }
 
+function petActionPackSkillPath() {
+  const root = app.isPackaged ? process.resourcesPath : app.getAppPath();
+  return path.join(root, 'skills', 'pet-action-pack', 'SKILL.md');
+}
+
 app.whenReady().then(() => {
   createWindow();
 
@@ -104,7 +109,7 @@ ipcMain.handle('pet:codex-status', () => ({ available: Boolean(findCodexExecutab
 ipcMain.handle('pet:generate-with-codex', async (event, payload) => {
   return generatePetWithCodex(payload || {}, {
     userDataPath: app.getPath('userData'),
-    skillPath: path.join(app.getAppPath(), 'skills', 'pet-action-pack', 'SKILL.md'),
+    skillPath: petActionPackSkillPath(),
     onProgress: (message) => event.sender.send('pet:generation-progress', message)
   });
 });

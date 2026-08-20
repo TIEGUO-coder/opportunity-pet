@@ -17,6 +17,7 @@ const createPet = document.getElementById('createPet');
 const closeCard = document.getElementById('closeCard');
 const scoutNow = document.getElementById('scoutNow');
 const pin = document.getElementById('pin');
+const resetPet = document.getElementById('resetPet');
 const minimize = document.getElementById('minimize');
 const quit = document.getElementById('quit');
 const approveLead = document.getElementById('approveLead');
@@ -363,7 +364,7 @@ async function skipCurrentLead() {
 }
 
 async function reviewCurrentPlan() {
-  document.getElementById('leadStatus').textContent = 'Grill-with-docs brief copied.';
+  document.getElementById('leadStatus').textContent = 'Brief copied. Paste it into Codex with grill-with-docs.';
   leadCard.dataset.approved = 'true';
   briefPanel.classList.add('visible');
   setPetMotion('chasing', 1500);
@@ -373,6 +374,33 @@ async function reviewCurrentPlan() {
   } catch {
     document.getElementById('leadStatus').textContent = 'Grill-with-docs brief prepared.';
   }
+}
+
+async function resetPetProfile() {
+  if (!window.confirm('Change pet and return to setup?')) return;
+  clearTimeout(scoutingTimer);
+  clearTimeout(ambientTimer);
+  clearTimeout(settleTimer);
+  clearTimeout(petMotionTimer);
+  localStorage.removeItem('opportunityPet.profile');
+  localStorage.removeItem('opportunityPet.importedActions');
+  localStorage.removeItem('opportunityPet.spriteSheet');
+  selectedPhotoDataUrls = [];
+  importedSpriteSheet = '';
+  petProfile = null;
+  actions = defaultActions;
+  petPhotoInput.value = '';
+  spriteSheetInput.value = '';
+  petPhotoPreview.innerHTML = '';
+  petPhotoPreview.classList.remove('visible');
+  spritePreview.removeAttribute('src');
+  spritePreview.classList.remove('visible');
+  photoPrompt.textContent = 'Choose 3-5 pet photos';
+  assetNote.textContent = 'Best order: front view, side full-body view, standing view, then sleeping or curled-up view. Distinct markings should be visible in more than one photo.';
+  updatePipeline('photos');
+  stopAnimationOnFirstFrame('idle');
+  await closeLeadCardView();
+  applyPetProfile();
 }
 
 function handleImageError() {
@@ -750,6 +778,11 @@ pin.addEventListener('click', async (event) => {
   event.stopPropagation();
   pinned = await bridge.setAlwaysOnTop(!pinned);
   pin.style.opacity = pinned ? '1' : '0.48';
+});
+
+resetPet.addEventListener('click', (event) => {
+  event.stopPropagation();
+  resetPetProfile();
 });
 
 minimize.addEventListener('click', (event) => {

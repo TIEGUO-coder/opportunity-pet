@@ -140,9 +140,15 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
     args.push(prompt);
 
     const isNodeScript = path.extname(codexPath).toLowerCase() === '.js';
+    const isWindowsCommand = process.platform === 'win32' && ['.cmd', '.bat'].includes(path.extname(codexPath).toLowerCase());
     const executable = isNodeScript ? process.execPath : codexPath;
     const spawnArgs = isNodeScript ? [codexPath, ...args] : args;
-    const child = spawn(executable, spawnArgs, { cwd: jobDir, env: process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    const child = spawn(executable, spawnArgs, {
+      cwd: jobDir,
+      env: process.env,
+      shell: isWindowsCommand,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
     let output = '';
     let settled = false;
     const writeLog = () => {

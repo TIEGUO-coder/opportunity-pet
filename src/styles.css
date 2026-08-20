@@ -334,7 +334,7 @@ body[data-view="setup"] .pet-wrap {
 .lead-notice {
   position: absolute;
   left: 24px;
-  right: 24px;
+  right: 76px;
   top: 12px;
   display: none;
   box-sizing: border-box;
@@ -903,10 +903,13 @@ button {
 
 #controls {
   position: absolute;
-  right: 7px;
-  top: 7px;
+  right: 4px;
+  top: 4px;
   display: flex;
-  gap: 6px;
+  width: 78px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 3px;
   opacity: 0.18;
   transition: opacity 140ms ease;
   z-index: 6;
@@ -917,7 +920,14 @@ body[data-view="setup"] #controls {
 }
 
 body[data-view="setup"] #scoutNow,
-body[data-view="setup"] #pin {
+body[data-view="setup"] #pin,
+body[data-view="setup"] #resetPet {
+  display: none;
+}
+
+body[data-view="lead"] #scoutNow,
+body[data-view="lead"] #pin,
+body[data-view="lead"] #resetPet {
   display: none;
 }
 
@@ -926,13 +936,13 @@ body[data-view="setup"] #pin {
 }
 
 #controls button {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: 1px solid rgba(43, 36, 27, 0.2);
   border-radius: 50%;
   background: rgba(245, 245, 238, 0.84);
   color: #35312a;
-  font-size: 15px;
+  font-size: 13px;
   backdrop-filter: blur(10px);
 }
 

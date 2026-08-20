@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -72,7 +72,7 @@
         <div class="action-stack">
           <button type="button" id="approveLead" class="primary-action">Approved to act</button>
           <button type="button" id="skipLead" class="secondary-action">Not this one. Keep scouting.</button>
-          <button type="button" id="reviewPlan" class="review-action">Send to Grill-with-docs</button>
+          <button type="button" id="reviewPlan" class="review-action">Copy Grill-with-docs brief</button>
         </div>
 
         <section id="briefPanel" class="brief-panel">
@@ -118,11 +118,12 @@
         </div>
       </div>
 
-      <nav id="controls" aria-label="桌宠控制">
-        <button type="button" id="scoutNow" title="侦察">⌕</button>
-        <button type="button" id="pin" title="切换置顶">⌾</button>
-        <button type="button" id="minimize" title="最小化">−</button>
-        <button type="button" id="quit" title="退出">×</button>
+      <nav id="controls" aria-label="Opportunity Pet controls">
+        <button type="button" id="scoutNow" title="Scout now">⌕</button>
+        <button type="button" id="pin" title="Toggle always on top">⌾</button>
+        <button type="button" id="resetPet" title="Change pet">↺</button>
+        <button type="button" id="minimize" title="Minimize">−</button>
+        <button type="button" id="quit" title="Quit">×</button>
       </nav>
     </main>
     <script src="./opportunities.js"></script>

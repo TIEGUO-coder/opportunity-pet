@@ -30,7 +30,7 @@
   "build": {
     "appId": "com.tieguocoder.opportunitypet",
     "productName": "Opportunity Pet",
-    "asar": false,
+    "asar": true,
     "artifactName": "Opportunity-Pet-${version}-${os}-${arch}.${ext}",
     "directories": {
       "output": "release"
@@ -38,8 +38,13 @@
     "files": [
       "src/**/*",
       "assets/**/*",
-      "skills/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "skills",
+        "to": "skills"
+      }
     ],
     "mac": {
       "category": "public.app-category.productivity",
