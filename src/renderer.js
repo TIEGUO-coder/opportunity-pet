@@ -78,6 +78,7 @@ let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || 
 let petMotionTimer = null;
 let isScouting = false;
 let codexAvailable = false;
+let generationBusy = false;
 
 pin.style.opacity = '0.48';
 
@@ -85,6 +86,29 @@ function wait(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function updateGeneratePetButton() {
+  if (generationBusy) {
+    generatePet.disabled = true;
+    generatePet.textContent = 'Generating with Codex...';
+    return;
+  }
+  if (!codexAvailable) {
+    generatePet.disabled = true;
+    generatePet.textContent = 'Codex not detected';
+    return;
+  }
+  if (selectedPhotoDataUrls.length < 3) {
+    const needed = 3 - selectedPhotoDataUrls.length;
+    generatePet.disabled = true;
+    generatePet.textContent = selectedPhotoDataUrls.length
+      ? `Add ${needed} more photo${needed > 1 ? 's' : ''}`
+      : 'Add 3-5 photos first';
+    return;
+  }
+  generatePet.disabled = false;
+  generatePet.textContent = 'Generate with Codex';
 }
 
 function setPetMotion(motion, duration = 0) {
@@ -399,6 +423,7 @@ async function resetPetProfile() {
   photoPrompt.textContent = 'Choose 3-5 pet photos';
   assetNote.textContent = 'Best order: front view, side full-body view, standing view, then sleeping or curled-up view. Distinct markings should be visible in more than one photo.';
   updatePipeline('photos');
+  updateGeneratePetButton();
   stopAnimationOnFirstFrame('idle');
   await closeLeadCardView();
   applyPetProfile();
@@ -441,6 +466,7 @@ petPhotoInput.addEventListener('change', () => {
     assetNote.textContent = enough
       ? 'Photo set received. Front, side, and resting views will drive different task actions.'
       : 'Add at least 3 photos so the generator can infer the whole pet instead of guessing from one angle.';
+    updateGeneratePetButton();
   });
 });
 
@@ -630,7 +656,8 @@ async function extractSpriteSheet(src) {
 }
 
 function setGenerationBusy(busy) {
-  generatePet.disabled = busy || !codexAvailable;
+  generationBusy = busy;
+  updateGeneratePetButton();
   generateLocalPet.disabled = busy;
   petPhotoInput.disabled = busy;
 }
@@ -825,9 +852,10 @@ bridge.getCodexStatus().then((status) => {
   } else if (!codexAvailable && !petProfile) {
     assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI character generation. Photo-only preview is only for testing the flow.';
   }
+  updateGeneratePetButton();
 }).catch(() => {
   codexAvailable = false;
-  generatePet.disabled = true;
+  updateGeneratePetButton();
 });
 if (importedSpriteSheet) {
   spritePreview.src = importedSpriteSheet;
