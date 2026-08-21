@@ -103,7 +103,7 @@ npm run check
 npm run start
 ```
 
-For personalized AI actions, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically. Without Codex, choose `Use local fallback`; it animates supplied views but cannot synthesize unseen poses.
+For personalized AI actions, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically. `Preview photos only` is not character generation; it only crops the uploaded photos so you can test the desktop flow when Codex is unavailable.
 
 If Electron's postinstall download fails:
 

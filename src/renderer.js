@@ -666,7 +666,7 @@ generatePet.addEventListener('click', async () => {
       photos: selectedPhotoDataUrls
     });
     if (!result.ok) {
-      assetNote.textContent = result.error || 'Codex could not generate the action pack. The local fallback is still available.';
+      assetNote.textContent = result.error || 'Codex could not generate the cartoon action pack. The photo-only preview is available for testing the UI, but it will not create a new character.';
       updatePipeline('photos');
       return;
     }
@@ -685,12 +685,14 @@ generateLocalPet.addEventListener('click', async () => {
     assetNote.textContent = 'Choose 3-5 pet photos first.';
     return;
   }
+  const confirmed = window.confirm('Photo-only preview does not generate a cartoon character. It only crops your uploaded photos so you can test the desktop flow. Continue?');
+  if (!confirmed) return;
   setGenerationBusy(true);
-  assetNote.textContent = 'Building a basic local motion pack from the supplied views...';
+  assetNote.textContent = 'Building a photo-only preview from the supplied views. This is not the AI character generator.';
   try {
     const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
     await activateGeneratedPet(localActions, 'local-photo-animation');
-    assetNote.textContent = 'Local fallback ready. It animates supplied views but does not invent new poses.';
+    assetNote.textContent = 'Photo-only preview ready. Use Generate with Codex for a real animated character.';
   } finally {
     setGenerationBusy(false);
   }
@@ -812,7 +814,7 @@ bridge.getCodexStatus().then((status) => {
   codexAvailable = Boolean(status && status.available);
   generatePet.disabled = !codexAvailable;
   if (!codexAvailable && !petProfile) {
-    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI pose generation, or use the local fallback.';
+    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI character generation. Photo-only preview is only for testing the flow.';
   }
 }).catch(() => {
   codexAvailable = false;
