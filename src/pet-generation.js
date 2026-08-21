@@ -137,7 +137,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
     const prompt = 'Read and follow ./SKILL.md. Use every attached pet photo, generate the complete action pack under ./output, and satisfy the completion contract without asking questions.';
     const args = ['exec', '--ephemeral', '--skip-git-repo-check', '--sandbox', 'workspace-write', '--cd', jobDir];
     photoPaths.forEach((photo) => args.push('--image', photo));
-    args.push(prompt);
+    args.push('--', '-');
 
     const isNodeScript = path.extname(codexPath).toLowerCase() === '.js';
     const isWindowsCommand = process.platform === 'win32' && ['.cmd', '.bat'].includes(path.extname(codexPath).toLowerCase());
@@ -147,9 +147,10 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       cwd: jobDir,
       env: process.env,
       shell: isWindowsCommand,
-      stdio: ['ignore', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe']
     });
-    let output = `Command: ${executable} ${spawnArgs.join(' ')}\nJob: ${jobDir}\n\n`;
+    child.stdin.end(prompt);
+    let output = `Command: ${executable} ${spawnArgs.join(' ')}\nJob: ${jobDir}\nPrompt: ${prompt}\n\n`;
     let settled = false;
     const writeLog = () => {
       fs.writeFileSync(path.join(jobDir, 'codex.log'), output);

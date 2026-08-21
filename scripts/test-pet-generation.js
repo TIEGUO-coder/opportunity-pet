@@ -38,6 +38,10 @@ async function main() {
   ACTIONS.forEach((action, index) => fs.writeFileSync(path.join(fakeStrips, `${action}.png`), makeStrip(index)));
   fs.writeFileSync(fakeCodex, `const fs = require('fs');
 const path = require('path');
+const prompt = fs.readFileSync(0, 'utf8');
+if (!/Read and follow \\.\\/SKILL\\.md/.test(prompt)) {
+  throw new Error('fake codex did not receive the generation prompt on stdin');
+}
 const output = path.join(process.cwd(), 'output');
 fs.mkdirSync(output, { recursive: true });
 for (const action of ${JSON.stringify(ACTIONS)}) {
