@@ -1,7 +1,20 @@
 window.OPPORTUNITIES = [
   {
-    title: 'Google Review Reply Helper',
-    type: 'Underserved',
+    title: 'Missed-Quote Money Finder',
+    type: 'Leak',
+    summary: 'U.S. mobile detailers, cleaners, movers, lawn crews, and handymen lose jobs because customers ask for quotes in scattered places and owners reply too late or forget the follow-up.',
+    evidence: 'Look for Yelp, Thumbtack, Facebook, and Google Business profiles where customers mention slow replies, no callback, vague pricing, or repeated quote questions.',
+    risk: 'The first version must not pretend to be a full CRM. It should help one niche reply faster without sounding robotic or making fake price promises.',
+    v1: 'Prototype a tiny quote triage helper for one niche: paste a customer message, get missing questions, a friendly reply draft, and a follow-up reminder.',
+    grillQuestions: [
+      'Which niche has the most obvious public pain: mobile detailers, house cleaners, movers, lawn crews, or handymen?',
+      'What exact quote details does that niche need before a useful reply can be drafted?',
+      'Should the first experiment be a paste-in web tool, a Chrome side panel, or a set of SMS templates with reminders?'
+    ]
+  },
+  {
+    title: 'Review Rescue Inbox',
+    type: 'Reputation',
     summary: 'Many U.S. local businesses get Google reviews every week, but owners either ignore them or write rushed replies that make the business look less trustworthy.',
     evidence: 'Look at public Google Business profiles for dentists, cleaners, salons, auto shops, and restaurants with unanswered reviews or repeated copy-paste replies.',
     risk: 'Replies must sound specific and human. A bland AI answer can make an already unhappy customer feel even more ignored.',
@@ -10,19 +23,6 @@ window.OPPORTUNITIES = [
       'Which local niche has the clearest public examples: dentists, salons, cleaners, auto shops, restaurants, or gyms?',
       'What makes a reply feel genuinely local instead of generated?',
       'Is the first experiment a Chrome extension, a paste-in web tool, or a Google Business workflow guide?'
-    ]
-  },
-  {
-    title: 'Home Service Quote Buddy',
-    type: 'Overloaded',
-    summary: 'Cleaners, movers, lawn-care crews, handymen, and mobile detailers lose U.S. leads because they reply slowly or send vague quotes by SMS, email, Yelp, or Thumbtack.',
-    evidence: 'Look for service pages asking customers to text details, Yelp reviews mentioning slow replies, and public quote forms with repetitive questions.',
-    risk: 'Needs to sound human and local; generic chatbot replies will scare customers away.',
-    v1: 'Prototype a tiny helper that drafts a reply, asks missing quote questions, and creates a job checklist for one service category.',
-    grillQuestions: [
-      'Which U.S. service niche is easiest to understand from public examples?',
-      'What proof would show a faster reply might matter?',
-      'Should the experiment be an SMS template tool, a quote form, or a simple browser extension?'
     ]
   },
   {

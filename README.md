@@ -16,6 +16,21 @@ notice a lead -> stress-test it -> turn it into tasks -> keep the work moving
 
 That loop is the part we care about. If the idea of ongoing AI work feels interesting, look at the system this experiment is pointing toward: [MAH Product System](https://dev.mah.bot/product).
 
+## The Lead It Brings Back
+
+The first demo lead is intentionally concrete:
+
+> **Missed-Quote Money Finder**
+> U.S. mobile detailers, cleaners, movers, lawn crews, and handymen lose jobs because customers ask for quotes in scattered places and owners reply too late or forget the follow-up.
+
+That is small enough to inspect in public, but real enough to become a product experiment. A builder could look at Yelp, Thumbtack, Facebook, and Google Business pages, find patterns in slow replies or vague quote forms, and prototype one tiny helper:
+
+```text
+paste customer message -> ask missing quote questions -> draft reply -> set follow-up reminder
+```
+
+The pet does not magically make the business work. It makes the decision point visible: is this worth grilling, planning, and turning into a routemap?
+
 ## Why This Exists
 
 Most AI project ideas die in one of three places:
@@ -55,7 +70,7 @@ Tieguo is only the default development sample. Your pet is supposed to replace h
 6. Turn the fuzzy lead into a routemap-ready plan.
 7. Continue the work in a real ongoing-work system such as [MAH](https://dev.mah.bot/product).
 
-The current opportunities are intentionally simple examples for GitHub builders: local-business review tools, home-service quote helpers, resale listing polishers, and similar small experiments that can be researched from public signals.
+The current opportunities are intentionally simple examples for GitHub builders: missed quote workflows, local-business review rescue, resale listing polishers, and similar small experiments that can be researched from public signals.
 
 ## Download
 
