@@ -8,6 +8,7 @@ const { PNG } = require('pngjs');
 const ACTIONS = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 const GENERATION_TIMEOUT_MS = 20 * 60 * 1000;
+const FIRST_OUTPUT_TIMEOUT_MS = 5 * 60 * 1000;
 
 function findCodexExecutable(explicitPath = process.env.OPPORTUNITY_PET_CODEX_PATH) {
   const names = process.platform === 'win32' ? ['codex.exe', 'codex.cmd', 'codex'] : ['codex'];
@@ -149,12 +150,33 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       shell: isWindowsCommand,
       stdio: ['pipe', 'pipe', 'pipe']
     });
-    child.stdin.end(prompt);
-    let output = `Command: ${executable} ${spawnArgs.join(' ')}\nJob: ${jobDir}\nPrompt: ${prompt}\n\n`;
+    const logPath = path.join(jobDir, 'codex.log');
+    const outputDir = path.join(jobDir, 'output');
+    const startedAt = new Date().toISOString();
+    const header = [
+      `Command: ${executable} ${spawnArgs.join(' ')}`,
+      `Job: ${jobDir}`,
+      `Started: ${startedAt}`,
+      `Prompt: ${prompt}`,
+      ''
+    ].join('\n');
+    let output = '';
     let settled = false;
+    let firstOutputSeen = false;
+    let lastHeartbeatAt = 0;
     const writeLog = () => {
-      fs.writeFileSync(path.join(jobDir, 'codex.log'), output);
+      fs.writeFileSync(logPath, `${header}\n${output.slice(-24000)}`);
     };
+    const outputFileCount = () => {
+      try {
+        return fs.readdirSync(outputDir).filter((file) => !file.startsWith('.')).length;
+      } catch {
+        return 0;
+      }
+    };
+    writeLog();
+    child.stdin.on('error', () => {});
+    child.stdin.end(prompt);
     const timer = setTimeout(() => {
       if (settled) return;
       settled = true;
@@ -162,10 +184,35 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       writeLog();
       reject(new Error('Codex generation timed out after 20 minutes.'));
     }, GENERATION_TIMEOUT_MS);
+    const heartbeat = setInterval(() => {
+      if (settled) return;
+      const files = outputFileCount();
+      if (files > 0) {
+        if (!firstOutputSeen) onProgress(`Codex has started writing output files. Log: ${logPath}`);
+        firstOutputSeen = true;
+        return;
+      }
 
+      const elapsed = Date.now() - Date.parse(startedAt);
+      if (elapsed - lastHeartbeatAt >= 30000) {
+        lastHeartbeatAt = elapsed;
+        onProgress(`Codex is still running; no output files yet. Log: ${logPath}`);
+      }
+      if (!firstOutputSeen && elapsed > FIRST_OUTPUT_TIMEOUT_MS) {
+        settled = true;
+        child.kill();
+        clearTimeout(timer);
+        clearInterval(heartbeat);
+        writeLog();
+        reject(new Error('Codex did not create any output files after 5 minutes. The current Codex CLI may not have image generation available in non-interactive mode. Inspect codex.log in the generation job folder.'));
+      }
+    }, 15000);
+
+    onProgress(`Codex started. Log: ${logPath}`);
     onProgress('Codex is studying the pet photos and building a character sheet...');
     const collect = (chunk) => {
-      output = `${output}${chunk}`.slice(-12000);
+      output = `${output}${chunk}`;
+      writeLog();
       if (/image|generat|character|sprite|action/i.test(String(chunk))) {
         onProgress('Codex is generating and checking the six action strips...');
       }
@@ -176,6 +223,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      clearInterval(heartbeat);
       writeLog();
       reject(error);
     });
@@ -183,6 +231,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
+      clearInterval(heartbeat);
       writeLog();
       if (code === 0) resolve(output);
       else reject(new Error(`Codex exited with code ${code}. Open Codex once, confirm you are signed in, and inspect codex.log in the generation job folder.`));
