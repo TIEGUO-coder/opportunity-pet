@@ -8,6 +8,8 @@ Opportunity Pet is a free, open-source experiment for builders who collect too m
 
 You give it 3-5 photos of your own pet. It creates a small animated scout. The pet wanders around your desktop, brings back a money-adjacent opportunity card, and lets you either reject it, approve it, or copy a Grill-with-docs brief for deeper planning.
 
+![Opportunity Pet workflow](docs/screenshots/hero-flow.svg)
+
 It is deliberately a little silly. That is the point. The pet is the hook; the real loop is:
 
 ```text
@@ -30,6 +32,16 @@ paste customer message -> ask missing quote questions -> draft reply -> set foll
 ```
 
 The pet does not magically make the business work. It makes the decision point visible: is this worth grilling, planning, and turning into a routemap?
+
+![Opportunity Pet lead card](docs/screenshots/lead-card.svg)
+
+## From Card To Work
+
+When the lead looks interesting, Opportunity Pet copies a structured Grill-with-docs brief. The brief is not a business plan. It is the next useful object: a compact prompt that asks an agent to challenge the idea, resolve assumptions, and produce routemap-ready work.
+
+![Opportunity Pet grilling brief](docs/screenshots/grill-brief.svg)
+
+That boundary matters. The pet is allowed to be playful. The work after the card should become serious, reviewable, and durable.
 
 ## Why This Exists
 
@@ -54,7 +66,7 @@ That is the MAH-shaped question.
 - Creates six action states: idle, side-walk scout, curled sleep, happy response, butterfly chase, and yawn.
 - Falls back to basic local photo animation when Codex is unavailable.
 - Runs as a small transparent Electron desktop pet.
-- Lets the pet scout demo opportunity cards.
+- Lets the pet scout curated demo opportunity cards.
 - Copies a Grill-with-docs brief for leads the user wants to stress-test.
 - Includes packaged desktop downloads for macOS, Windows, and Linux.
 
@@ -70,7 +82,7 @@ Tieguo is only the default development sample. Your pet is supposed to replace h
 6. Turn the fuzzy lead into a routemap-ready plan.
 7. Continue the work in a real ongoing-work system such as [MAH](https://dev.mah.bot/product).
 
-The current opportunities are intentionally simple examples for GitHub builders: missed quote workflows, local-business review rescue, resale listing polishers, and similar small experiments that can be researched from public signals.
+The current opportunities are curated examples, not live search results. They are intentionally simple examples for GitHub builders: missed quote workflows, local-business review rescue, resale listing polishers, and similar small experiments that can be researched from public signals.
 
 ## Download
 
