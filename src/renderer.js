@@ -667,7 +667,8 @@ generatePet.addEventListener('click', async () => {
       photos: selectedPhotoDataUrls
     });
     if (!result.ok) {
-      assetNote.textContent = result.error || 'Codex could not generate the cartoon action pack. The photo-only preview is available for testing the UI, but it will not create a new character.';
+      const detail = result.logPath ? ` Log: ${result.logPath}` : '';
+      assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail}`;
       updatePipeline('photos');
       return;
     }
@@ -819,7 +820,9 @@ bridge.onGenerationProgress((message) => {
 bridge.getCodexStatus().then((status) => {
   codexAvailable = Boolean(status && status.available);
   generatePet.disabled = !codexAvailable;
-  if (!codexAvailable && !petProfile) {
+  if (codexAvailable && !petProfile) {
+    assetNote.textContent = `Codex detected at ${status.path}. Choose 3-5 photos, then click Generate with Codex.`;
+  } else if (!codexAvailable && !petProfile) {
     assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI character generation. Photo-only preview is only for testing the flow.';
   }
 }).catch(() => {

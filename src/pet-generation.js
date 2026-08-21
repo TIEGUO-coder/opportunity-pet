@@ -149,7 +149,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       shell: isWindowsCommand,
       stdio: ['ignore', 'pipe', 'pipe']
     });
-    let output = '';
+    let output = `Command: ${executable} ${spawnArgs.join(' ')}\nJob: ${jobDir}\n\n`;
     let settled = false;
     const writeLog = () => {
       fs.writeFileSync(path.join(jobDir, 'codex.log'), output);
@@ -184,7 +184,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       clearTimeout(timer);
       writeLog();
       if (code === 0) resolve(output);
-      else reject(new Error(`Codex exited with code ${code}. Open Codex once, confirm you are signed in, and try again.`));
+      else reject(new Error(`Codex exited with code ${code}. Open Codex once, confirm you are signed in, and inspect codex.log in the generation job folder.`));
     });
   });
 }
@@ -194,10 +194,11 @@ async function generatePetWithCodex({ photos, petName }, options) {
     return { ok: false, error: 'Choose 3-5 pet photos first.' };
   }
   const codexPath = findCodexExecutable(options.codexPath);
-  if (!codexPath) return { ok: false, error: 'Codex CLI was not found. Install and sign in to Codex, or use the local fallback.' };
+  if (!codexPath) return { ok: false, error: 'Codex CLI was not found. Install and sign in to Codex before generating a pet.' };
 
   const jobId = randomUUID();
   const jobDir = path.join(options.userDataPath, 'pet-generation', jobId);
+  const logPath = path.join(jobDir, 'codex.log');
   const inputDir = path.join(jobDir, 'inputs');
   const outputDir = path.join(jobDir, 'output');
   fs.mkdirSync(inputDir, { recursive: true });
@@ -221,9 +222,9 @@ async function generatePetWithCodex({ photos, petName }, options) {
     await runCodex(codexPath, jobDir, photoPaths, options.onProgress);
     options.onProgress('The action pack is ready. Cleaning and aligning frames...');
     const actions = loadGeneratedActions(outputDir);
-    return { ok: true, actions, jobId };
+    return { ok: true, actions, jobId, jobDir, logPath, codexPath };
   } catch (error) {
-    return { ok: false, error: error.message || String(error), jobId };
+    return { ok: false, error: error.message || String(error), jobId, jobDir, logPath, codexPath };
   } finally {
     fs.rmSync(inputDir, { recursive: true, force: true });
   }

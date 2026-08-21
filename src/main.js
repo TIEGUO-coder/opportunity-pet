@@ -104,7 +104,10 @@ ipcMain.handle('cursor:get-position', () => {
   return screen.getCursorScreenPoint();
 });
 
-ipcMain.handle('pet:codex-status', () => ({ available: Boolean(findCodexExecutable()) }));
+ipcMain.handle('pet:codex-status', () => {
+  const path = findCodexExecutable();
+  return { available: Boolean(path), path };
+});
 
 ipcMain.handle('pet:generate-with-codex', async (event, payload) => {
   return generatePetWithCodex(payload || {}, {

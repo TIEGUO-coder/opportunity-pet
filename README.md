@@ -103,7 +103,7 @@ npm run check
 npm run start
 ```
 
-For personalized AI actions, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically. `Preview photos only` is not character generation; it only crops the uploaded photos so you can test the desktop flow when Codex is unavailable.
+For personalized AI actions, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps `Generate with Codex` as the main path. `Preview photos only` is tucked under Advanced; it is not character generation and only crops uploaded photos so you can test the desktop flow when Codex is unavailable.
 
 If Electron's postinstall download fails:
 
