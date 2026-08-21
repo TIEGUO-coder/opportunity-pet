@@ -1,20 +1,22 @@
-<svg width="760" height="620" viewBox="0 0 760 620" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="760" height="620" rx="24" fill="#0D1117"/>
-  <rect x="128" y="64" width="504" height="48" rx="24" fill="#FFF6DD" stroke="#CA962B" stroke-width="2"/>
-  <text x="170" y="95" fill="#8B5B0C" font-family="Arial, sans-serif" font-size="19" font-weight="700">Ding! I brought back a curated lead worth grilling.</text>
-  <rect x="116" y="134" width="528" height="302" rx="24" fill="#F2EEE5" stroke="#BFB5A5" stroke-width="2"/>
-  <text x="148" y="178" fill="#7B776E" font-family="Arial, sans-serif" font-size="16" font-weight="900">SCOUT FOUND A LEAD</text>
-  <text x="148" y="226" fill="#272420" font-family="Arial, sans-serif" font-size="34" font-weight="700">Missed-Quote</text>
-  <text x="148" y="264" fill="#272420" font-family="Arial, sans-serif" font-size="34" font-weight="700">Money Finder</text>
-  <text x="148" y="304" fill="#59544D" font-family="Arial, sans-serif" font-size="20" font-weight="700">U.S. service businesses lose jobs when</text>
-  <text x="148" y="331" fill="#59544D" font-family="Arial, sans-serif" font-size="20" font-weight="700">quote replies are late or forgotten.</text>
-  <rect x="148" y="362" width="210" height="34" rx="17" fill="#E3E7DD"/>
-  <text x="170" y="385" fill="#5A7165" font-family="Arial, sans-serif" font-size="17" font-weight="700">Waiting for approval</text>
-  <rect x="148" y="454" width="464" height="44" rx="13" fill="#FFFEF7" stroke="#9FB9AC" stroke-width="2"/>
-  <text x="301" y="483" fill="#526F64" font-family="Arial, sans-serif" font-size="21" font-weight="700">Approved to act</text>
-  <rect x="148" y="512" width="464" height="44" rx="13" fill="#DED9CF"/>
-  <text x="247" y="541" fill="#59554D" font-family="Arial, sans-serif" font-size="21" font-weight="700">Not this one. Keep scouting.</text>
-  <rect x="148" y="570" width="464" height="44" rx="13" fill="#647568"/>
-  <text x="245" y="599" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="21" font-weight="700">Copy Grill-with-docs brief</text>
-  <path d="M380 436 L394 452 H366 L380 436Z" fill="#F2EEE5"/>
+<svg width="920" height="620" viewBox="0 0 920 620" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="920" height="620" rx="24" fill="#0D1117"/>
+  <rect x="70" y="56" width="610" height="48" rx="24" fill="#FFF6DD" stroke="#CA962B" stroke-width="2"/>
+  <text x="112" y="87" fill="#8B5B0C" font-family="Arial, sans-serif" font-size="20" font-weight="700">Ding! Tieguo brought back a curated lead worth grilling.</text>
+  <rect x="70" y="132" width="610" height="286" rx="24" fill="#F2EEE5" stroke="#BFB5A5" stroke-width="2"/>
+  <text x="104" y="178" fill="#7B776E" font-family="Arial, sans-serif" font-size="16" font-weight="900">TIEGUO FOUND A LEAD</text>
+  <text x="104" y="226" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">Missed-Quote</text>
+  <text x="104" y="268" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">Money Finder</text>
+  <text x="104" y="314" fill="#59544D" font-family="Arial, sans-serif" font-size="21" font-weight="700">U.S. service businesses lose jobs when</text>
+  <text x="104" y="344" fill="#59544D" font-family="Arial, sans-serif" font-size="21" font-weight="700">quote replies are late or forgotten.</text>
+  <rect x="104" y="374" width="214" height="34" rx="17" fill="#E3E7DD"/>
+  <text x="126" y="397" fill="#5A7165" font-family="Arial, sans-serif" font-size="17" font-weight="700">Waiting for approval</text>
+  <path d="M376 418 L392 436 H360 L376 418Z" fill="#F2EEE5"/>
+  <rect x="104" y="442" width="430" height="44" rx="13" fill="#FFFEF7" stroke="#9FB9AC" stroke-width="2"/>
+  <text x="242" y="471" fill="#526F64" font-family="Arial, sans-serif" font-size="21" font-weight="700">Approved to act</text>
+  <rect x="104" y="500" width="430" height="44" rx="13" fill="#DED9CF"/>
+  <text x="187" y="529" fill="#59554D" font-family="Arial, sans-serif" font-size="21" font-weight="700">Not this one. Keep scouting.</text>
+  <rect x="104" y="558" width="430" height="44" rx="13" fill="#647568"/>
+  <text x="190" y="587" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="21" font-weight="700">Copy Grill-with-docs brief</text>
+  <ellipse cx="735" cy="586" rx="92" ry="17" fill="#151A21" opacity="0.28"/>
+  <image href="../../assets/teiguo/idle/idle_001.png" x="628" y="344" width="186" height="246" preserveAspectRatio="xMidYMax meet"/>
 </svg>
