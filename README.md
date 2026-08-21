@@ -1,12 +1,12 @@
 # Opportunity Pet
 
-> A tiny desktop pet that brings back product opportunities, asks whether they are worth chasing, and turns the good ones into a brief for serious project planning.
+> Your pet is tired of sitting at home doing nothing. Now it scouts tiny money-making leads, brings them back to your desktop, and helps earn its own food.
 
-![Opportunity Pet sprite sheet](assets/source/teiguo-expressive-spritesheet.png)
+![Opportunity Pet lead card](docs/screenshots/lead-card.svg)
 
 Opportunity Pet is a free, open-source experiment for builders who collect too many ideas and execute too few of them.
 
-You give it 3-5 photos of your own pet. It creates a small animated scout. The pet wanders around your desktop, brings back a money-adjacent opportunity card, and lets you either reject it, approve it, or copy a Grill-with-docs brief for deeper planning.
+You give it 3-5 photos of your own pet. It creates a small animated scout. Your pet wanders around your desktop, sniffs out a curated opportunity card, and asks: should we ignore this, keep scouting, or grill it into real project work?
 
 ![Opportunity Pet workflow](docs/screenshots/hero-flow.svg)
 
@@ -17,6 +17,8 @@ notice a lead -> stress-test it -> turn it into tasks -> keep the work moving
 ```
 
 That loop is the part we care about. If the idea of ongoing AI work feels interesting, look at the system this experiment is pointing toward: [MAH Product System](https://dev.mah.bot/product).
+
+![Opportunity Pet sprite sheet](assets/source/teiguo-expressive-spritesheet.png)
 
 ## The Lead It Brings Back
 
@@ -32,8 +34,6 @@ paste customer message -> ask missing quote questions -> draft reply -> set foll
 ```
 
 The pet does not magically make the business work. It makes the decision point visible: is this worth grilling, planning, and turning into a routemap?
-
-![Opportunity Pet lead card](docs/screenshots/lead-card.svg)
 
 ## From Card To Work
 
