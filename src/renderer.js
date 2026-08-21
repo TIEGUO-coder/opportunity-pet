@@ -18,6 +18,7 @@ const closeCard = document.getElementById('closeCard');
 const scoutNow = document.getElementById('scoutNow');
 const pin = document.getElementById('pin');
 const resetPet = document.getElementById('resetPet');
+const resetPetLead = document.getElementById('resetPetLead');
 const minimize = document.getElementById('minimize');
 const quit = document.getElementById('quit');
 const approveLead = document.getElementById('approveLead');
@@ -783,6 +784,11 @@ pin.addEventListener('click', async (event) => {
 });
 
 resetPet.addEventListener('click', (event) => {
+  event.stopPropagation();
+  resetPetProfile();
+});
+
+resetPetLead.addEventListener('click', (event) => {
   event.stopPropagation();
   resetPetProfile();
 });

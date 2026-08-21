@@ -400,6 +400,20 @@ body[data-view="lead"] .lead-notice {
   opacity: 0.42;
 }
 
+.change-pet-action {
+  position: absolute;
+  right: 43px;
+  top: 9px;
+  min-height: 24px;
+  padding: 0 8px;
+  border: 1px solid rgba(101, 119, 104, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 252, 243, 0.72);
+  color: #52685c;
+  font-size: 8px;
+  font-weight: 850;
+}
+
 .eyebrow {
   margin: 0 0 10px;
   color: #7b776e;
