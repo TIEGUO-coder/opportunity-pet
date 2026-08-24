@@ -267,6 +267,8 @@ function savePetProfile(profile) {
 function applyPetProfile() {
   if (!petProfile) {
     petSetup.classList.add('visible');
+    petSetup.removeAttribute('aria-hidden');
+    petSetup.inert = false;
     petSetup.scrollTop = 0;
     document.body.dataset.view = 'setup';
     bridge.setMode('setup');
@@ -277,6 +279,8 @@ function applyPetProfile() {
   }
 
   petSetup.classList.remove('visible');
+  petSetup.setAttribute('aria-hidden', 'true');
+  petSetup.inert = true;
   pet.alt = petProfile.name || 'Opportunity Pet';
   document.body.dataset.hasPet = 'true';
   document.body.dataset.view = 'pet';

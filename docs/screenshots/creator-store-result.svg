@@ -1,24 +1,59 @@
-<svg width="920" height="720" viewBox="0 0 920 720" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="920" height="720" rx="24" fill="#0D1117"/>
-  <rect x="270" y="54" width="380" height="612" rx="28" fill="#F4EFE4" stroke="#BFB5A5" stroke-width="2"/>
-  <text x="306" y="108" fill="#7B776E" font-family="Arial, sans-serif" font-size="16" font-weight="900">MONEY PAGE DEMO</text>
-  <text x="306" y="158" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">Weekend store</text>
-  <text x="306" y="202" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">result</text>
-  <text x="306" y="238" fill="#6C675F" font-family="Arial, sans-serif" font-size="18" font-weight="700">Virtual demo data from one Codex-packaged creator product.</text>
-  <rect x="306" y="270" width="308" height="122" rx="18" fill="#17241B"/>
-  <text x="330" y="312" fill="#A9B9A8" font-family="Arial, sans-serif" font-size="15" font-weight="900">GROSS REVENUE</text>
-  <text x="330" y="372" fill="#ECF6E9" font-family="Arial, sans-serif" font-size="64" font-weight="900">$203</text>
-  <rect x="306" y="418" width="145" height="72" rx="14" fill="#FFFDF3" opacity="0.78"/>
-  <text x="324" y="448" fill="#6C675F" font-family="Arial, sans-serif" font-size="13" font-weight="900">ORDERS</text>
-  <text x="324" y="478" fill="#263028" font-family="Arial, sans-serif" font-size="34" font-weight="900">7</text>
-  <rect x="469" y="418" width="145" height="72" rx="14" fill="#FFFDF3" opacity="0.78"/>
-  <text x="487" y="448" fill="#6C675F" font-family="Arial, sans-serif" font-size="13" font-weight="900">AUTO-DELIVERED</text>
-  <text x="487" y="478" fill="#263028" font-family="Arial, sans-serif" font-size="34" font-weight="900">7/7</text>
-  <rect x="306" y="506" width="308" height="106" rx="16" fill="#FFFDF3" opacity="0.72"/>
-  <text x="326" y="540" fill="#2B2924" font-family="Arial, sans-serif" font-size="20" font-weight="900">Freelance Client Portal Kit</text>
-  <text x="326" y="574" fill="#4E4A43" font-family="Arial, sans-serif" font-size="15">Fri 8:10 PM  Gumroad order x3</text>
-  <text x="562" y="574" fill="#1F6F43" font-family="Arial, sans-serif" font-size="15" font-weight="900">+$87</text>
-  <text x="326" y="600" fill="#4E4A43" font-family="Arial, sans-serif" font-size="15">Sat 1:34 PM  Link-in-bio order x2</text>
-  <text x="562" y="600" fill="#1F6F43" font-family="Arial, sans-serif" font-size="15" font-weight="900">+$58</text>
-  <text x="306" y="642" fill="#6A655D" font-family="Arial, sans-serif" font-size="13">The numbers are virtual. The page is the proof artifact a builder can ship.</text>
+<svg width="1100" height="760" viewBox="0 0 1100 760" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1100" height="760" rx="28" fill="#111111"/>
+  <rect x="54" y="42" width="992" height="676" rx="28" fill="#F7F2E8"/>
+  <rect x="54" y="42" width="992" height="76" rx="28" fill="#FF90E8"/>
+  <text x="88" y="91" fill="#111111" font-family="Arial, sans-serif" font-size="30" font-weight="900">gumroad</text>
+  <rect x="832" y="62" width="170" height="36" rx="18" fill="#111111"/>
+  <text x="862" y="86" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="900">7-day analytics</text>
+
+  <text x="88" y="164" fill="#111111" font-family="Arial, sans-serif" font-size="36" font-weight="900">Freelance Client Portal Kit</text>
+  <text x="88" y="196" fill="#4A4A4A" font-family="Arial, sans-serif" font-size="18">Result page demo for the Creator Store Launch Kit opportunity</text>
+
+  <rect x="88" y="226" width="216" height="128" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+  <text x="112" y="264" fill="#6C6C6C" font-family="Arial, sans-serif" font-size="14" font-weight="900">REVENUE</text>
+  <text x="112" y="322" fill="#111111" font-family="Arial, sans-serif" font-size="58" font-weight="900">$203</text>
+
+  <rect x="324" y="226" width="164" height="128" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+  <text x="348" y="264" fill="#6C6C6C" font-family="Arial, sans-serif" font-size="14" font-weight="900">SALES</text>
+  <text x="348" y="322" fill="#111111" font-family="Arial, sans-serif" font-size="58" font-weight="900">7</text>
+
+  <rect x="508" y="226" width="212" height="128" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+  <text x="532" y="264" fill="#6C6C6C" font-family="Arial, sans-serif" font-size="14" font-weight="900">DELIVERED</text>
+  <text x="532" y="322" fill="#111111" font-family="Arial, sans-serif" font-size="58" font-weight="900">7/7</text>
+
+  <rect x="740" y="226" width="262" height="128" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+  <text x="764" y="264" fill="#6C6C6C" font-family="Arial, sans-serif" font-size="14" font-weight="900">NET AFTER FEES</text>
+  <text x="764" y="322" fill="#111111" font-family="Arial, sans-serif" font-size="58" font-weight="900">$181</text>
+
+  <rect x="88" y="386" width="566" height="268" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+  <text x="112" y="426" fill="#111111" font-family="Arial, sans-serif" font-size="22" font-weight="900">Sales by referrer</text>
+  <line x1="132" y1="596" x2="612" y2="596" stroke="#111111" stroke-width="2"/>
+  <rect x="152" y="506" width="74" height="90" rx="8" fill="#FF90E8" stroke="#111111" stroke-width="2"/>
+  <rect x="258" y="536" width="74" height="60" rx="8" fill="#FFC900" stroke="#111111" stroke-width="2"/>
+  <rect x="364" y="536" width="74" height="60" rx="8" fill="#23A094" stroke="#111111" stroke-width="2"/>
+  <rect x="470" y="566" width="74" height="30" rx="8" fill="#90A8ED" stroke="#111111" stroke-width="2"/>
+  <text x="154" y="626" fill="#111111" font-family="Arial, sans-serif" font-size="13" font-weight="800">TikTok bio</text>
+  <text x="266" y="626" fill="#111111" font-family="Arial, sans-serif" font-size="13" font-weight="800">Email</text>
+  <text x="366" y="626" fill="#111111" font-family="Arial, sans-serif" font-size="13" font-weight="800">Gumroad</text>
+  <text x="476" y="626" fill="#111111" font-family="Arial, sans-serif" font-size="13" font-weight="800">Etsy</text>
+  <text x="166" y="488" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="900">$87</text>
+  <text x="276" y="520" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="900">$58</text>
+  <text x="382" y="520" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="900">$58</text>
+
+  <rect x="684" y="386" width="318" height="268" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
+  <text x="708" y="426" fill="#111111" font-family="Arial, sans-serif" font-size="22" font-weight="900">Recent customers</text>
+  <g font-family="Arial, sans-serif" font-size="15">
+    <text x="708" y="468" fill="#111111" font-weight="900">amy@studio.co</text>
+    <text x="922" y="468" fill="#111111" font-weight="900">$29</text>
+    <text x="708" y="500" fill="#555555">Delivered PDF + Notion link</text>
+    <line x1="708" y1="520" x2="970" y2="520" stroke="#111111" stroke-width="1"/>
+    <text x="708" y="552" fill="#111111" font-weight="900">marco@solo.dev</text>
+    <text x="922" y="552" fill="#111111" font-weight="900">$29</text>
+    <text x="708" y="584" fill="#555555">Receipt sent, no refund</text>
+    <line x1="708" y1="604" x2="970" y2="604" stroke="#111111" stroke-width="1"/>
+    <text x="708" y="636" fill="#111111" font-weight="900">jules@coach.ai</text>
+    <text x="922" y="636" fill="#111111" font-weight="900">$29</text>
+  </g>
+
+  <text x="88" y="696" fill="#4A4A4A" font-family="Arial, sans-serif" font-size="15">Virtual demo data. The point is the proof artifact: a platform-shaped result page Codex can generate after fulfillment.</text>
 </svg>

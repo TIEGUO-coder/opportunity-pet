@@ -39,7 +39,7 @@ The pet does not magically make the business work. It makes the decision point v
 
 ## The Money Page
 
-The README demo now ends with a concrete result page. The data is virtual, but the page is real: it shows the proof artifact a builder could ship after Codex packages one creator asset into a paid micro-product.
+The README demo now ends with a concrete platform-shaped result page. The data is virtual, but the page is real: it shows the proof artifact a builder could ship after Codex packages one creator asset into a paid micro-product.
 
 ![Creator Store result page](docs/screenshots/creator-store-result.svg)
 
@@ -55,6 +55,30 @@ Net after fees: $181
 ```
 
 Why this opportunity fits GitHub builders: Codex can create the product page, delivery PDF, FAQ, launch post, and result dashboard. The human still picks the niche and validates demand.
+
+## The Automation Plan
+
+The demo service is narrow on purpose: **turn one messy creator asset into a Gumroad-ready digital product kit.** A real user could run it manually at first, then automate each step with Codex.
+
+1. **Intake**
+   The customer uploads a Notion page, Canva export, prompt pack, checklist, or rough Google Doc. The intake form asks for target buyer, promised outcome, price range, and refund policy.
+
+2. **Packaging**
+   Codex reads the asset and produces a product-positioning brief: title options, target buyer, before/after promise, table of contents, bonus files, FAQ, and risks that must not be overclaimed.
+
+3. **Storefront Draft**
+   Codex generates a Gumroad-style product page: headline, short description, cover image prompt, feature bullets, license notes, refund copy, and launch CTA. The human reviews claims before publishing.
+
+4. **Delivery Kit**
+   Codex creates the actual deliverables: cleaned PDF, Notion duplicate instructions, README, onboarding email, support FAQ, and a lightweight changelog. This is why the service can be AI-automated: the fulfillment artifact is mostly text, structure, and files.
+
+5. **Order Handling**
+   When an order comes in, automation sends the correct delivery link, records the buyer, tags source/referrer, and watches for refund or support events. A human only handles edge cases.
+
+6. **Result Page**
+   The app generates a proof page shaped like a Gumroad analytics/sales dashboard: revenue, orders, referrers, delivered count, refunds, and recent customers. The numbers can be demo data in README, but the workflow shows what a real pilot should prove.
+
+Feasibility boundary: this does **not** promise passive income or guaranteed sales. It is feasible because the first paid service is not "build a startup"; it is "package one creator asset well enough to sell and deliver." Codex can automate most of the packaging, delivery docs, launch copy, and reporting, while the human still validates demand and approves public claims.
 
 ## From Card To Work
 
