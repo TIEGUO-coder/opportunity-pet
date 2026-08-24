@@ -3,7 +3,7 @@
 > **My pet learned to earn its own treats. Now it is working on paying my rent.**
 
 <p align="center">
-  <img src="docs/screenshots/lead-card.svg" width="820" alt="Tieguo brings back a Creator Store Launch Kit opportunity">
+  <img src="docs/screenshots/lead-card.svg" width="460" alt="Tieguo brings back a Creator Store Launch Kit opportunity">
 </p>
 
 <p align="center"><em>Tieguo found something small enough to build and concrete enough to sell.</em></p>
