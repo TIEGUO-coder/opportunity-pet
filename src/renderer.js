@@ -29,6 +29,7 @@ const showResult = document.getElementById('showResult');
 const closeResult = document.getElementById('closeResult');
 const backToLead = document.getElementById('backToLead');
 const briefPanel = document.getElementById('briefPanel');
+const closeBrief = document.getElementById('closeBrief');
 
 const bridge = window.teiguoWindow || {
   moveBy: () => Promise.resolve(),
@@ -272,6 +273,7 @@ function hideSetupPanel() {
 
 function setBriefOpen(open) {
   document.body.classList.toggle('brief-open', Boolean(open));
+  if (!open && reviewPlan) reviewPlan.textContent = 'Copy routemap-ready plan';
 }
 
 function applyPetProfile() {
@@ -468,11 +470,26 @@ async function skipCurrentLead() {
   await scoutForLead();
 }
 
+function closePlanPanel() {
+  briefPanel.classList.remove('visible');
+  setBriefOpen(false);
+  document.getElementById('leadStatus').textContent = 'Marked actionable. Plan ready for MAH.';
+  reviewPlan.textContent = 'Copy routemap-ready plan';
+  setPetMotion('found');
+  stopAnimationOnFirstFrame('idle');
+  leadCard.scrollTop = 0;
+}
+
 async function reviewCurrentPlan() {
+  if (briefPanel.classList.contains('visible')) {
+    closePlanPanel();
+    return;
+  }
   document.getElementById('leadStatus').textContent = 'Plan copied. Paste it into MAH routemap.';
   leadCard.dataset.approved = 'true';
   setBriefOpen(true);
   briefPanel.classList.add('visible');
+  reviewPlan.textContent = 'Back to lead';
   requestAnimationFrame(() => {
     briefPanel.scrollIntoView({ block: 'nearest' });
   });
@@ -1161,6 +1178,7 @@ closeCard.addEventListener('click', closeLeadCardView);
 approveLead.addEventListener('click', approveCurrentLead);
 skipLead.addEventListener('click', skipCurrentLead);
 reviewPlan.addEventListener('click', reviewCurrentPlan);
+closeBrief.addEventListener('click', closePlanPanel);
 showResult.addEventListener('click', showResultPage);
 closeResult.addEventListener('click', closeResultPage);
 backToLead.addEventListener('click', closeResultPage);

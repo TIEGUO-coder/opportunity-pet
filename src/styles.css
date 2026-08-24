@@ -955,6 +955,10 @@ body.brief-open .brief-panel {
   margin: 0;
 }
 
+.brief-back-action {
+  margin-top: 12px;
+}
+
 #briefQuestions span {
   display: block;
   margin-bottom: 5px;
