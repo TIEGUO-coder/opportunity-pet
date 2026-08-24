@@ -884,7 +884,7 @@ bridge.getCodexStatus().then((status) => {
   codexAvailable = Boolean(status && status.available);
   generatePet.disabled = !codexAvailable;
   if (codexAvailable && !petProfile) {
-    assetNote.textContent = `Codex detected at ${status.path}. Choose 3-5 photos, then click Generate with Codex.`;
+    assetNote.textContent = `Codex detected at ${status.path}. Model: ${status.model || 'default'}. Choose 3-5 photos, then click Generate with Codex.`;
   } else if (!codexAvailable && !petProfile) {
     assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI character generation. Photo-only preview is only for testing the flow.';
   }

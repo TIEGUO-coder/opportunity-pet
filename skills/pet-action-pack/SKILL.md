@@ -28,6 +28,16 @@ output/yawn.png
 output/manifest.json
 ```
 
+## Required Generation Pipeline
+
+Follow this sequence. Do not skip directly from uploaded photos to action strips.
+
+1. Inspect all uploaded photos and infer durable identity traits.
+2. Generate `character-sheet.png` first as the multi-view identity anchor.
+3. Use `character-sheet.png` plus selected original photos as references for every action strip.
+4. Generate the six task-node actions only after the multi-view character sheet exists.
+5. Verify backgrounds and body completeness before writing `manifest.json`.
+
 ## Identity Pass
 
 First infer durable identity traits from all photos: species, body proportions, coat colors and markings, face shape, ears, tail, paws, scars, and other distinctive features. Generate `character-sheet.png` as a consistent 2-by-2 multi-view reference showing front, strict side, rear three-quarter, and a natural curled or resting pose. Preserve the real animal's identity rather than idealizing it or changing breed characteristics.

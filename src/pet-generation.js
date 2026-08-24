@@ -9,6 +9,7 @@ const ACTIONS = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 const GENERATION_TIMEOUT_MS = 20 * 60 * 1000;
 const INACTIVITY_TIMEOUT_MS = 7 * 60 * 1000;
+const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
 
 function findCodexExecutable(explicitPath = process.env.OPPORTUNITY_PET_CODEX_PATH) {
   const names = process.platform === 'win32' ? ['codex.exe', 'codex.cmd', 'codex'] : ['codex'];
@@ -182,10 +183,10 @@ function loadGeneratedActions(outputDir) {
   return actions;
 }
 
-function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
+function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexModel = process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL) {
   return new Promise((resolve, reject) => {
     const prompt = 'Read and follow ./SKILL.md. Use every attached pet photo, generate the complete action pack under ./output, and satisfy the completion contract without asking questions.';
-    const args = ['exec', '--ephemeral', '--skip-git-repo-check', '--sandbox', 'workspace-write', '--cd', jobDir];
+    const args = ['exec', '--ephemeral', '--skip-git-repo-check', '--sandbox', 'workspace-write', '--model', codexModel, '--cd', jobDir];
     photoPaths.forEach((photo) => args.push('--image', photo));
     args.push('--', '-');
 
@@ -205,6 +206,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
     const header = [
       `Command: ${executable} ${spawnArgs.join(' ')}`,
       `Job: ${jobDir}`,
+      `Model: ${codexModel}`,
       `Started: ${startedAt}`,
       `Prompt: ${prompt}`,
       ''
@@ -258,7 +260,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       }
     }, 15000);
 
-    onProgress(`Codex started. Log: ${logPath}`);
+    onProgress(`Codex started with ${codexModel}. Log: ${logPath}`);
     onProgress('Codex is studying the pet photos and building a character sheet...');
     const collect = (chunk) => {
       output = `${output}${chunk}`;
@@ -285,7 +287,11 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
       clearInterval(heartbeat);
       writeLog();
       if (code === 0) resolve(output);
-      else reject(new Error(`Codex exited with code ${code}. Open Codex once, confirm you are signed in, and inspect codex.log in the generation job folder.`));
+      else if (/model is not supported/i.test(output)) {
+        reject(new Error(`Codex model ${codexModel} is not supported by this account. Set OPPORTUNITY_PET_CODEX_MODEL to a supported Codex model and try again. Inspect codex.log in the generation job folder.`));
+      } else {
+        reject(new Error(`Codex exited with code ${code}. Open Codex once, confirm you are signed in, and inspect codex.log in the generation job folder.`));
+      }
     });
   });
 }
@@ -320,12 +326,13 @@ async function generatePetWithCodex({ photos, petName }, options) {
       outputDirectory: 'output'
     }, null, 2));
 
-    await runCodex(codexPath, jobDir, photoPaths, options.onProgress);
+    const codexModel = options.codexModel || process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL;
+    await runCodex(codexPath, jobDir, photoPaths, options.onProgress, codexModel);
     options.onProgress('The action pack is ready. Cleaning and aligning frames...');
     const actions = loadGeneratedActions(outputDir);
-    return { ok: true, actions, jobId, jobDir, logPath, codexPath };
+    return { ok: true, actions, jobId, jobDir, logPath, codexPath, codexModel };
   } catch (error) {
-    return { ok: false, error: error.message || String(error), jobId, jobDir, logPath, codexPath };
+    return { ok: false, error: error.message || String(error), jobId, jobDir, logPath, codexPath, codexModel: options.codexModel || process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL };
   } finally {
     fs.rmSync(inputDir, { recursive: true, force: true });
   }
@@ -333,6 +340,7 @@ async function generatePetWithCodex({ photos, petName }, options) {
 
 module.exports = {
   ACTIONS,
+  DEFAULT_CODEX_MODEL,
   findCodexExecutable,
   generatePetWithCodex,
   loadGeneratedActions,

@@ -1,6 +1,6 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
-const { findCodexExecutable, generatePetWithCodex } = require('./pet-generation');
+const { DEFAULT_CODEX_MODEL, findCodexExecutable, generatePetWithCodex } = require('./pet-generation');
 
 let petWindow;
 
@@ -106,11 +106,12 @@ ipcMain.handle('cursor:get-position', () => {
 
 ipcMain.handle('pet:codex-status', () => {
   const path = findCodexExecutable();
-  return { available: Boolean(path), path };
+  return { available: Boolean(path), path, model: process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL };
 });
 
 ipcMain.handle('pet:generate-with-codex', async (event, payload) => {
   return generatePetWithCodex(payload || {}, {
+    codexModel: process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL,
     userDataPath: app.getPath('userData'),
     skillPath: petActionPackSkillPath(),
     onProgress: (message) => event.sender.send('pet:generation-progress', message)

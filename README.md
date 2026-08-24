@@ -64,7 +64,7 @@ That is the MAH-shaped question.
 ## What It Does Today
 
 - Imports 3-5 pet photos and a pet name.
-- Uses the user's signed-in Codex CLI to generate a personalized animated pet action pack.
+- Uses the user's signed-in Codex CLI to infer the pet identity, generate a multi-view character sheet, then generate the animated action pack.
 - Creates six action states: idle, side-walk scout, curled sleep, happy response, butterfly chase, and yawn.
 - Falls back to basic local photo animation when Codex is unavailable.
 - Runs as a small transparent Electron desktop pet.
@@ -106,6 +106,12 @@ npm run start
 ```
 
 For personalized AI actions, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps `Generate with Codex` as the main path. `Preview photos only` is tucked under Advanced; it is not character generation and only crops uploaded photos so you can test the desktop flow when Codex is unavailable.
+
+Opportunity Pet pins Codex generation to `gpt-5.6-luna` by default so it does not inherit an unsupported model from your global Codex config. Luna is the faster, more affordable 5.5+ option in current Codex model listings. To override it:
+
+```bash
+OPPORTUNITY_PET_CODEX_MODEL=gpt-5.5 npm run start
+```
 
 If Electron's postinstall download fails:
 
