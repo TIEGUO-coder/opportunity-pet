@@ -883,12 +883,15 @@ function shouldUseLocalStylizedFallback(error) {
   return /HTTP 403|Forbidden|image generation unavailable|image generation failed/i.test(error || '');
 }
 
-async function activateLocalStylizedFallback(reason = '') {
+async function activateLocalStylizedFallback(reason = '', extraProfile = {}) {
   updatePipeline('sprite');
   assetNote.textContent = 'AI image generation is unavailable here, so I am building a transparent local cartoon scout from your pet photos.';
   const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
-  await activateGeneratedPet(localActions, 'local-stylized-fallback', { codexError: reason });
-  assetNote.textContent = 'Local cartoon scout ready. It uses colors inferred from your photos; Codex imagegen can replace it with a more faithful pet when that permission is available.';
+  const generatedFrom = extraProfile.generationJobId ? 'codex-assisted-local-render' : 'local-stylized-fallback';
+  await activateGeneratedPet(localActions, generatedFrom, { codexError: reason, ...extraProfile });
+  assetNote.textContent = extraProfile.generationJobId
+    ? 'Codex chain reached image generation, then local cartoon render completed from your uploaded pet photos. Your scout is ready.'
+    : 'Local cartoon scout ready. It uses colors inferred from your photos; Codex imagegen can replace it with a more faithful pet when that permission is available.';
 }
 
 generatePet.addEventListener('click', async () => {
@@ -908,7 +911,11 @@ generatePet.addEventListener('click', async () => {
     if (!result.ok) {
       const detail = result.logPath ? ` Log: ${result.logPath}` : '';
       if (shouldUseLocalStylizedFallback(result.error)) {
-        await activateLocalStylizedFallback(`${result.error || 'Codex image generation failed.'}${detail}`);
+        await activateLocalStylizedFallback(`${result.error || 'Codex image generation failed.'}${detail}`, {
+          generationJobId: result.jobId || '',
+          codexLogPath: result.logPath || '',
+          codexModel: result.codexModel || ''
+        });
         return;
       }
       assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail} You can use the Tieguo demo now, or regenerate after Codex is ready.`;

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const { app, BrowserWindow, ipcMain } = require('electron');
 const { PNG } = require('pngjs');
+const { DEFAULT_CODEX_MODEL, findCodexExecutable, generatePetWithCodex } = require('../src/pet-generation');
 
 const defaultPhotoPaths = [
   '微信图片_20260727112439_13_2.jpg',
@@ -53,8 +54,27 @@ async function main() {
   ipcMain.handle('window:move-by', () => true);
   ipcMain.handle('window:quit', () => true);
   ipcMain.handle('cursor:get-position', () => null);
-  ipcMain.handle('pet:codex-status', () => ({ available: true, path: 'Codex CLI', model: 'test' }));
-  ipcMain.handle('pet:generate-with-codex', () => ({ ok: false, error: 'Built-in image generation unavailable: HTTP 403 Forbidden' }));
+  const realCodex = process.env.OPPORTUNITY_PET_REAL_CODEX === '1';
+  const codexPath = realCodex ? findCodexExecutable() : 'Codex CLI';
+  ipcMain.handle('pet:codex-status', () => ({ available: Boolean(codexPath), path: codexPath, model: realCodex ? DEFAULT_CODEX_MODEL : 'test' }));
+  ipcMain.handle('pet:generate-with-codex', (event, payload) => {
+    if (realCodex) {
+      return generatePetWithCodex(payload, {
+        codexPath,
+        userDataPath: app.getPath('userData'),
+        skillPath: path.join(__dirname, '..', 'skills', 'pet-action-pack', 'SKILL.md'),
+        codexModel: DEFAULT_CODEX_MODEL,
+        onProgress: () => {}
+      });
+    }
+    return {
+      ok: false,
+      error: 'Built-in image generation unavailable: HTTP 403 Forbidden',
+      jobId: 'test-codex-job-403',
+      logPath: '/tmp/opportunity-pet-test/codex.log',
+      codexModel: 'gpt-5.6-luna'
+    };
+  });
 
   const win = new BrowserWindow({
     width: 280,
@@ -88,27 +108,49 @@ async function main() {
       input.dispatchEvent(new Event('change', { bubbles: true }));
       await new Promise((resolve) => setTimeout(resolve, 100));
       document.getElementById('generatePet').click();
-      for (let tries = 0; tries < 80; tries += 1) {
+      const maxTries = ${process.env.OPPORTUNITY_PET_REAL_CODEX === '1' ? 4200 : 80};
+      for (let tries = 0; tries < maxTries; tries += 1) {
         const actions = localStorage.getItem('opportunityPet.importedActions');
         const profile = localStorage.getItem('opportunityPet.profile');
         const note = document.getElementById('assetNote').textContent;
-        if (actions && profile && /Local cartoon scout ready/i.test(note)) {
+        const setupVisible = document.getElementById('petSetup').classList.contains('visible');
+        const leadVisible = document.getElementById('leadCard').classList.contains('visible');
+        if (actions && profile && /Your scout is ready/i.test(note) && !setupVisible && leadVisible && document.body.dataset.view === 'lead') {
           return {
             actions: JSON.parse(actions),
             profile: JSON.parse(profile),
-            note
+            note,
+            view: document.body.dataset.view,
+            setupVisible,
+            leadVisible,
+            petSrc: document.getElementById('pet').src
           };
         }
         await new Promise((resolve) => setTimeout(resolve, 100));
       }
-      throw new Error('Timed out waiting for generated local fallback actions');
+      throw new Error('Timed out waiting for generated local fallback actions and lead screen');
     })();
   `);
-  const { actions, profile, note } = result;
-  if (profile.generatedFrom !== 'local-stylized-fallback') {
-    throw new Error(`Expected local-stylized-fallback profile, got ${profile.generatedFrom}`);
+  const { actions, profile, note, view, setupVisible, leadVisible, petSrc } = result;
+  if (profile.generatedFrom !== 'codex-assisted-local-render') {
+    throw new Error(`Expected codex-assisted-local-render profile, got ${profile.generatedFrom}`);
   }
-  if (!/Local cartoon scout ready/i.test(note)) {
+  if (!profile.generationJobId || (!realCodex && profile.generationJobId !== 'test-codex-job-403')) {
+    throw new Error(`Expected Codex job id to be preserved, got ${profile.generationJobId}`);
+  }
+  if (!/HTTP 403 Forbidden/.test(profile.codexError || '')) {
+    throw new Error('Expected Codex image generation error to be preserved in the pet profile');
+  }
+  if (profile.sourcePhotoCount !== 3) {
+    throw new Error(`Expected profile to record 3 source photos, got ${profile.sourcePhotoCount}`);
+  }
+  if (view !== 'lead' || setupVisible || !leadVisible) {
+    throw new Error(`Expected second screen lead view, got view=${view}, setupVisible=${setupVisible}, leadVisible=${leadVisible}`);
+  }
+  if (!/^data:image\/png;base64,/.test(petSrc)) {
+    throw new Error('Expected displayed pet to use the generated action frame');
+  }
+  if (!/Your scout is ready/i.test(note)) {
     throw new Error(`Expected fallback success note, got: ${note}`);
   }
 
@@ -131,12 +173,11 @@ async function main() {
     });
   });
 
-  console.log('Verified local cartoon fallback: 6 actions, 24 visible transparent frames.');
+  console.log(`Verified ${realCodex ? 'real Codex -> local render' : 'mock Codex -> local render'} chain: setup hidden, lead screen shown, generated pet displayed, 6 actions, 24 visible transparent frames.`);
   app.quit();
 }
 
 main().catch((error) => {
   console.error(error);
-  app.quit();
-  process.exitCode = 1;
+  app.exit(1);
 });
