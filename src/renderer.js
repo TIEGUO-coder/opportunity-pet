@@ -80,6 +80,7 @@ let petMotionTimer = null;
 let isScouting = false;
 let codexAvailable = false;
 let generationBusy = false;
+let generationStatusTimer = null;
 
 pin.style.opacity = '0.48';
 
@@ -671,6 +672,24 @@ function setGenerationBusy(busy) {
   updateGeneratePetButton();
   generateLocalPet.disabled = busy;
   petPhotoInput.disabled = busy;
+  if (busy) {
+    createPet.textContent = 'Use Tieguo while Codex works';
+  } else {
+    clearInterval(generationStatusTimer);
+    generationStatusTimer = null;
+    createPet.textContent = 'Use Tieguo dev sample';
+  }
+}
+
+function startGenerationStatusTimer(logPath = '') {
+  const startedAt = Date.now();
+  clearInterval(generationStatusTimer);
+  generationStatusTimer = setInterval(() => {
+    if (!generationBusy) return;
+    const elapsed = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
+    const logHint = logPath ? ` Log: ${logPath}` : '';
+    assetNote.textContent = `Codex is still generating the action pack in the background (${elapsed} min). Image generation can take several minutes; you can use the Tieguo demo while it works.${logHint}`;
+  }, 30000);
 }
 
 async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {}) {
@@ -699,7 +718,8 @@ generatePet.addEventListener('click', async () => {
   }
   setGenerationBusy(true);
   updatePipeline('identity');
-  assetNote.textContent = 'Starting Codex and building a consistent multi-view character sheet...';
+  assetNote.textContent = 'Starting Codex. It will infer the pet identity, generate a character sheet, then six action strips. This can take several minutes.';
+  startGenerationStatusTimer();
   try {
     const result = await bridge.generatePetWithCodex({
       petName: petName(),
@@ -707,7 +727,7 @@ generatePet.addEventListener('click', async () => {
     });
     if (!result.ok) {
       const detail = result.logPath ? ` Log: ${result.logPath}` : '';
-      assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail}`;
+      assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail} You can use the Tieguo demo now, or regenerate after Codex is ready.`;
       updatePipeline('photos');
       return;
     }
@@ -853,7 +873,11 @@ async function watchGlobalCursor() {
 
 applyPetProfile();
 bridge.onGenerationProgress((message) => {
-  assetNote.textContent = message;
+  const logMatch = /Log: (.+)$/.exec(message);
+  if (logMatch) startGenerationStatusTimer(logMatch[1]);
+  assetNote.textContent = /generating|started|still running|studying/i.test(message)
+    ? `${message} This can take several minutes because Codex is creating 7 images and 24 animation frames.`
+    : message;
   if (/six action|generating|checking/i.test(message)) updatePipeline('sprite');
 });
 bridge.getCodexStatus().then((status) => {
