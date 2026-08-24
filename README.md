@@ -2,11 +2,11 @@
 
 > Your pet is tired of sitting at home doing nothing. Now it scouts tiny money-making leads, brings them back to your desktop, and helps earn its own food.
 
-![Opportunity Pet setup screen](docs/screenshots/setup-page.png)
+![Opportunity Pet brings back a sellable creator-store opportunity](docs/screenshots/lead-card.svg)
 
 Opportunity Pet is a free, open-source experiment for builders who collect too many ideas and execute too few of them.
 
-You give it 3-5 photos of your own pet. It creates a small animated scout. Your pet wanders around your desktop, sniffs out a curated opportunity card, and asks: should we ignore this, keep scouting, or grill it into real project work?
+You give it 3-5 photos of your own pet. It creates a small animated scout. Your pet wanders around your desktop, sniffs out a sellable micro-service, and asks: should we ignore this, package it, or grill it into real project work?
 
 ![Opportunity Pet lead card](docs/screenshots/lead-card.svg)
 
@@ -26,16 +26,35 @@ That loop is the part we care about. If the idea of ongoing AI work feels intere
 
 The first demo lead is intentionally concrete:
 
-> **Missed-Quote Money Finder**
-> U.S. mobile detailers, cleaners, movers, lawn crews, and handymen lose jobs because customers ask for quotes in scattered places and owners reply too late or forget the follow-up.
+> **Creator Store Launch Kit**
+> Creators already sell templates, guides, prompt packs, and setup kits from Gumroad, Etsy, Stan Store, and link-in-bio pages. Many have a useful asset but no product page, delivery PDF, FAQ, launch copy, or result dashboard.
 
-That is small enough to inspect in public, but real enough to become a product experiment. A builder could look at Yelp, Thumbtack, Facebook, and Google Business pages, find patterns in slow replies or vague quote forms, and prototype one tiny helper:
+That is small enough to inspect in public, but real enough to become a product experiment. A builder could look at Gumroad, Etsy, Notion Marketplace, TikTok link-in-bio offers, and Reddit creator threads, then package one tiny service:
 
 ```text
-paste customer message -> ask missing quote questions -> draft reply -> set follow-up reminder
+messy creator asset -> product page -> delivery PDF -> launch copy -> result page
 ```
 
-The pet does not magically make the business work. It makes the decision point visible: is this worth grilling, planning, and turning into a routemap?
+The pet does not magically make the business work. It makes the decision point visible: is this worth grilling, packaging, and turning into a routemap?
+
+## The Money Page
+
+The README demo now ends with a concrete result page. The data is virtual, but the page is real: it shows the proof artifact a builder could ship after Codex packages one creator asset into a paid micro-product.
+
+![Creator Store result page](docs/screenshots/creator-store-result.svg)
+
+The demo result is deliberately modest:
+
+```text
+Product: Freelance Client Portal Kit
+Orders: 7
+Gross revenue: $203
+Auto-delivered: 7/7
+Refunds: 0
+Net after fees: $181
+```
+
+Why this opportunity fits GitHub builders: Codex can create the product page, delivery PDF, FAQ, launch post, and result dashboard. The human still picks the niche and validates demand.
 
 ## From Card To Work
 
@@ -63,10 +82,12 @@ That is the MAH-shaped question.
 
 ## What It Does Today
 
+![Opportunity Pet setup screen](docs/screenshots/setup-page.png)
+
 - Imports 3-5 pet photos and a pet name.
 - Uses the user's signed-in Codex CLI to infer the pet identity, generate a multi-view character sheet, then generate the animated action pack.
 - Creates six action states: idle, side-walk scout, curled sleep, happy response, butterfly chase, and yawn.
-- Falls back to a transparent local cartoon scout when Codex image generation is unavailable.
+- Falls back to a transparent semi-realistic scout when Codex image generation is unavailable.
 - Runs as a small transparent Electron desktop pet.
 - Lets the pet scout curated demo opportunity cards.
 - Copies a Grill-with-docs brief for leads the user wants to stress-test.
@@ -81,10 +102,19 @@ Tieguo is only the default development sample. Your pet is supposed to replace h
 3. Let it bring back an opportunity card.
 4. Approve the lead or send the pet back out.
 5. Copy the Grill-with-docs brief.
-6. Turn the fuzzy lead into a routemap-ready plan.
-7. Continue the work in a real ongoing-work system such as [MAH](https://dev.mah.bot/product).
+6. Open the money page demo to see what a finished pilot result could look like.
+7. Turn the fuzzy lead into a routemap-ready plan.
+8. Continue the work in a real ongoing-work system such as [MAH](https://dev.mah.bot/product).
 
-The current opportunities are curated examples, not live search results. They are intentionally simple examples for GitHub builders: missed quote workflows, local-business review rescue, resale listing polishers, and similar small experiments that can be researched from public signals.
+The current opportunities are curated examples, not live search results. The main demo is intentionally tuned for GitHub builders: creator-store packaging, digital product launch kits, small automation services, and other experiments where Codex can generate the fulfillment artifact.
+
+## Public Signals
+
+This is not a revenue promise, but the ecosystem is real:
+
+- [Stan Store](https://www.stan.store/) positions itself as a creator store for digital products, courses, and bookings.
+- Guides to selling Notion templates commonly point to [Gumroad, Etsy, Notion Marketplace, and creator-owned sites](https://howtostart.biz/how-to-make-money-selling-notion-templates/) as distribution channels.
+- Creator monetization guides suggest low-ticket digital products, mini courses, coaching, and link-in-bio CTAs as common offers ([Stan Store guide](https://stan.store/blog/how-to-grow-on-tiktok/)).
 
 ## Download
 

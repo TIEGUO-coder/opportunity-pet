@@ -1,16 +1,34 @@
 window.OPPORTUNITIES = [
   {
-    title: 'Missed-Quote Money Finder',
-    type: 'Leak',
-    summary: 'U.S. mobile detailers, cleaners, movers, lawn crews, and handymen lose jobs because customers ask for quotes in scattered places and owners reply too late or forget the follow-up.',
-    evidence: 'Look for Yelp, Thumbtack, Facebook, and Google Business profiles where customers mention slow replies, no callback, vague pricing, or repeated quote questions.',
-    risk: 'The first version must not pretend to be a full CRM. It should help one niche reply faster without sounding robotic or making fake price promises.',
-    v1: 'Prototype a tiny quote triage helper for one niche: paste a customer message, get missing questions, a friendly reply draft, and a follow-up reminder.',
+    title: 'Creator Store Launch Kit',
+    type: 'Codex-fulfillable service',
+    summary: 'Creators already sell templates, guides, prompt packs, and setup kits from Gumroad, Etsy, Stan Store, and link-in-bio pages. Many have a useful asset but no product page, delivery PDF, FAQ, launch copy, or proof dashboard.',
+    evidence: 'Look at Gumroad, Etsy, Notion Marketplace, Stan Store, TikTok link-in-bio offers, and Reddit creator threads where people ask why their digital product is not selling.',
+    risk: 'The first version must package one narrow asset into a sellable product. It should not promise passive income, fake sales, or automate spammy social posting.',
+    v1: 'Offer a $29-$79 launch-kit service: turn a messy Notion/Canva/prompt asset into a product page, checkout copy, delivery PDF, FAQ, launch post, and result dashboard.',
     grillQuestions: [
-      'Which niche has the most obvious public pain: mobile detailers, house cleaners, movers, lawn crews, or handymen?',
-      'What exact quote details does that niche need before a useful reply can be drafted?',
-      'Should the first experiment be a paste-in web tool, a Chrome side panel, or a set of SMS templates with reminders?'
-    ]
+      'Which asset should the first service package: Notion template, Canva template, prompt pack, mini course, or setup checklist?',
+      'Which buyer already has money and urgency: freelancers, Etsy sellers, coaches, creators, students, or agency owners?',
+      'Can the first proof be a weekend pilot that packages one asset and shows orders, delivery, refunds, and net revenue?'
+    ],
+    result: {
+      title: 'Weekend store result',
+      customer: 'Freelance Client Portal Kit',
+      revenue: '$203',
+      subtitle: 'Virtual demo data from one Codex-packaged creator product',
+      stats: [
+        ['Orders', '7'],
+        ['Auto-delivered', '7/7'],
+        ['Refunds', '0'],
+        ['Net after fees', '$181']
+      ],
+      ledger: [
+        ['Fri 8:10 PM', 'Gumroad order x3', '+$87'],
+        ['Sat 1:34 PM', 'Link-in-bio order x2', '+$58'],
+        ['Sun 5:22 PM', 'Etsy listing order x2', '+$58']
+      ],
+      note: 'Demo data is virtual, but the page is real: it shows the proof artifact a builder could ship after Codex packages one creator asset into a paid micro-product.'
+    }
   },
   {
     title: 'Review Rescue Inbox',

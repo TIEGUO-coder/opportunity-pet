@@ -2,10 +2,10 @@
   <rect width="1000" height="620" rx="28" fill="#0D1117"/>
   <rect x="58" y="58" width="410" height="504" rx="24" fill="#F2EEE5" stroke="#BFB5A5" stroke-width="2"/>
   <text x="92" y="112" fill="#7B776E" font-family="Arial, sans-serif" font-size="15" font-weight="900">CURATED DEMO LEAD</text>
-  <text x="92" y="158" fill="#272420" font-family="Arial, sans-serif" font-size="32" font-weight="700">Missed-Quote</text>
-  <text x="92" y="194" fill="#272420" font-family="Arial, sans-serif" font-size="32" font-weight="700">Money Finder</text>
-  <text x="92" y="238" fill="#59544D" font-family="Arial, sans-serif" font-size="18" font-weight="700">A small public-signal opportunity</text>
-  <text x="92" y="264" fill="#59544D" font-family="Arial, sans-serif" font-size="18" font-weight="700">for builders to inspect and test.</text>
+  <text x="92" y="158" fill="#272420" font-family="Arial, sans-serif" font-size="32" font-weight="700">Creator Store</text>
+  <text x="92" y="194" fill="#272420" font-family="Arial, sans-serif" font-size="32" font-weight="700">Launch Kit</text>
+  <text x="92" y="238" fill="#59544D" font-family="Arial, sans-serif" font-size="18" font-weight="700">A small creator-service opportunity</text>
+  <text x="92" y="264" fill="#59544D" font-family="Arial, sans-serif" font-size="18" font-weight="700">for builders to package and test.</text>
   <rect x="92" y="304" width="304" height="42" rx="12" fill="#FFFEF7" stroke="#9FB9AC" stroke-width="2"/>
   <text x="174" y="332" fill="#526F64" font-family="Arial, sans-serif" font-size="19" font-weight="700">Approved to act</text>
   <rect x="92" y="366" width="304" height="42" rx="12" fill="#647568"/>
@@ -16,15 +16,15 @@
   <rect x="528" y="58" width="414" height="504" rx="24" fill="#FCFAF3" stroke="#D0C7B6" stroke-width="2"/>
   <text x="564" y="112" fill="#8B5B0C" font-family="Arial, sans-serif" font-size="16" font-weight="900">GRILL-WITH-DOCS BRIEF</text>
   <text x="564" y="162" fill="#272420" font-family="Arial, sans-serif" font-size="25" font-weight="700">Goal</text>
-  <text x="564" y="194" fill="#59544D" font-family="Arial, sans-serif" font-size="18">Validate one quote-reply helper niche.</text>
+  <text x="564" y="194" fill="#59544D" font-family="Arial, sans-serif" font-size="18">Validate one creator-store launch kit.</text>
   <text x="564" y="248" fill="#272420" font-family="Arial, sans-serif" font-size="25" font-weight="700">Smallest experiment</text>
-  <text x="564" y="280" fill="#59544D" font-family="Arial, sans-serif" font-size="18">Paste customer message -> missing</text>
-  <text x="564" y="306" fill="#59544D" font-family="Arial, sans-serif" font-size="18">questions -> reply draft -> follow-up.</text>
+  <text x="564" y="280" fill="#59544D" font-family="Arial, sans-serif" font-size="18">Asset -> product page -> delivery</text>
+  <text x="564" y="306" fill="#59544D" font-family="Arial, sans-serif" font-size="18">PDF -> launch copy -> money page.</text>
   <text x="564" y="360" fill="#272420" font-family="Arial, sans-serif" font-size="25" font-weight="700">Questions to grill</text>
   <circle cx="574" cy="396" r="5" fill="#647568"/>
-  <text x="594" y="402" fill="#59544D" font-family="Arial, sans-serif" font-size="18">Which niche hurts most?</text>
+  <text x="594" y="402" fill="#59544D" font-family="Arial, sans-serif" font-size="18">Which creator asset should ship first?</text>
   <circle cx="574" cy="430" r="5" fill="#647568"/>
-  <text x="594" y="436" fill="#59544D" font-family="Arial, sans-serif" font-size="18">What quote details are required?</text>
+  <text x="594" y="436" fill="#59544D" font-family="Arial, sans-serif" font-size="18">Which buyer already pays for this?</text>
   <circle cx="574" cy="464" r="5" fill="#647568"/>
   <text x="594" y="470" fill="#59544D" font-family="Arial, sans-serif" font-size="18">What should become the first task?</text>
   <text x="564" y="526" fill="#8B5B0C" font-family="Arial, sans-serif" font-size="20" font-weight="700">Then move the work into MAH.</text>

@@ -9,6 +9,7 @@
     "start": "electron .",
     "check": "node scripts/verify-assets.js && node scripts/test-pet-generation.js",
     "check:local-fallback": "electron scripts/test-local-cartoon-fallback.js",
+    "capture:demo": "electron scripts/capture-demo-screenshots.js",
     "dist": "electron-builder --publish never",
     "dist:dir": "electron-builder --dir"
   },

@@ -46,7 +46,7 @@
         <button type="button" id="createPet" class="secondary-action">Use Tieguo dev sample</button>
       </section>
 
-      <div id="leadNotice" class="lead-notice" aria-live="polite">Ding! I brought back a curated lead worth grilling.</div>
+      <div id="leadNotice" class="lead-notice" aria-live="polite">Ding! I brought back something you can sell.</div>
 
       <section id="leadCard" class="lead-card" aria-live="polite">
         <button type="button" id="closeCard" class="icon-button close-card" title="收起">×</button>
@@ -75,6 +75,7 @@
           <button type="button" id="approveLead" class="primary-action">Approved to act</button>
           <button type="button" id="skipLead" class="secondary-action">Not this one. Keep scouting.</button>
           <button type="button" id="reviewPlan" class="review-action">Copy Grill-with-docs brief</button>
+          <button type="button" id="showResult" class="result-action">Show money page</button>
         </div>
 
         <section id="briefPanel" class="brief-panel">
@@ -94,6 +95,24 @@
             </div>
           </dl>
         </section>
+      </section>
+
+      <section id="resultCard" class="result-card" aria-live="polite">
+        <button type="button" id="closeResult" class="icon-button close-card" title="Close">×</button>
+        <p class="eyebrow">MONEY PAGE DEMO</p>
+        <h1 id="resultTitle">Weekend store result</h1>
+        <p id="resultSubtitle" class="summary"></p>
+        <div class="revenue-hero">
+          <span>Gross revenue</span>
+          <strong id="resultRevenue">$203</strong>
+        </div>
+        <div id="resultStats" class="result-stats"></div>
+        <section class="ledger-panel">
+          <h2 id="resultCustomer">Freelance Client Portal Kit</h2>
+          <div id="resultLedger" class="ledger-list"></div>
+        </section>
+        <p id="resultNote" class="result-note"></p>
+        <button type="button" id="backToLead" class="secondary-action">Back to opportunity</button>
       </section>
 
       <div id="petWrap" class="pet-wrap">

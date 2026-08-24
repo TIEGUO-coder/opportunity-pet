@@ -2,6 +2,7 @@ const pet = document.getElementById('pet');
 const petWrap = document.getElementById('petWrap');
 const fallbackPet = document.getElementById('fallbackPet');
 const leadCard = document.getElementById('leadCard');
+const resultCard = document.getElementById('resultCard');
 const petSetup = document.getElementById('petSetup');
 const petPhotoInput = document.getElementById('petPhotoInput');
 const petPhotoPreview = document.getElementById('petPhotoPreview');
@@ -24,6 +25,9 @@ const quit = document.getElementById('quit');
 const approveLead = document.getElementById('approveLead');
 const skipLead = document.getElementById('skipLead');
 const reviewPlan = document.getElementById('reviewPlan');
+const showResult = document.getElementById('showResult');
+const closeResult = document.getElementById('closeResult');
+const backToLead = document.getElementById('backToLead');
 const briefPanel = document.getElementById('briefPanel');
 
 const bridge = window.teiguoWindow || {
@@ -190,7 +194,7 @@ function stopAnimationOnFirstFrame(action = 'idle') {
 }
 
 function animateWhileCursorMoves() {
-  if (Date.now() < manualModeUntil || leadCard.classList.contains('visible') || isScouting) return;
+  if (Date.now() < manualModeUntil || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || isScouting) return;
   clearTimeout(ambientTimer);
   if (currentAction !== 'walk' || !animationTimer) startAnimation('walk', 300, true);
   clearTimeout(settleTimer);
@@ -213,6 +217,28 @@ function setLeadText(lead) {
   document.getElementById('briefOpportunity').textContent = `${lead.title} (${lead.type}): ${lead.summary}`;
   document.getElementById('briefV1').textContent = lead.v1;
   document.getElementById('briefQuestions').innerHTML = lead.grillQuestions.map((question) => `<span>${question}</span>`).join('');
+  setResultText(lead.result);
+}
+
+function setResultText(result = {}) {
+  document.getElementById('resultTitle').textContent = result.title || 'Pilot result';
+  document.getElementById('resultSubtitle').textContent = result.subtitle || '';
+  document.getElementById('resultRevenue').textContent = result.revenue || '$0';
+  document.getElementById('resultCustomer').textContent = result.customer || 'Demo customer';
+  document.getElementById('resultNote').textContent = result.note || '';
+  document.getElementById('resultStats').innerHTML = (result.stats || []).map(([label, value]) => `
+    <article>
+      <span>${label}</span>
+      <strong>${value}</strong>
+    </article>
+  `).join('');
+  document.getElementById('resultLedger').innerHTML = (result.ledger || []).map(([time, label, amount]) => `
+    <div>
+      <span>${time}</span>
+      <strong>${label}</strong>
+      <em>${amount}</em>
+    </div>
+  `).join('');
 }
 
 function loadPetProfile() {
@@ -272,6 +298,7 @@ function nextLead() {
 async function showLeadCard() {
   if (!opportunities.length || leadCard.classList.contains('visible')) return;
   nextLead();
+  resultCard.classList.remove('visible');
   leadCard.classList.add('visible');
   document.body.dataset.view = 'lead';
   briefPanel.classList.remove('visible');
@@ -284,7 +311,7 @@ async function showLeadCard() {
 }
 
 async function scoutForLead() {
-  if (isScouting || leadCard.classList.contains('visible')) return;
+  if (isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible')) return;
   isScouting = true;
   clearTimeout(scoutingTimer);
   clearTimeout(ambientTimer);
@@ -301,6 +328,7 @@ async function scoutForLead() {
 
 async function closeLeadCardView() {
   leadCard.classList.remove('visible');
+  resultCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
   document.body.dataset.view = 'pet';
   setPetMotion('');
@@ -318,13 +346,13 @@ function scheduleScouting() {
 
 function scheduleAmbient() {
   clearTimeout(ambientTimer);
-  if (!petProfile || isScouting || leadCard.classList.contains('visible')) return;
+  if (!petProfile || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible')) return;
   const delay = 8500 + Math.round(Math.random() * 5000);
   ambientTimer = setTimeout(runAmbientAction, delay);
 }
 
 function runAmbientAction() {
-  if (!petProfile || isScouting || leadCard.classList.contains('visible') || Date.now() < manualModeUntil) {
+  if (!petProfile || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || Date.now() < manualModeUntil) {
     scheduleAmbient();
     return;
   }
@@ -411,6 +439,24 @@ async function reviewCurrentPlan() {
   } catch {
     document.getElementById('leadStatus').textContent = 'Grill-with-docs brief prepared.';
   }
+}
+
+async function showResultPage() {
+  if (!currentLead) return;
+  leadCard.classList.remove('visible');
+  briefPanel.classList.remove('visible');
+  resultCard.classList.add('visible');
+  document.body.dataset.view = 'result';
+  setPetMotion('found');
+  stopAnimationOnFirstFrame('idle');
+  await bridge.setMode('result');
+}
+
+async function closeResultPage() {
+  resultCard.classList.remove('visible');
+  leadCard.classList.add('visible');
+  document.body.dataset.view = 'lead';
+  await bridge.setMode('lead');
 }
 
 async function resetPetProfile() {
@@ -1068,6 +1114,9 @@ closeCard.addEventListener('click', closeLeadCardView);
 approveLead.addEventListener('click', approveCurrentLead);
 skipLead.addEventListener('click', skipCurrentLead);
 reviewPlan.addEventListener('click', reviewCurrentPlan);
+showResult.addEventListener('click', showResultPage);
+closeResult.addEventListener('click', closeResultPage);
+backToLead.addEventListener('click', closeResultPage);
 scoutNow.addEventListener('click', scoutForLead);
 
 petWrap.addEventListener('pointerdown', (event) => {

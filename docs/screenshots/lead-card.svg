@@ -1,22 +1,24 @@
 <svg width="920" height="620" viewBox="0 0 920 620" fill="none" xmlns="http://www.w3.org/2000/svg">
   <rect width="920" height="620" rx="24" fill="#0D1117"/>
-  <rect x="70" y="56" width="610" height="48" rx="24" fill="#FFF6DD" stroke="#CA962B" stroke-width="2"/>
-  <text x="112" y="87" fill="#8B5B0C" font-family="Arial, sans-serif" font-size="20" font-weight="700">Ding! Tieguo brought back a curated lead worth grilling.</text>
-  <rect x="70" y="132" width="610" height="286" rx="24" fill="#F2EEE5" stroke="#BFB5A5" stroke-width="2"/>
-  <text x="104" y="178" fill="#7B776E" font-family="Arial, sans-serif" font-size="16" font-weight="900">TIEGUO FOUND A LEAD</text>
-  <text x="104" y="226" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">Missed-Quote</text>
-  <text x="104" y="268" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">Money Finder</text>
-  <text x="104" y="314" fill="#59544D" font-family="Arial, sans-serif" font-size="21" font-weight="700">U.S. service businesses lose jobs when</text>
-  <text x="104" y="344" fill="#59544D" font-family="Arial, sans-serif" font-size="21" font-weight="700">quote replies are late or forgotten.</text>
-  <rect x="104" y="374" width="214" height="34" rx="17" fill="#E3E7DD"/>
-  <text x="126" y="397" fill="#5A7165" font-family="Arial, sans-serif" font-size="17" font-weight="700">Waiting for approval</text>
-  <path d="M376 418 L392 436 H360 L376 418Z" fill="#F2EEE5"/>
-  <rect x="104" y="442" width="430" height="44" rx="13" fill="#FFFEF7" stroke="#9FB9AC" stroke-width="2"/>
-  <text x="242" y="471" fill="#526F64" font-family="Arial, sans-serif" font-size="21" font-weight="700">Approved to act</text>
-  <rect x="104" y="500" width="430" height="44" rx="13" fill="#DED9CF"/>
-  <text x="187" y="529" fill="#59554D" font-family="Arial, sans-serif" font-size="21" font-weight="700">Not this one. Keep scouting.</text>
-  <rect x="104" y="558" width="430" height="44" rx="13" fill="#647568"/>
-  <text x="190" y="587" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="21" font-weight="700">Copy Grill-with-docs brief</text>
-  <ellipse cx="735" cy="586" rx="92" ry="17" fill="#151A21" opacity="0.28"/>
-  <image href="../../assets/teiguo/idle/idle_001.png" x="628" y="344" width="186" height="246" preserveAspectRatio="xMidYMax meet"/>
+  <rect x="70" y="52" width="650" height="48" rx="24" fill="#FFF6DD" stroke="#CA962B" stroke-width="2"/>
+  <text x="112" y="83" fill="#8B5B0C" font-family="Arial, sans-serif" font-size="20" font-weight="700">Ding! Tieguo brought back something you can sell.</text>
+  <rect x="70" y="128" width="610" height="286" rx="24" fill="#F2EEE5" stroke="#BFB5A5" stroke-width="2"/>
+  <text x="104" y="174" fill="#7B776E" font-family="Arial, sans-serif" font-size="16" font-weight="900">TIEGUO FOUND A SELLABLE SERVICE</text>
+  <text x="104" y="224" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">Creator Store</text>
+  <text x="104" y="266" fill="#272420" font-family="Arial, sans-serif" font-size="38" font-weight="700">Launch Kit</text>
+  <text x="104" y="314" fill="#59544D" font-family="Arial, sans-serif" font-size="20" font-weight="700">Package a messy creator asset into a</text>
+  <text x="104" y="342" fill="#59544D" font-family="Arial, sans-serif" font-size="20" font-weight="700">Gumroad / Etsy / link-in-bio product.</text>
+  <rect x="104" y="372" width="244" height="34" rx="17" fill="#E3E7DD"/>
+  <text x="126" y="395" fill="#5A7165" font-family="Arial, sans-serif" font-size="17" font-weight="700">Waiting for owner approval</text>
+  <path d="M376 414 L392 432 H360 L376 414Z" fill="#F2EEE5"/>
+  <rect x="104" y="438" width="430" height="40" rx="13" fill="#FFFEF7" stroke="#9FB9AC" stroke-width="2"/>
+  <text x="244" y="465" fill="#526F64" font-family="Arial, sans-serif" font-size="20" font-weight="700">Approved to act</text>
+  <rect x="104" y="490" width="430" height="40" rx="13" fill="#DED9CF"/>
+  <text x="187" y="517" fill="#59554D" font-family="Arial, sans-serif" font-size="20" font-weight="700">Not this one. Keep scouting.</text>
+  <rect x="104" y="542" width="430" height="40" rx="13" fill="#647568"/>
+  <text x="188" y="569" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="20" font-weight="700">Copy Grill-with-docs brief</text>
+  <rect x="560" y="542" width="220" height="40" rx="13" fill="#1F6F43"/>
+  <text x="594" y="569" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="20" font-weight="700">Show money page</text>
+  <ellipse cx="752" cy="584" rx="92" ry="17" fill="#151A21" opacity="0.28"/>
+  <image href="../../assets/teiguo/idle/idle_001.png" x="650" y="338" width="186" height="246" preserveAspectRatio="xMidYMax meet"/>
 </svg>

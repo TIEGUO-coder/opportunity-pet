@@ -8,16 +8,16 @@ It is not a paid product, a bookmark tool, or a promise that the user will make 
 
 1. The user uploads 3-5 photos of their own pet.
 2. Opportunity Pet uses the user's Codex to infer a multi-view identity and generate the six-action scout, with a basic local fallback.
-3. The generated pet scouts for opportunities from GitHub and OSS signals.
-4. The pet brings back a money lead as a compact card.
+3. The generated pet scouts for small opportunities a GitHub/Codex builder can package and fulfill.
+4. The pet brings back a money lead as a compact card, such as a creator-store launch kit.
 5. The user approves, skips, or reviews the lead.
-6. Approved leads become a Grill-with-docs brief.
+6. Approved leads become a Grill-with-docs brief and can show a virtual result page.
 7. Later, grilled projects route into MAH routemap.
 
 ## Opportunity Types
 
-- Stalled: an existing project slowed down, but users still need the thing.
-- Overloaded: an active project has too much issue or PR pressure.
+- Codex-fulfillable service: a narrow service where Codex can produce most of the deliverable.
+- Packaging gap: a creator or small operator has an asset, but no sellable page, delivery kit, or proof.
 - Underserved: a narrow workflow exists, but the specific user segment is not served well.
 
 ## Opportunity Card
@@ -29,6 +29,7 @@ Each card should answer:
 - What evidence supports it?
 - What is the risk?
 - What small experiment could be tried?
+- What result page would prove the experiment worked?
 - What should be grilled next?
 
 ## MVP Boundary
