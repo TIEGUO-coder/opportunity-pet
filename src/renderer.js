@@ -1054,18 +1054,18 @@ async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {
 }
 
 function shouldUseLocalStylizedFallback(error) {
-  return /HTTP 403|Forbidden|image generation unavailable|image generation failed/i.test(error || '');
+  return Boolean(String(error || '').trim());
 }
 
 async function activateLocalStylizedFallback(reason = '', extraProfile = {}) {
   updatePipeline('sprite');
-  assetNote.textContent = 'AI image generation is unavailable here, so I am building a transparent local cartoon scout from your pet photos.';
+  assetNote.textContent = 'Codex could not finish a full action pack, so I am building a transparent animated scout from your pet photos now.';
   const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
   const generatedFrom = extraProfile.generationJobId ? 'codex-assisted-local-render' : 'local-stylized-fallback';
   await activateGeneratedPet(localActions, generatedFrom, { codexError: reason, ...extraProfile });
   assetNote.textContent = extraProfile.generationJobId
-    ? 'Codex chain reached image generation, then local cartoon render completed from your uploaded pet photos. Your scout is ready.'
-    : 'Local cartoon scout ready. It uses colors inferred from your photos; Codex imagegen can replace it with a more faithful pet when that permission is available.';
+    ? 'Codex handed off to the local action renderer. Your animated scout is ready.'
+    : 'Local animated scout ready. It uses colors inferred from your photos and includes every action state.';
 }
 
 generatePet.addEventListener('click', async () => {

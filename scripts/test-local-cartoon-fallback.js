@@ -115,7 +115,7 @@ async function main() {
         const note = document.getElementById('assetNote').textContent;
         const setupVisible = document.getElementById('petSetup').classList.contains('visible');
         const leadVisible = document.getElementById('leadCard').classList.contains('visible');
-        if (actions && profile && /Your scout is ready/i.test(note) && !setupVisible && leadVisible && document.body.dataset.view === 'lead') {
+        if (actions && profile && /scout is ready/i.test(note) && !setupVisible && leadVisible && document.body.dataset.view === 'lead') {
           return {
             actions: JSON.parse(actions),
             profile: JSON.parse(profile),
@@ -150,7 +150,7 @@ async function main() {
   if (!/^data:image\/png;base64,/.test(petSrc)) {
     throw new Error('Expected displayed pet to use the generated action frame');
   }
-  if (!/Your scout is ready/i.test(note)) {
+  if (!/scout is ready/i.test(note)) {
     throw new Error(`Expected fallback success note, got: ${note}`);
   }
 
