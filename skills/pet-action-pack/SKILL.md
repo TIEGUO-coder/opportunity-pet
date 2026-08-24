@@ -13,6 +13,7 @@ Create a personalized action pack in the current job workspace. This workflow is
 - Use every supported image in `inputs/` as an identity reference. Inspect them before generating.
 - Write generated files only under `output/`; do not modify application source code.
 - Use the built-in image generation tool. If image generation is unavailable, write `output/error.json` with a concise reason and stop.
+- The image generation tool accepts at most 5 referenced images per call. Never pass more than 5 paths. For the character sheet, use up to 5 original photos. For each action strip, use either the character sheet plus up to 4 original photos, or up to 5 original photos without the character sheet.
 
 Produce these files:
 

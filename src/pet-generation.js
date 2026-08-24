@@ -8,7 +8,7 @@ const { PNG } = require('pngjs');
 const ACTIONS = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 const GENERATION_TIMEOUT_MS = 20 * 60 * 1000;
-const FIRST_OUTPUT_TIMEOUT_MS = 5 * 60 * 1000;
+const INACTIVITY_TIMEOUT_MS = 7 * 60 * 1000;
 
 function findCodexExecutable(explicitPath = process.env.OPPORTUNITY_PET_CODEX_PATH) {
   const names = process.platform === 'win32' ? ['codex.exe', 'codex.cmd', 'codex'] : ['codex'];
@@ -213,6 +213,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
     let settled = false;
     let firstOutputSeen = false;
     let lastHeartbeatAt = 0;
+    let lastActivityAt = Date.now();
     const writeLog = () => {
       fs.writeFileSync(logPath, `${header}\n${output.slice(-24000)}`);
     };
@@ -247,13 +248,13 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
         lastHeartbeatAt = elapsed;
         onProgress(`Codex is still running; no output files yet. Log: ${logPath}`);
       }
-      if (!firstOutputSeen && elapsed > FIRST_OUTPUT_TIMEOUT_MS) {
+      if (!firstOutputSeen && Date.now() - lastActivityAt > INACTIVITY_TIMEOUT_MS) {
         settled = true;
         child.kill();
         clearTimeout(timer);
         clearInterval(heartbeat);
         writeLog();
-        reject(new Error('Codex did not create any output files after 5 minutes. The current Codex CLI may not have image generation available in non-interactive mode. Inspect codex.log in the generation job folder.'));
+        reject(new Error('Codex produced no log activity for 7 minutes before writing output files. Inspect codex.log in the generation job folder.'));
       }
     }, 15000);
 
@@ -261,6 +262,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}) {
     onProgress('Codex is studying the pet photos and building a character sheet...');
     const collect = (chunk) => {
       output = `${output}${chunk}`;
+      lastActivityAt = Date.now();
       writeLog();
       if (/image|generat|character|sprite|action/i.test(String(chunk))) {
         onProgress('Codex is generating and checking the six action strips...');
