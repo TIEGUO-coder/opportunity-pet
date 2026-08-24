@@ -8,6 +8,7 @@
     "prepare:assets": "node scripts/extract-sprites.js",
     "start": "electron .",
     "check": "node scripts/verify-assets.js && node scripts/test-pet-generation.js",
+    "check:local-fallback": "electron scripts/test-local-cartoon-fallback.js",
     "dist": "electron-builder --publish never",
     "dist:dir": "electron-builder --dir"
   },

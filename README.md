@@ -66,7 +66,7 @@ That is the MAH-shaped question.
 - Imports 3-5 pet photos and a pet name.
 - Uses the user's signed-in Codex CLI to infer the pet identity, generate a multi-view character sheet, then generate the animated action pack.
 - Creates six action states: idle, side-walk scout, curled sleep, happy response, butterfly chase, and yawn.
-- Falls back to basic local photo animation when Codex is unavailable.
+- Falls back to a transparent local cartoon scout when Codex image generation is unavailable.
 - Runs as a small transparent Electron desktop pet.
 - Lets the pet scout curated demo opportunity cards.
 - Copies a Grill-with-docs brief for leads the user wants to stress-test.
@@ -105,7 +105,7 @@ npm run check
 npm run start
 ```
 
-For personalized AI actions, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps `Generate with Codex` as the main path. `Preview photos only` is tucked under Advanced; it is not character generation and only crops uploaded photos so you can test the desktop flow when Codex is unavailable.
+For personalized AI actions, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps `Generate with Codex` as the main path. If AI image generation is unavailable, the app can still create a local transparent cartoon scout from the uploaded photo palette so the desktop flow works immediately.
 
 Opportunity Pet pins Codex generation to `gpt-5.6-luna` by default so it does not inherit an unsupported model from your global Codex config. Luna is the faster, more affordable 5.5+ option in current Codex model listings. To override it:
 
@@ -113,7 +113,7 @@ Opportunity Pet pins Codex generation to `gpt-5.6-luna` by default so it does no
 OPPORTUNITY_PET_CODEX_MODEL=gpt-5.5 npm run start
 ```
 
-Direct generation also requires the Codex CLI session to have access to built-in image generation. If Codex can chat but image generation returns `HTTP 403 Forbidden`, the app will report that exact failure and you can still use the Tieguo demo or import an externally generated action pack.
+Direct generation also requires the Codex CLI session to have access to built-in image generation. If Codex can chat but image generation returns `HTTP 403 Forbidden`, the app reports that exact failure and automatically falls back to a local cartoon action pack.
 
 If Electron's postinstall download fails:
 

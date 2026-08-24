@@ -530,56 +530,231 @@ function drawButterfly(context, x, y, flap) {
   context.restore();
 }
 
-function makePetFrame(img, action, frame) {
+function rgbToCss(rgb) {
+  return `rgb(${rgb.map((value) => Math.round(value)).join(', ')})`;
+}
+
+function averageSamples(samples, fallback) {
+  if (!samples.length) return fallback;
+  return samples.reduce((sum, color) => [
+    sum[0] + color[0],
+    sum[1] + color[1],
+    sum[2] + color[2]
+  ], [0, 0, 0]).map((value) => value / samples.length);
+}
+
+function extractPaletteFromImages(images) {
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d', { willReadFrequently: true });
+  canvas.width = 64;
+  canvas.height = 64;
+
+  const orange = [];
+  const dark = [];
+  const light = [];
+
+  images.forEach((img) => {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    drawImageCover(context, img, 0, 0, canvas.width, canvas.height);
+    const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 0; i < data.length; i += 16) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const average = (r + g + b) / 3;
+      if (r > 110 && r > g * 1.06 && r > b * 1.18 && g > 45) orange.push([r, g, b]);
+      if (average < 92 && Math.max(r, g, b) - Math.min(r, g, b) < 90) dark.push([r, g, b]);
+      if (r > 165 && g > 150 && b > 130) light.push([r, g, b]);
+    }
+  });
+
+  return {
+    cream: rgbToCss(averageSamples(light, [248, 237, 218])),
+    orange: rgbToCss(averageSamples(orange, [181, 102, 43])),
+    dark: rgbToCss(averageSamples(dark, [48, 39, 31])),
+    outline: '#2f2822',
+    eye: '#b88d39',
+    nose: '#d28c7d'
+  };
+}
+
+function drawEllipse(context, x, y, rx, ry, rotation, fill, stroke = null, lineWidth = 4) {
+  context.beginPath();
+  context.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2);
+  context.fillStyle = fill;
+  context.fill();
+  if (stroke) {
+    context.strokeStyle = stroke;
+    context.lineWidth = lineWidth;
+    context.stroke();
+  }
+}
+
+function drawEar(context, x, y, side, palette) {
+  context.beginPath();
+  context.moveTo(x, y);
+  context.lineTo(x + side * 22, y - 46);
+  context.lineTo(x + side * 42, y + 4);
+  context.closePath();
+  context.fillStyle = palette.cream;
+  context.fill();
+  context.strokeStyle = palette.outline;
+  context.lineWidth = 4;
+  context.stroke();
+  context.beginPath();
+  context.moveTo(x + side * 10, y - 4);
+  context.lineTo(x + side * 22, y - 28);
+  context.lineTo(x + side * 31, y + 2);
+  context.closePath();
+  context.fillStyle = '#e8b4a4';
+  context.fill();
+}
+
+function drawFace(context, x, y, scale, palette, mood = 'idle') {
+  context.save();
+  context.translate(x, y);
+  context.scale(scale, scale);
+  drawEar(context, -38, -30, -1, palette);
+  drawEar(context, 38, -30, 1, palette);
+  drawEllipse(context, 0, 2, 58, 52, 0, palette.cream, palette.outline);
+  drawEllipse(context, -22, 0, 23, 40, -0.28, palette.orange);
+  drawEllipse(context, 24, -6, 20, 34, 0.34, palette.dark);
+  drawEllipse(context, -18, 6, 7, 10, 0, palette.eye, palette.outline, 2);
+  drawEllipse(context, 18, 6, 7, 10, 0, palette.eye, palette.outline, 2);
+  context.fillStyle = '#211b18';
+  context.beginPath();
+  context.arc(-18, 7, 3, 0, Math.PI * 2);
+  context.arc(18, 7, 3, 0, Math.PI * 2);
+  context.fill();
+  context.beginPath();
+  context.moveTo(-5, 22);
+  context.quadraticCurveTo(0, 27, 5, 22);
+  context.quadraticCurveTo(0, 18, -5, 22);
+  context.fillStyle = palette.nose;
+  context.fill();
+  context.strokeStyle = palette.outline;
+  context.lineWidth = 2;
+  [-1, 1].forEach((side) => {
+    context.beginPath();
+    context.moveTo(side * 8, 26);
+    context.lineTo(side * 42, 19);
+    context.moveTo(side * 7, 31);
+    context.lineTo(side * 43, 33);
+    context.stroke();
+  });
+  if (mood === 'yawn') {
+    drawEllipse(context, 0, 37, 14, 18, 0, '#3a2420');
+  } else {
+    context.beginPath();
+    context.arc(-6, 29, 7, 0, Math.PI * 0.9);
+    context.arc(6, 29, 7, Math.PI * 0.1, Math.PI);
+    context.stroke();
+  }
+  context.restore();
+}
+
+function drawFrontCat(context, action, frame, palette) {
+  const bob = Math.sin((frame / 4) * Math.PI * 2);
+  const yawnScale = action === 'yawn' ? 1 + Math.sin((frame / 3) * Math.PI) * 0.05 : 1;
+  context.save();
+  context.translate(140, 132 + (action === 'idle' ? bob * 2 : 0));
+  context.rotate(action === 'happy' ? (frame % 2 ? 0.05 : -0.05) : 0);
+  drawEllipse(context, 0, 45, 46, 68 * yawnScale, 0, palette.cream, palette.outline);
+  drawEllipse(context, -23, 28, 20, 46, -0.35, palette.orange);
+  drawEllipse(context, 26, 38, 18, 44, 0.25, palette.dark);
+  drawEllipse(context, 42, 64, 13, 58, -0.45, palette.dark, palette.outline, 3);
+  drawEllipse(context, -20, 104, 12, 28, -0.05, palette.cream, palette.outline, 3);
+  drawEllipse(context, 20, 104, 12, 28, 0.05, palette.cream, palette.outline, 3);
+  drawFace(context, 0, -40, 1, palette, action);
+  if (action === 'happy') {
+    drawButterfly(context, -62 + frame * 8, -84 + bob * 6, frame % 2 ? 2 : -2);
+  }
+  context.restore();
+}
+
+function drawSideCat(context, action, frame, palette) {
+  const step = frame % 2 === 0 ? -1 : 1;
+  const chase = action === 'chase';
+  context.save();
+  context.translate(chase ? 132 + frame * 8 : 145 + step * 5, chase ? 146 - Math.sin((frame / 3) * Math.PI) * 18 : 145);
+  drawEllipse(context, 0, 28, 78, 43, -0.04, palette.cream, palette.outline);
+  drawEllipse(context, -26, 18, 35, 35, -0.2, palette.orange);
+  drawEllipse(context, 20, 28, 30, 38, 0.18, palette.dark);
+  for (let i = 0; i < 4; i += 1) {
+    context.strokeStyle = i % 2 ? palette.orange : palette.dark;
+    context.lineWidth = 5;
+    context.beginPath();
+    context.moveTo(22 + i * 9, -1);
+    context.lineTo(10 + i * 8, 28);
+    context.stroke();
+  }
+  drawEllipse(context, -44 + step * 4, 72, 10, 31, 0.08, palette.cream, palette.outline, 3);
+  drawEllipse(context, -4 - step * 3, 73, 10, 31, -0.08, palette.cream, palette.outline, 3);
+  drawEllipse(context, 34 + step * 3, 72, 10, 29, 0.08, palette.dark, palette.outline, 3);
+  context.save();
+  context.translate(63, 8);
+  context.rotate(-0.9 + step * 0.08);
+  drawEllipse(context, 0, 0, 13, 76, 0, palette.dark, palette.outline, 3);
+  context.strokeStyle = palette.orange;
+  context.lineWidth = 5;
+  [ -32, -12, 8, 28 ].forEach((y) => {
+    context.beginPath();
+    context.moveTo(-9, y);
+    context.lineTo(9, y + 2);
+    context.stroke();
+  });
+  context.restore();
+  context.save();
+  context.translate(-58, -6);
+  context.scale(0.8, 0.8);
+  drawFace(context, 0, 0, 1, palette, 'idle');
+  context.restore();
+  context.restore();
+  if (chase) drawButterfly(context, 202 - frame * 5, 72 + Math.sin(frame) * 12, frame % 2 ? 3 : -2);
+}
+
+function drawSleepCat(context, frame, palette) {
+  const breath = Math.sin((frame / 4) * Math.PI * 2) * 2;
+  context.save();
+  context.translate(140, 142 + breath);
+  drawEllipse(context, 0, 22, 76, 56, -0.12, palette.cream, palette.outline);
+  drawEllipse(context, -28, 15, 35, 45, -0.4, palette.orange);
+  drawEllipse(context, 22, 20, 32, 43, 0.4, palette.dark);
+  context.save();
+  context.translate(35, 30);
+  context.rotate(1.15);
+  drawEllipse(context, 0, 0, 13, 76, 0, palette.dark, palette.outline, 3);
+  context.restore();
+  context.save();
+  context.translate(-46, -12);
+  context.scale(0.76, 0.76);
+  drawFace(context, 0, 0, 1, palette, 'sleep');
+  context.strokeStyle = palette.outline;
+  context.lineWidth = 4;
+  context.beginPath();
+  context.moveTo(-25, 6);
+  context.quadraticCurveTo(-18, 12, -11, 6);
+  context.moveTo(12, 6);
+  context.quadraticCurveTo(19, 12, 26, 6);
+  context.stroke();
+  context.restore();
+  context.restore();
+}
+
+function makePetFrame(palette, action, frame) {
   const canvas = document.createElement('canvas');
   const context = canvas.getContext('2d');
   canvas.width = 280;
   canvas.height = 280;
 
-  const bob = Math.sin((frame / 4) * Math.PI * 2);
-  const walkShift = action === 'walk' ? (frame % 2 === 0 ? -9 : 9) : 0;
-  const happyTilt = action === 'happy' ? (frame % 2 === 0 ? -0.05 : 0.05) : 0;
-  const idleLift = action === 'idle' ? bob * 3 : 0;
-  const sleepBreath = action === 'sleep' ? bob * 2 : 0;
-  const yawnStretch = action === 'yawn' ? 1 + Math.sin((frame / 3) * Math.PI) * 0.045 : 1;
-
-  context.save();
   if (action === 'sleep') {
-    context.translate(140, 158 + sleepBreath);
-    context.rotate(-0.08);
-    drawImageCover(context, img, -116, -72, 232, 160);
+    drawSleepCat(context, frame, palette);
   } else if (action === 'walk') {
-    context.translate(140 + walkShift, 154 + Math.abs(bob) * -3);
-    drawImageCover(context, img, -122, -84, 244, 178);
+    drawSideCat(context, action, frame, palette);
   } else if (action === 'chase') {
-    const progress = frame / 3;
-    context.translate(132 + progress * 18, 158 - Math.sin(progress * Math.PI) * 20);
-    drawImageCover(context, img, -116, -82, 232, 170);
+    drawSideCat(context, action, frame, palette);
   } else {
-    context.translate(140 + walkShift, 142 + idleLift);
-    context.rotate(happyTilt);
-    context.scale(1 / yawnStretch, yawnStretch);
-    drawImageCover(context, img, -106, -124, 212, 248);
-  }
-  context.restore();
-
-  if (action === 'chase') {
-    drawButterfly(context, 56 + frame * 22, 62 - Math.sin((frame / 3) * Math.PI) * 14, frame % 2 ? 3 : -2);
-  }
-
-  if (action === 'happy') {
-    context.save();
-    context.fillStyle = '#f1cf72';
-    [
-      [72, 54 + bob * 2],
-      [205, 70 - bob * 2],
-      [186, 36]
-    ].forEach(([x, y]) => {
-      context.beginPath();
-      context.arc(x, y, 5, 0, Math.PI * 2);
-      context.fill();
-    });
-    context.restore();
+    drawFrontCat(context, action, frame, palette);
   }
 
   return canvas.toDataURL('image/png');
@@ -587,19 +762,12 @@ function makePetFrame(img, action, frame) {
 
 async function generateActionsFromPhotos(images) {
   const loaded = await Promise.all(images.map(loadImage));
-  const choose = (index) => loaded[Math.min(index, loaded.length - 1)];
-  const sources = {
-    idle: choose(0),
-    walk: choose(1),
-    sleep: choose(loaded.length - 1),
-    happy: choose(2),
-    chase: choose(1),
-    yawn: choose(0)
-  };
+  const palette = extractPaletteFromImages(loaded);
+  const sources = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
 
-  return Object.fromEntries(Object.entries(sources).map(([action, img]) => [
+  return Object.fromEntries(sources.map((action) => [
     action,
-    [0, 1, 2, 3].map((frame) => makePetFrame(img, action, frame))
+    [0, 1, 2, 3].map((frame) => makePetFrame(palette, action, frame))
   ]));
 }
 
@@ -711,6 +879,18 @@ async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {
   await scoutForLead();
 }
 
+function shouldUseLocalStylizedFallback(error) {
+  return /HTTP 403|Forbidden|image generation unavailable|image generation failed/i.test(error || '');
+}
+
+async function activateLocalStylizedFallback(reason = '') {
+  updatePipeline('sprite');
+  assetNote.textContent = 'AI image generation is unavailable here, so I am building a transparent local cartoon scout from your pet photos.';
+  const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
+  await activateGeneratedPet(localActions, 'local-stylized-fallback', { codexError: reason });
+  assetNote.textContent = 'Local cartoon scout ready. It uses colors inferred from your photos; Codex imagegen can replace it with a more faithful pet when that permission is available.';
+}
+
 generatePet.addEventListener('click', async () => {
   if (selectedPhotoDataUrls.length < 3) {
     assetNote.textContent = 'Choose 3-5 pet photos first. This helps the pet feel like your actual pet, not a one-photo sticker.';
@@ -727,6 +907,10 @@ generatePet.addEventListener('click', async () => {
     });
     if (!result.ok) {
       const detail = result.logPath ? ` Log: ${result.logPath}` : '';
+      if (shouldUseLocalStylizedFallback(result.error)) {
+        await activateLocalStylizedFallback(`${result.error || 'Codex image generation failed.'}${detail}`);
+        return;
+      }
       assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail} You can use the Tieguo demo now, or regenerate after Codex is ready.`;
       updatePipeline('photos');
       return;
@@ -734,6 +918,10 @@ generatePet.addEventListener('click', async () => {
     await activateGeneratedPet(result.actions, 'codex-action-pack', { generationJobId: result.jobId });
     assetNote.textContent = 'Codex action pack ready: six identity-consistent actions were generated and imported.';
   } catch (error) {
+    if (shouldUseLocalStylizedFallback(error.message || String(error))) {
+      await activateLocalStylizedFallback(error.message || String(error));
+      return;
+    }
     assetNote.textContent = `Codex generation failed: ${error.message || error}`;
     updatePipeline('photos');
   } finally {
@@ -746,14 +934,14 @@ generateLocalPet.addEventListener('click', async () => {
     assetNote.textContent = 'Choose 3-5 pet photos first.';
     return;
   }
-  const confirmed = window.confirm('Photo-only preview does not generate a cartoon character. It only crops your uploaded photos so you can test the desktop flow. Continue?');
+  const confirmed = window.confirm('Generate a local transparent cartoon scout from your uploaded photo colors. It is less faithful than AI image generation, but it creates the full action pack now. Continue?');
   if (!confirmed) return;
   setGenerationBusy(true);
-  assetNote.textContent = 'Building a photo-only preview from the supplied views. This is not the AI character generator.';
+  assetNote.textContent = 'Building a local stylized cartoon action pack from the supplied views.';
   try {
     const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
-    await activateGeneratedPet(localActions, 'local-photo-animation');
-    assetNote.textContent = 'Photo-only preview ready. Use Generate with Codex for a real animated character.';
+    await activateGeneratedPet(localActions, 'local-stylized-fallback');
+    assetNote.textContent = 'Local cartoon action pack ready. Use Generate with Codex later for a more identity-faithful version.';
   } finally {
     setGenerationBusy(false);
   }
@@ -886,7 +1074,7 @@ bridge.getCodexStatus().then((status) => {
   if (codexAvailable && !petProfile) {
     assetNote.textContent = `Codex detected at ${status.path}. Model: ${status.model || 'default'}. Choose 3-5 photos, then click Generate with Codex.`;
   } else if (!codexAvailable && !petProfile) {
-    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI character generation. Photo-only preview is only for testing the flow.';
+    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI character generation, or use the local cartoon fallback under Advanced.';
   }
   updateGeneratePetButton();
 }).catch(() => {
