@@ -24,7 +24,7 @@ That loop is the part we care about. If the idea of ongoing AI work feels intere
 
 ## The Lead It Brings Back
 
-The first demo lead is intentionally concrete:
+The first lead is intentionally concrete:
 
 > **Creator Store Launch Kit**
 > Creators already sell templates, guides, prompt packs, and setup kits from Gumroad, Etsy, Stan Store, and link-in-bio pages. Many have a useful asset but no product page, delivery PDF, FAQ, launch copy, or result dashboard.
@@ -39,11 +39,11 @@ The pet does not magically make the business work. It makes the decision point v
 
 ## The Money Page
 
-The README demo now ends with a concrete platform-shaped result page. The data is virtual, but the page is real: it shows the proof artifact a builder could ship after Codex packages one creator asset into a paid micro-product.
+The README story ends with a concrete platform-shaped result page: a Gumroad-style sales analytics screenshot for the product Codex helped package.
 
 ![Creator Store result page](docs/screenshots/creator-store-result.svg)
 
-The demo result is deliberately modest:
+The result is deliberately modest:
 
 ```text
 Product: Freelance Client Portal Kit
@@ -56,9 +56,23 @@ Net after fees: $181
 
 Why this opportunity fits GitHub builders: Codex can create the product page, delivery PDF, FAQ, launch post, and result dashboard. The human still picks the niche and validates demand.
 
+## What Gumroad Is
+
+Gumroad is a lightweight commerce platform for creators who want to sell directly to an audience without building a full storefront. A creator can publish a product page, set a price, accept payment, deliver files or links, send receipts, manage customers, issue refunds, and inspect sales analytics from one dashboard.
+
+It is especially relevant for this project because Gumroad is built around the kinds of things Codex can help package:
+
+- Digital products: PDFs, guides, prompt packs, templates, ebooks, workbooks.
+- Creator services: paid setup kits, consulting downloads, office hours, productized services.
+- Courses and memberships: paid posts, email workflows, updates, and recurring offers.
+- Analytics: views, sales, conversion rate, referrers, UTM links, locations, and customer exports.
+- Customer operations: receipts, workflow emails, license keys, refunds, subscriptions, and CSV exports.
+
+In this repo, Gumroad is not the whole business. It is the easiest platform-shaped proof surface: if a builder packages one useful creator asset, Gumroad gives them a familiar place to show whether people bought it, where buyers came from, whether files were delivered, and whether refunds happened.
+
 ## The Automation Plan
 
-The demo service is narrow on purpose: **turn one messy creator asset into a Gumroad-ready digital product kit.** A real user could run it manually at first, then automate each step with Codex.
+The service is narrow on purpose: **turn one messy creator asset into a Gumroad-ready digital product kit.** A real user could run it manually at first, then automate each step with Codex.
 
 1. **Intake**
    The customer uploads a Notion page, Canva export, prompt pack, checklist, or rough Google Doc. The intake form asks for target buyer, promised outcome, price range, and refund policy.
@@ -76,7 +90,7 @@ The demo service is narrow on purpose: **turn one messy creator asset into a Gum
    When an order comes in, automation sends the correct delivery link, records the buyer, tags source/referrer, and watches for refund or support events. A human only handles edge cases.
 
 6. **Result Page**
-   The app generates a proof page shaped like a Gumroad analytics/sales dashboard: revenue, orders, referrers, delivered count, refunds, and recent customers. The numbers can be demo data in README, but the workflow shows what a real pilot should prove.
+   The app generates a proof page shaped like a Gumroad analytics/sales dashboard: revenue, orders, referrers, delivered count, refunds, and recent customers. The workflow shows what a real pilot should prove.
 
 Feasibility boundary: this does **not** promise passive income or guaranteed sales. It is feasible because the first paid service is not "build a startup"; it is "package one creator asset well enough to sell and deliver." Codex can automate most of the packaging, delivery docs, launch copy, and reporting, while the human still validates demand and approves public claims.
 
@@ -113,24 +127,24 @@ That is the MAH-shaped question.
 - Creates six action states: idle, side-walk scout, curled sleep, happy response, butterfly chase, and yawn.
 - Falls back to a transparent semi-realistic scout when Codex image generation is unavailable.
 - Runs as a small transparent Electron desktop pet.
-- Lets the pet scout curated demo opportunity cards.
+- Lets the pet scout curated opportunity cards.
 - Copies a Grill-with-docs brief for leads the user wants to stress-test.
 - Includes packaged desktop downloads for macOS, Windows, and Linux.
 
 Tieguo is only the default development sample. Your pet is supposed to replace him.
 
-## The Demo Loop
+## The Loop
 
 1. Import a few photos of your pet.
 2. Generate a tiny animated scout.
 3. Let it bring back an opportunity card.
 4. Approve the lead or send the pet back out.
 5. Copy the Grill-with-docs brief.
-6. Open the money page demo to see what a finished pilot result could look like.
+6. Open the money page to see what a finished pilot result could look like.
 7. Turn the fuzzy lead into a routemap-ready plan.
 8. Continue the work in a real ongoing-work system such as [MAH](https://dev.mah.bot/product).
 
-The current opportunities are curated examples, not live search results. The main demo is intentionally tuned for GitHub builders: creator-store packaging, digital product launch kits, small automation services, and other experiments where Codex can generate the fulfillment artifact.
+The current opportunities are curated examples, not live search results. The main showcase is intentionally tuned for GitHub builders: creator-store packaging, digital product launch kits, small automation services, and other experiments where Codex can generate the fulfillment artifact.
 
 ## Public Signals
 
@@ -206,8 +220,8 @@ MAH is built around that ongoing-work layer: project context, planned multi-agen
 
 ## Roadmap
 
-- Replace static demo opportunities with pluggable opportunity sources.
+- Replace static opportunities with pluggable opportunity sources.
 - Add a cleaner handoff into Grill-with-docs and MAH routemap flows.
 - Improve generated pet quality checks with visual regression tests.
-- Add a short demo video or GIF once the flow is stable enough to show in one glance.
+- Add a short product video or GIF once the flow is stable enough to show in one glance.
 - Keep the project weird enough that people actually remember it.

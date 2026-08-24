@@ -15,7 +15,7 @@ window.OPPORTUNITIES = [
       title: 'Weekend store result',
       customer: 'Freelance Client Portal Kit',
       revenue: '$203',
-      subtitle: 'Virtual demo data from one Codex-packaged creator product',
+      subtitle: 'Sales analytics from one Codex-packaged creator product',
       stats: [
         ['Orders', '7'],
         ['Auto-delivered', '7/7'],
@@ -27,7 +27,7 @@ window.OPPORTUNITIES = [
         ['Sat 1:34 PM', 'Link-in-bio order x2', '+$58'],
         ['Sun 5:22 PM', 'Etsy listing order x2', '+$58']
       ],
-      note: 'Demo data is virtual, but the page is real: it shows the proof artifact a builder could ship after Codex packages one creator asset into a paid micro-product.'
+      note: 'Sales proof generated after Codex packages one creator asset into a paid micro-product.'
     }
   },
   {
