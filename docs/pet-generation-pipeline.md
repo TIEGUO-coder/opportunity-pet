@@ -24,11 +24,11 @@ Each action has 4 frames. The Codex path first generates a multi-view character 
 5. Electron slices, cleans, aligns, validates, and saves 24 local transparent frames.
 6. Temporary input copies are deleted.
 7. The generated pet begins scouting for product opportunities.
-8. If Codex is unavailable, the user can choose the explicitly labeled local fallback.
+8. If Codex is unavailable, returns incomplete/invalid files, or does not complete within the default 6-minute budget, the app automatically builds a local animated scout from the uploaded photos and continues to the lead card.
 
 ## Account And Cost Boundary
 
-Opportunity Pet does not run a paid generation backend or require an `OPENAI_API_KEY`. High-fidelity generation uses the user's installed, signed-in Codex and may consume that account's included or paid usage. The offline fallback does not call AI, but it cannot invent a truly new side view or open mouth that is absent from the source photos.
+Opportunity Pet does not run a paid generation backend or require an `OPENAI_API_KEY`. High-fidelity generation uses the user's installed, signed-in Codex and may consume that account's included or paid usage. The local fallback does not call AI, but it cannot invent a truly new side view or open mouth that is absent from the source photos.
 
 ## Privacy Boundary
 

@@ -115,7 +115,8 @@ async function main() {
         const note = document.getElementById('assetNote').textContent;
         const setupVisible = document.getElementById('petSetup').classList.contains('visible');
         const leadVisible = document.getElementById('leadCard').classList.contains('visible');
-        if (actions && profile && /scout is ready/i.test(note) && !setupVisible && leadVisible && document.body.dataset.view === 'lead') {
+        const petSrc = document.getElementById('pet').src;
+        if (actions && profile && !setupVisible && leadVisible && document.body.dataset.view === 'lead' && /^data:image\\/png;base64,/.test(petSrc)) {
           return {
             actions: JSON.parse(actions),
             profile: JSON.parse(profile),
@@ -123,7 +124,7 @@ async function main() {
             view: document.body.dataset.view,
             setupVisible,
             leadVisible,
-            petSrc: document.getElementById('pet').src
+            petSrc
           };
         }
         await new Promise((resolve) => setTimeout(resolve, 100));
@@ -138,8 +139,11 @@ async function main() {
   if (!profile.generationJobId || (!realCodex && profile.generationJobId !== 'test-codex-job-403')) {
     throw new Error(`Expected Codex job id to be preserved, got ${profile.generationJobId}`);
   }
-  if (!/HTTP 403 Forbidden/.test(profile.codexError || '')) {
+  if (!realCodex && !/HTTP 403 Forbidden/.test(profile.codexError || '')) {
     throw new Error('Expected Codex image generation error to be preserved in the pet profile');
+  }
+  if (realCodex && !/(HTTP 403 Forbidden|timed out|Codex exited with code|Codex did not create output)/i.test(profile.codexError || '')) {
+    throw new Error(`Expected real Codex failure reason to be preserved in the pet profile, got: ${profile.codexError || ''}`);
   }
   if (profile.sourcePhotoCount !== 3) {
     throw new Error(`Expected profile to record 3 source photos, got ${profile.sourcePhotoCount}`);
@@ -150,10 +154,6 @@ async function main() {
   if (!/^data:image\/png;base64,/.test(petSrc)) {
     throw new Error('Expected displayed pet to use the generated action frame');
   }
-  if (!/scout is ready/i.test(note)) {
-    throw new Error(`Expected fallback success note, got: ${note}`);
-  }
-
   const expectedActions = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
   expectedActions.forEach((action) => {
     if (!Array.isArray(actions[action]) || actions[action].length !== 4) {

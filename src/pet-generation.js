@@ -7,7 +7,7 @@ const { PNG } = require('pngjs');
 
 const ACTIONS = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
-const GENERATION_TIMEOUT_MS = 20 * 60 * 1000;
+const GENERATION_TIMEOUT_MS = Math.max(60 * 1000, Number(process.env.OPPORTUNITY_PET_CODEX_TIMEOUT_MS || 6 * 60 * 1000));
 const INACTIVITY_TIMEOUT_MS = 7 * 60 * 1000;
 const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
 
@@ -244,7 +244,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
       settled = true;
       child.kill();
       writeLog();
-      reject(new Error('Codex generation timed out after 20 minutes.'));
+      reject(new Error(`Codex generation timed out after ${Math.round(GENERATION_TIMEOUT_MS / 60000)} minutes before completing the action pack.`));
     }, GENERATION_TIMEOUT_MS);
     const heartbeat = setInterval(() => {
       if (settled) return;

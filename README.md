@@ -164,12 +164,18 @@ npm run check
 npm run start
 ```
 
-For personalized generation, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps **Generate with Codex** as the primary path.
+For personalized generation, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps **Generate with Codex** as the primary path. If the full AI action pack fails or takes too long, Opportunity Pet automatically builds a local animated scout from the uploaded photos and moves into the lead card instead of leaving you stuck on setup.
 
 Opportunity Pet uses `gpt-5.6-luna` by default. To choose another available Codex model:
 
 ```bash
 OPPORTUNITY_PET_CODEX_MODEL=gpt-5.5 npm run start
+```
+
+The Codex action-pack attempt waits up to 6 minutes by default before falling back to the local renderer. To wait longer:
+
+```bash
+OPPORTUNITY_PET_CODEX_TIMEOUT_MS=1200000 npm run start
 ```
 
 If Electron's post-install download fails:
