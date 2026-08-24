@@ -569,6 +569,9 @@ function extractPaletteFromImages(images) {
   });
 
   return {
+    creamRgb: averageSamples(light, [248, 237, 218]),
+    orangeRgb: averageSamples(orange, [181, 102, 43]),
+    darkRgb: averageSamples(dark, [48, 39, 31]),
     cream: rgbToCss(averageSamples(light, [248, 237, 218])),
     orange: rgbToCss(averageSamples(orange, [181, 102, 43])),
     dark: rgbToCss(averageSamples(dark, [48, 39, 31])),
@@ -760,15 +763,76 @@ function makePetFrame(palette, action, frame) {
   return canvas.toDataURL('image/png');
 }
 
+function blendChannel(source, target, amount) {
+  return source + (target - source) * amount;
+}
+
+function tintPixel(data, index, target, amount) {
+  data[index] = blendChannel(data[index], target[0], amount);
+  data[index + 1] = blendChannel(data[index + 1], target[1], amount);
+  data[index + 2] = blendChannel(data[index + 2], target[2], amount);
+}
+
+function recolorTemplateImageData(imageData, palette) {
+  const { data } = imageData;
+  for (let i = 0; i < data.length; i += 4) {
+    const alpha = data[i + 3];
+    if (alpha < 24) continue;
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const brightness = (r + g + b) / 3;
+    const spread = Math.max(r, g, b) - Math.min(r, g, b);
+
+    if (brightness > 170 && spread < 65) {
+      tintPixel(data, i, palette.creamRgb, 0.18);
+    } else if (r > 112 && g > 55 && r > b * 1.08 && brightness > 82) {
+      tintPixel(data, i, palette.orangeRgb, 0.22);
+    } else if (brightness < 116) {
+      tintPixel(data, i, palette.darkRgb, 0.16);
+    }
+  }
+  return imageData;
+}
+
+function makeTemplatePetFrame(template, palette) {
+  const source = document.createElement('canvas');
+  const sourceContext = source.getContext('2d', { willReadFrequently: true });
+  source.width = template.naturalWidth;
+  source.height = template.naturalHeight;
+  sourceContext.drawImage(template, 0, 0);
+  const imageData = sourceContext.getImageData(0, 0, source.width, source.height);
+  sourceContext.putImageData(recolorTemplateImageData(imageData, palette), 0, 0);
+
+  const canvas = document.createElement('canvas');
+  const context = canvas.getContext('2d');
+  canvas.width = 280;
+  canvas.height = 280;
+  const maxWidth = 258;
+  const maxHeight = 258;
+  const scale = Math.min(maxWidth / source.width, maxHeight / source.height, 1);
+  const width = Math.round(source.width * scale);
+  const height = Math.round(source.height * scale);
+  const x = Math.round((canvas.width - width) / 2);
+  const y = Math.round(canvas.height - height - 10);
+  context.drawImage(source, x, y, width, height);
+  return canvas.toDataURL('image/png');
+}
+
 async function generateActionsFromPhotos(images) {
   const loaded = await Promise.all(images.map(loadImage));
   const palette = extractPaletteFromImages(loaded);
   const sources = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
 
-  return Object.fromEntries(sources.map((action) => [
-    action,
-    [0, 1, 2, 3].map((frame) => makePetFrame(palette, action, frame))
-  ]));
+  const generated = {};
+  for (const action of sources) {
+    generated[action] = [];
+    for (let frame = 0; frame < 4; frame += 1) {
+      const template = await loadImage(defaultActions[action][frame]);
+      generated[action].push(makeTemplatePetFrame(template, palette));
+    }
+  }
+  return generated;
 }
 
 function updatePipeline(step) {
