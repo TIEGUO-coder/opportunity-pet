@@ -8,10 +8,14 @@ const { ACTIONS, generatePetWithCodex } = require('../src/pet-generation');
 
 function makeStrip(actionIndex) {
   const image = new PNG({ width: 400, height: 120 });
+  const whiteMatte = actionIndex % 2 === 1;
   for (let i = 0; i < image.data.length; i += 4) {
-    image.data[i] = 0;
-    image.data[i + 1] = 255;
-    image.data[i + 2] = 0;
+    const pixel = i / 4;
+    const x = pixel % image.width;
+    const y = Math.floor(pixel / image.width);
+    image.data[i] = whiteMatte ? 246 + ((x + y) % 4) : 0;
+    image.data[i + 1] = whiteMatte ? 246 + ((x + y) % 4) : 255;
+    image.data[i + 2] = whiteMatte ? 245 + ((x + y) % 5) : 0;
     image.data[i + 3] = 255;
   }
   for (let col = 0; col < 4; col += 1) {
