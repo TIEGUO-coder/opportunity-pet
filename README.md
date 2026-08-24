@@ -113,6 +113,8 @@ Opportunity Pet pins Codex generation to `gpt-5.6-luna` by default so it does no
 OPPORTUNITY_PET_CODEX_MODEL=gpt-5.5 npm run start
 ```
 
+Direct generation also requires the Codex CLI session to have access to built-in image generation. If Codex can chat but image generation returns `HTTP 403 Forbidden`, the app will report that exact failure and you can still use the Tieguo demo or import an externally generated action pack.
+
 If Electron's postinstall download fails:
 
 ```bash

@@ -166,6 +166,16 @@ function splitStrip(buffer) {
 function loadGeneratedActions(outputDir) {
   const actions = {};
   const framesRoot = path.join(outputDir, 'frames');
+  const errorPath = path.join(outputDir, 'error.json');
+  if (fs.existsSync(errorPath)) {
+    try {
+      const errorPayload = JSON.parse(fs.readFileSync(errorPath, 'utf8'));
+      throw new Error(errorPayload.error || 'Codex reported that image generation failed.');
+    } catch (error) {
+      if (error instanceof SyntaxError) throw new Error('Codex reported that image generation failed. output/error.json is not valid JSON.');
+      throw error;
+    }
+  }
   fs.mkdirSync(framesRoot, { recursive: true });
 
   for (const action of ACTIONS) {

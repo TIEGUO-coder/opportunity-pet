@@ -83,6 +83,21 @@ fs.writeFileSync(path.join(output, 'manifest.json'), JSON.stringify({ version: 1
       /white or gray background/,
       'white matte strips should be rejected instead of imported with holes'
     );
+
+    fs.writeFileSync(fakeCodex, `const fs = require('fs');
+const path = require('path');
+const output = path.join(process.cwd(), 'output');
+fs.mkdirSync(output, { recursive: true });
+fs.writeFileSync(path.join(output, 'error.json'), JSON.stringify({ error: 'Built-in image generation unavailable: HTTP 403 Forbidden' }));
+`);
+    const failed = await generatePetWithCodex({ photos: [photo, photo, photo], petName: 'Test Pet' }, {
+      codexPath: fakeCodex,
+      userDataPath: path.join(tempRoot, 'user-data-error'),
+      skillPath: path.join(__dirname, '..', 'skills', 'pet-action-pack', 'SKILL.md'),
+      onProgress: () => {}
+    });
+    assert.equal(failed.ok, false, 'Codex output/error.json should fail generation');
+    assert.match(failed.error, /HTTP 403 Forbidden/);
     console.log('Verified Codex job handoff, six action strips, 24 aligned transparent frames, and input cleanup.');
   } finally {
     if (previousFixturePath === undefined) delete process.env.OPPORTUNITY_PET_FAKE_STRIPS;
