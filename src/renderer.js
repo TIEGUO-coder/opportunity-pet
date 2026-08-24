@@ -224,7 +224,7 @@ function setResultText(result = {}) {
   document.getElementById('resultTitle').textContent = result.title || 'Pilot result';
   document.getElementById('resultSubtitle').textContent = result.subtitle || '';
   document.getElementById('resultRevenue').textContent = result.revenue || '$0';
-  document.getElementById('resultCustomer').textContent = result.customer || 'Demo customer';
+  document.getElementById('resultCustomer').textContent = result.customer || 'Sample customer';
   document.getElementById('resultNote').textContent = result.note || '';
   document.getElementById('resultStats').innerHTML = (result.stats || []).map(([label, value]) => `
     <article>
@@ -955,11 +955,11 @@ function setGenerationBusy(busy) {
   generateLocalPet.disabled = busy;
   petPhotoInput.disabled = busy;
   if (busy) {
-    createPet.textContent = 'Use Tieguo while Codex works';
+    createPet.textContent = 'Use Iron while Codex works';
   } else {
     clearInterval(generationStatusTimer);
     generationStatusTimer = null;
-    createPet.textContent = 'Use Tieguo dev sample';
+    createPet.textContent = 'Use Iron sample';
   }
 }
 
@@ -970,7 +970,7 @@ function startGenerationStatusTimer(logPath = '') {
     if (!generationBusy) return;
     const elapsed = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
     const logHint = logPath ? ` Log: ${logPath}` : '';
-    assetNote.textContent = `Codex is still generating the action pack in the background (${elapsed} min). Image generation can take several minutes; you can use the Tieguo demo while it works.${logHint}`;
+    assetNote.textContent = `Codex is still generating the action pack in the background (${elapsed} min). Image generation can take several minutes; you can use the Iron sample while it works.${logHint}`;
   }, 30000);
 }
 
@@ -1032,7 +1032,7 @@ generatePet.addEventListener('click', async () => {
         });
         return;
       }
-      assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail} You can use the Tieguo demo now, or regenerate after Codex is ready.`;
+      assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail} You can use the Iron sample now, or regenerate after Codex is ready.`;
       updatePipeline('photos');
       return;
     }
@@ -1102,13 +1102,13 @@ startScouting.addEventListener('click', async () => {
 
 createPet.addEventListener('click', async () => {
   actions = defaultActions;
-  const name = petNameInput.value.trim() || 'Tieguo';
+  const name = petNameInput.value.trim() || 'Iron';
   savePetProfile({
     name,
     photoDataUrl: '',
     assetMode: 'generated',
     sourcePhotoCount: selectedPhotoDataUrls.length,
-    generatedFrom: 'default-teiguo',
+    generatedFrom: 'default-iron',
     createdAt: new Date().toISOString()
   });
   applyPetProfile();

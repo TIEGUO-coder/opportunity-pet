@@ -3,10 +3,10 @@
 > **My pet learned to earn its own treats. Now it is working on paying my rent.**
 
 <p align="center">
-  <img src="docs/screenshots/lead-card.svg" width="460" alt="Tieguo brings back a Creator Store Launch Kit opportunity">
+  <img src="docs/screenshots/lead-card.svg" width="460" alt="Iron brings back a Creator Store Launch Kit opportunity">
 </p>
 
-<p align="center"><em>Tieguo found something small enough to build and concrete enough to sell.</em></p>
+<p align="center"><em>Iron found something small enough to build and concrete enough to sell.</em></p>
 
 <p align="center">
   <img src="docs/screenshots/creator-store-result.svg" width="920" alt="Gumroad-style sales result for a creator product">
@@ -14,7 +14,7 @@
 
 <p align="center"><em>The finish line is not another idea document. It is a product, delivered orders, and a result you can inspect.</em></p>
 
-Opportunity Pet is a free, open-source desktop pet for builders. Give it 3-5 photos of your own animal and it becomes a small animated scout: it wanders across your desktop, brings back a focused opportunity, and asks whether you want to reject it, test it, or turn it into real work.
+Opportunity Pet is a free, open-source desktop pet for builders. Give it 3-5 photos of your own animal and it becomes a small animated scout: it wanders across your desktop, brings back opportunities that match your interests, and asks whether you want to reject one, test it, or turn it into real work.
 
 The pet is playful. The workflow behind it is serious:
 
@@ -44,21 +44,23 @@ The generated action pack is not one photo sliding around the screen. It contain
 - **Send:** chases a butterfly while the brief moves into Grill-with-docs.
 - **Happy:** reacts briefly when clicked or when a task moves forward.
 
-The setup window disappears after generation, leaving only the small transparent desktop pet. Tieguo is the example in this repository; people who download the app are meant to replace him with their own animal.
+The setup window disappears after generation, leaving only the small transparent desktop pet. Iron is just the included sample pet; you can replace him with your own animal.
 
 <p align="center">
-  <img src="assets/source/teiguo-expressive-spritesheet.png" width="760" alt="Tieguo multi-action character sheet">
+  <img src="assets/source/iron-expressive-spritesheet.png" width="760" alt="Iron multi-action character sheet">
 </p>
 
-## 2. Let It Bring Back One Good Lead
+## 2. Let It Bring Back Leads That Fit You
 
-The showcase opportunity is deliberately narrow:
+Opportunity Pet is not limited to one kind of business idea. It can bring back different leads based on your preferences, skills, audience, region, risk tolerance, and the platforms you already understand.
+
+One possible lead looks like this:
 
 > **Creator Store Launch Kit**
 >
-> Turn one messy creator asset into a product page, cleaned delivery file, FAQ, launch copy, and lightweight sales report for Gumroad, Etsy, or a link-in-bio store.
+> Turn one messy creator asset into a product page, cleaned delivery file, FAQ, launch copy, and lightweight sales report for Gumroad, Etsy, Stan Store, Shopify, or a link-in-bio store.
 
-This fits GitHub builders because the fulfillment work is mostly files, structured content, and small automations that Codex can produce. A customer might already have a useful Notion template, prompt pack, checklist, guide, or workflow, but still need help turning it into something another person can understand, buy, and receive.
+This kind of lead fits builders because the fulfillment work is mostly files, structured content, and small automations that Codex can produce. A customer might already have a useful Notion template, prompt pack, checklist, guide, or workflow, but still need help turning it into something another person can understand, buy, and receive.
 
 ```text
 messy creator asset
@@ -69,7 +71,7 @@ messy creator asset
       -> sales and delivery report
 ```
 
-The pet does not claim that every lead will make money. Its job is to make a plausible opportunity visible at the moment when a builder can still make a small decision: approve it, reject it, or investigate it properly.
+The pet does not claim that every lead will make money. Its job is to make plausible opportunities visible at the moment when you can still make a small decision: approve one, reject it, or investigate it properly.
 
 ## 3. Grill It Before Building It
 
@@ -87,7 +89,7 @@ Grill-with-docs is where the cute idea has to survive contact with reality. It s
 - What can Codex automate, and where must a person decide?
 - What would count as a useful first result?
 
-For the Creator Store Launch Kit, a practical first experiment is one asset, one storefront, one price, and one launch channel. Codex can draft the package and supporting files; the owner chooses the niche, validates demand, approves claims, and publishes the offer.
+For a creator-store lead, a practical first experiment is one asset, one storefront, one price, and one launch channel. Codex can draft the package and supporting files; you choose the niche, validate demand, approve claims, and publish the offer.
 
 ## 4. Move The Surviving Work Into MAH
 
@@ -103,7 +105,7 @@ lead card -> grilled brief -> routemap -> tasks -> execution -> review
 
 ## 5. End With A Result, Not A Bookmark
 
-The repository follows the Creator Store Launch Kit through to a concrete target outcome:
+Here is one concrete outcome the loop can aim for:
 
 ```text
 Product: Freelance Client Portal Kit
@@ -114,21 +116,21 @@ Refunds: 0
 Balance after fees: $181
 ```
 
-The Gumroad-shaped result page makes the finish line legible: did the product ship, did anyone buy it, were the files delivered, where did buyers come from, and did anyone ask for a refund?
+The result page makes the finish line legible: did the product ship, did anyone buy it, were the files delivered, where did buyers come from, and did anyone ask for a refund?
 
 Opportunity Pet does not guarantee those numbers. The point is to replace a vague promise like “AI helps you make money” with a modest, testable outcome that the workflow can actually aim at.
 
-## Why Gumroad
+## Choose Your Path
 
-Gumroad is a lightweight creator-commerce platform for selling digital products, memberships, courses, and services without building a complete store from scratch. It can host a product page, take payment, deliver files or links, send receipts, manage customers and refunds, and show sales analytics.
+Gumroad is one lightweight creator-commerce path for selling digital products, memberships, courses, and services without building a complete store from scratch. It can host a product page, take payment, deliver files or links, send receipts, manage customers and refunds, and show sales analytics.
 
-That makes it a useful finish line for this experiment. Codex can help package many of the deliverables, while Gumroad provides the external surface where a builder can see whether the offer was purchased and delivered.
+That makes it a useful sample finish line for a digital-product lead. Codex can help package many of the deliverables, while Gumroad provides the external surface where you can see whether the offer was purchased and delivered.
 
 - [Gumroad features](https://gumroad.com/features)
 - [Gumroad analytics dashboard](https://gumroad.com/help/article/74-the-analytics-dashboard.html)
 - [Gumroad customer and sales dashboard](https://gumroad.com/help/article/268-customer-dashboard)
 
-Gumroad is only one possible destination. The same loop can point to Etsy, a creator's own checkout, a paid service marketplace, or another platform with a real transaction and delivery trail.
+Gumroad is only one possible destination. The same loop can point to Etsy, Shopify, Stan Store, a creator's own checkout, a paid service marketplace, a local-service booking flow, or any other path with a real transaction and delivery trail.
 
 ## What Works Today
 
@@ -145,13 +147,13 @@ The current opportunity feed is curated rather than live web search. That is int
 
 ## Download
 
-Open [Opportunity Pet Releases](https://github.com/TIEGUO-coder/opportunity-pet/releases) and choose the build for your system:
+Open [Opportunity Pet Releases](../../releases) and choose the build for your system:
 
 - macOS: Apple Silicon or Intel `.dmg` / `.zip`
 - Windows: Setup or Portable `.exe`
 - Linux: `.AppImage`
 
-These early community builds are not code-signed. On macOS, right-click the app and choose **Open** the first time. On Windows, SmartScreen may require **More info > Run anyway**. Only download builds from this repository.
+These early community builds are not code-signed. On macOS, right-click the app and choose **Open** the first time. On Windows, SmartScreen may require **More info > Run anyway**. Only download builds from the official Releases page.
 
 ## Run From Source
 
