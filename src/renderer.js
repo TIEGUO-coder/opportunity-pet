@@ -47,6 +47,7 @@ const defaultActions = {
   chase: ['../assets/teiguo/chase/chase_001.png', '../assets/teiguo/chase/chase_002.png', '../assets/teiguo/chase/chase_003.png', '../assets/teiguo/chase/chase_004.png'],
   yawn: ['../assets/teiguo/yawn/yawn_001.png', '../assets/teiguo/yawn/yawn_002.png', '../assets/teiguo/yawn/yawn_003.png', '../assets/teiguo/yawn/yawn_004.png']
 };
+const ACTION_PACK_POLICY_VERSION = 2;
 
 function withActionFallbacks(imported) {
   if (!imported) return defaultActions;
@@ -215,7 +216,17 @@ function setLeadText(lead) {
 
 function loadPetProfile() {
   try {
-    return JSON.parse(localStorage.getItem('opportunityPet.profile')) || null;
+    const profile = JSON.parse(localStorage.getItem('opportunityPet.profile')) || null;
+    if (
+      profile &&
+      profile.generatedFrom === 'codex-action-pack' &&
+      profile.actionPackPolicyVersion !== ACTION_PACK_POLICY_VERSION
+    ) {
+      localStorage.removeItem('opportunityPet.profile');
+      localStorage.removeItem('opportunityPet.importedActions');
+      return null;
+    }
+    return profile;
   } catch {
     return null;
   }
@@ -673,6 +684,7 @@ async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {
     assetMode: 'generated',
     sourcePhotoCount: selectedPhotoDataUrls.length,
     generatedFrom,
+    actionPackPolicyVersion: ACTION_PACK_POLICY_VERSION,
     createdAt: new Date().toISOString(),
     ...extraProfile
   });

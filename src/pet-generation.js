@@ -60,8 +60,10 @@ function removeChromaKey(image) {
   }
 }
 
-function averageCornerBackground(image) {
+function inspectMatte(image) {
   const samples = [];
+  let transparent = 0;
+  let green = 0;
   const sampleSize = Math.min(12, image.width, image.height);
   const corners = [
     [0, 0],
@@ -74,13 +76,22 @@ function averageCornerBackground(image) {
     for (let y = startY; y < startY + sampleSize; y += 1) {
       for (let x = startX; x < startX + sampleSize; x += 1) {
         const index = (y * image.width + x) * 4;
-        if (image.data[index + 3] < 220) continue;
-        samples.push([image.data[index], image.data[index + 1], image.data[index + 2]]);
+        const alpha = image.data[index + 3];
+        const r = image.data[index];
+        const g = image.data[index + 1];
+        const b = image.data[index + 2];
+        if (alpha < 12) {
+          transparent += 1;
+          continue;
+        }
+        if (alpha > 220 && isGreen(r, g, b)) green += 1;
+        if (alpha >= 220) samples.push([r, g, b]);
       }
     }
   }
 
-  if (!samples.length) return null;
+  if (transparent > samples.length * 0.2 || green > samples.length * 0.2) return { supported: true, matte: 'transparent-or-green' };
+  if (!samples.length) return { supported: true, matte: 'transparent' };
   const totals = samples.reduce((sum, sample) => {
     sum[0] += sample[0];
     sum[1] += sample[1];
@@ -90,96 +101,8 @@ function averageCornerBackground(image) {
   const color = totals.map((value) => value / samples.length);
   const brightness = (color[0] + color[1] + color[2]) / 3;
   const spread = Math.max(...color) - Math.min(...color);
-  if (brightness < 210 || spread > 28) return null;
-  return color;
-}
-
-function removeEdgeMatte(image) {
-  const background = averageCornerBackground(image);
-  if (!background) return;
-
-  const seen = new Uint8Array(image.width * image.height);
-  const remove = new Uint8Array(image.width * image.height);
-  const stack = [];
-  const rowMin = new Int32Array(image.height).fill(image.width);
-  const rowMax = new Int32Array(image.height).fill(-1);
-  const colMin = new Int32Array(image.width).fill(image.height);
-  const colMax = new Int32Array(image.width).fill(-1);
-  const isBackground = (x, y) => {
-    const index = (y * image.width + x) * 4;
-    const alpha = image.data[index + 3];
-    if (alpha < 12) return true;
-    if (alpha < 220) return false;
-    const r = image.data[index];
-    const g = image.data[index + 1];
-    const b = image.data[index + 2];
-    const spread = Math.max(r, g, b) - Math.min(r, g, b);
-    const nearCorner =
-      Math.abs(r - background[0]) <= 38 &&
-      Math.abs(g - background[1]) <= 38 &&
-      Math.abs(b - background[2]) <= 38;
-    const nearWhite = r >= 218 && g >= 218 && b >= 218 && spread <= 34;
-    return nearCorner || nearWhite;
-  };
-  const markForeground = (x, y) => {
-    rowMin[y] = Math.min(rowMin[y], x);
-    rowMax[y] = Math.max(rowMax[y], x);
-    colMin[x] = Math.min(colMin[x], y);
-    colMax[x] = Math.max(colMax[x], y);
-  };
-
-  for (let y = 0; y < image.height; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      const index = (y * image.width + x) * 4;
-      const alpha = image.data[index + 3];
-      if (alpha < 80 || isBackground(x, y)) continue;
-      markForeground(x, y);
-    }
-  }
-
-  const push = (x, y) => {
-    if (x < 0 || y < 0 || x >= image.width || y >= image.height) return;
-    const offset = y * image.width + x;
-    if (seen[offset] || !isBackground(x, y)) return;
-    seen[offset] = 1;
-    stack.push(offset);
-  };
-
-  for (let x = 0; x < image.width; x += 1) {
-    push(x, 0);
-    push(x, image.height - 1);
-  }
-  for (let y = 0; y < image.height; y += 1) {
-    push(0, y);
-    push(image.width - 1, y);
-  }
-
-  while (stack.length) {
-    const offset = stack.pop();
-    const x = offset % image.width;
-    const y = Math.floor(offset / image.width);
-    remove[offset] = 1;
-    push(x + 1, y);
-    push(x - 1, y);
-    push(x, y + 1);
-    push(x, y - 1);
-  }
-
-  for (let y = 0; y < image.height; y += 1) {
-    for (let x = 0; x < image.width; x += 1) {
-      const offset = y * image.width + x;
-      if (!remove[offset]) continue;
-      const silhouettePad = 18;
-      const insideRow = rowMax[y] >= 0 && x >= rowMin[y] - silhouettePad && x <= rowMax[y] + silhouettePad;
-      const insideCol = colMax[x] >= 0 && y >= colMin[x] - silhouettePad && y <= colMax[x] + silhouettePad;
-      if (insideRow && insideCol) continue;
-      const index = offset * 4;
-      image.data[index] = 0;
-      image.data[index + 1] = 0;
-      image.data[index + 2] = 0;
-      image.data[index + 3] = 0;
-    }
-  }
+  if (brightness > 210 && spread <= 35) return { supported: false, matte: 'white-or-gray' };
+  return { supported: true, matte: 'unknown-dark' };
 }
 
 function cropToContent(image) {
@@ -212,6 +135,10 @@ function cropToContent(image) {
 function splitStrip(buffer) {
   const strip = PNG.sync.read(buffer);
   if (strip.width < 4 || strip.height < 1) throw new Error('Generated action strip is too small.');
+  const matte = inspectMatte(strip);
+  if (!matte.supported) {
+    throw new Error('Generated action strip uses a white or gray background. Regenerate with transparent background or flat #00FF00 chroma green; white mattes cut holes in pale fur.');
+  }
   const cellWidth = Math.floor(strip.width / 4);
   const frames = [];
 
@@ -220,7 +147,6 @@ function splitStrip(buffer) {
     const cell = new PNG({ width, height: strip.height });
     PNG.bitblt(strip, cell, col * cellWidth, 0, width, strip.height, 0, 0);
     removeChromaKey(cell);
-    removeEdgeMatte(cell);
     frames.push(cropToContent(cell));
   }
 

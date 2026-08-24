@@ -4,11 +4,11 @@ const os = require('os');
 const path = require('path');
 const { fileURLToPath } = require('url');
 const { PNG } = require('pngjs');
-const { ACTIONS, generatePetWithCodex } = require('../src/pet-generation');
+const { ACTIONS, generatePetWithCodex, splitStrip } = require('../src/pet-generation');
 
-function makeStrip(actionIndex) {
+function makeStrip(actionIndex, matte = 'green') {
   const image = new PNG({ width: 400, height: 120 });
-  const whiteMatte = actionIndex % 2 === 1;
+  const whiteMatte = matte === 'white';
   for (let i = 0; i < image.data.length; i += 4) {
     const pixel = i / 4;
     const x = pixel % image.width;
@@ -39,7 +39,7 @@ async function main() {
   const fakeStrips = path.join(tempRoot, 'fake-strips');
   const fakeCodex = path.join(tempRoot, 'fake-codex.js');
   fs.mkdirSync(fakeStrips, { recursive: true });
-  ACTIONS.forEach((action, index) => fs.writeFileSync(path.join(fakeStrips, `${action}.png`), makeStrip(index)));
+  ACTIONS.forEach((action, index) => fs.writeFileSync(path.join(fakeStrips, `${action}.png`), makeStrip(index, 'green')));
   fs.writeFileSync(fakeCodex, `const fs = require('fs');
 const path = require('path');
 const prompt = fs.readFileSync(0, 'utf8');
@@ -78,6 +78,11 @@ fs.writeFileSync(path.join(output, 'manifest.json'), JSON.stringify({ version: 1
     }
     const inputDir = path.join(tempRoot, 'user-data', 'pet-generation', result.jobId, 'inputs');
     assert.equal(fs.existsSync(inputDir), false, 'temporary input photos should be deleted');
+    assert.throws(
+      () => splitStrip(makeStrip(0, 'white')),
+      /white or gray background/,
+      'white matte strips should be rejected instead of imported with holes'
+    );
     console.log('Verified Codex job handoff, six action strips, 24 aligned transparent frames, and input cleanup.');
   } finally {
     if (previousFixturePath === undefined) delete process.env.OPPORTUNITY_PET_FAKE_STRIPS;
