@@ -93,15 +93,15 @@ For a creator-store lead, a practical first experiment is one asset, one storefr
 
 ## 4. Move The Plan Into MAH
 
-Once the idea has a first plan, it should stop being a chat artifact and become durable project work: tasks, dependencies, decisions, follow-ups, and review points.
+Opportunity Pet stops at the doorway. It brings back the lead, shapes the first plan, and leaves you with the delicious problem of deciding whether this thing is real enough to pursue.
 
-That is where Opportunity Pet quietly hands the story to **MAH**. The pet creates the moment of curiosity; the plan gives you a first direction; MAH is the ongoing system that can carry the work after the first exciting prompt has ended.
+Then there is **MAH**: the place where a loose plan starts behaving like a living route. Less chat, more gravity. The pet found the spark; MAH is where it either becomes work, or disappears cleanly before it wastes your week.
 
 ```text
-lead card -> copied plan -> MAH routemap -> tasks -> execution -> review
+lead card -> copied plan -> MAH -> something that can actually move
 ```
 
-[Explore the MAH Product System ->](https://dev.mah.bot/product)
+[Open the door to MAH ->](https://dev.mah.bot/product)
 
 ## 5. End With A Result, Not A Bookmark
 
@@ -207,4 +207,4 @@ Opportunity Pet does not choose what someone should build, promise revenue, publ
 
 ---
 
-Opportunity Pet is the playful front door. [MAH](https://dev.mah.bot/product) is where the work keeps going.
+Opportunity Pet brings the opportunity home. [MAH](https://dev.mah.bot/product) is what happens after you decide to follow it.
