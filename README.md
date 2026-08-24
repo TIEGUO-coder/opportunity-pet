@@ -73,21 +73,21 @@ messy creator asset
 
 The pet does not claim that every lead will make money. Its job is to make plausible opportunities visible at the moment when you can still make a small decision: approve one, reject it, or investigate it properly.
 
-## 3. Grill It Before Building It
+## 3. Turn The Lead Into A Plan
 
-Approving a card does not launch a giant autonomous project. Opportunity Pet prepares a structured **Grill-with-docs** brief with the opportunity, customer, evidence, assumptions, smallest experiment, and unresolved questions.
+Approving a card does not launch a giant autonomous project. Opportunity Pet turns the lead into a structured plan: recommended direction, smallest useful experiment, validation tasks, build tasks, distribution path, risks, and the judgment points that should go into MAH.
 
 <p align="center">
-  <img src="docs/screenshots/grill-brief.svg" width="820" alt="Opportunity card converted into a Grill-with-docs brief">
+  <img src="docs/screenshots/grill-brief.svg" width="820" alt="Opportunity card converted into a routemap-ready plan">
 </p>
 
-Grill-with-docs is where the cute idea has to survive contact with reality. It should answer questions such as:
+The plan keeps the good answers instead of forcing another interview loop. It should already say:
 
-- Who already pays for this outcome?
-- What is the smallest version that can be delivered well?
-- Which claims need evidence or human approval?
-- What can Codex automate, and where must a person decide?
-- What would count as a useful first result?
+- Who already pays for this outcome.
+- What the smallest deliverable should be.
+- Which claims need evidence or human approval.
+- What Codex can automate, and where a person must decide.
+- What should count as a useful first result.
 
 For a creator-store lead, a practical first experiment is one asset, one storefront, one price, and one launch channel. Codex can draft the package and supporting files; you choose the niche, validate demand, approve claims, and publish the offer.
 
@@ -139,7 +139,7 @@ Gumroad is only one possible destination. The same loop can point to Etsy, Shopi
 - Fall back to a local transparent scout if image generation is unavailable.
 - Run as a small transparent Electron desktop pet on top of ordinary work.
 - Scout curated opportunity cards and let the user approve or reject them.
-- Copy a structured Grill-with-docs brief for an approved lead.
+- Copy a routemap-ready plan for an approved lead.
 - Open a result page that shows the intended business outcome.
 - Build packaged desktop downloads for macOS, Windows, and Linux.
 
@@ -200,7 +200,7 @@ Opportunity Pet does not choose what someone should build, promise revenue, publ
 ## Roadmap
 
 - Add pluggable live opportunity sources with evidence and freshness checks.
-- Pass Grill-with-docs output directly into MAH routemap creation.
+- Pass approved plans directly into MAH routemap creation.
 - Improve generated-pet quality checks and visual regression coverage.
 - Add a short product video showing the full loop in under one minute.
 - Keep the pet expressive enough that people want to leave it running.

@@ -216,7 +216,7 @@ function setLeadText(lead) {
   document.getElementById('leadRisk').textContent = lead.risk;
   document.getElementById('briefOpportunity').textContent = `${lead.title} (${lead.type}): ${lead.summary}`;
   document.getElementById('briefV1').textContent = lead.v1;
-  document.getElementById('briefQuestions').innerHTML = lead.grillQuestions.map((question) => `<span>${question}</span>`).join('');
+  document.getElementById('briefQuestions').innerHTML = (lead.recommendedDirection || []).map((answer) => `<span>${answer}</span>`).join('');
   setResultText(lead.result);
 }
 
@@ -395,45 +395,65 @@ function runAmbientAction() {
 }
 
 function approveCurrentLead() {
-  document.getElementById('leadStatus').textContent = 'Marked actionable. Ready for grilling.';
+  document.getElementById('leadStatus').textContent = 'Marked actionable. Plan ready for MAH.';
   leadCard.dataset.approved = 'true';
   stopAnimationOnFirstFrame('idle');
   setPetMotion('found');
 }
 
-function buildGrillingBrief() {
+function buildRoutemapPlan() {
   if (!currentLead) return '';
-  return `Use grill-with-docs on this opportunity lead.
+  const direction = currentLead.recommendedDirection || [];
+  const checks = currentLead.routemapChecks || [];
+  return `Create a MAH routemap from this Opportunity Pet lead.
 
-Interview me one question at a time. For each question, give your recommended answer first, then wait for my response.
+Do not start an interview loop. Treat the recommendations below as the current best plan. Keep the good answers, turn them into tasks, and leave the final go/no-go judgment to the routemap review.
 
-As we resolve terms or durable decisions, use domain-modeling discipline:
-- Capture stable vocabulary in CONTEXT.md only when a term is actually resolved.
-- Create an ADR only for decisions that are hard to reverse, surprising without context, and based on a real trade-off.
+Goal:
+- Test whether this opportunity can become a small shipped offer with a visible result.
 
-Do not write implementation code during the grilling session.
+Opportunity:
+- ${currentLead.title}
 
-When we reach shared understanding, produce a routemap-ready brief with these sections:
-- Goal
-- Target user / situation
-- Public signals to inspect
-- Key assumptions
-- Smallest useful experiment
-- Validation tasks
-- Build tasks
-- Distribution or sharing tasks
-- Risks to recheck
-- Out of scope
+Type:
+- ${currentLead.type}
 
-Opportunity: ${currentLead.title}
-Type: ${currentLead.type}
-Why it might matter: ${currentLead.summary}
-Public signals to inspect: ${currentLead.evidence}
-Risk: ${currentLead.risk}
-Small experiment: ${currentLead.v1}
+Why it might matter:
+- ${currentLead.summary}
 
-Questions to start with:
-${currentLead.grillQuestions.map((question) => `- ${question}`).join('\n')}`;
+Public signals to inspect:
+- ${currentLead.evidence}
+
+Recommended direction:
+${direction.map((item) => `- ${item}`).join('\n')}
+
+Smallest useful experiment:
+- ${currentLead.v1}
+
+Validation tasks:
+- Collect 5-10 public examples that prove people already buy or ask for this outcome.
+- Identify one narrow customer situation and one painful before/after.
+- Confirm the first offer can be delivered manually before automating.
+- Define the proof metric: orders, booked calls, delivered files, replies, time saved, or refund rate.
+
+Build tasks:
+- Draft the offer page or service page.
+- Produce the first deliverable template or workflow.
+- Create the delivery checklist and customer handoff notes.
+- Prepare one launch message and one follow-up message.
+- Create a result report that shows what happened.
+
+Distribution path:
+- Pick one channel first. Examples: Gumroad, Etsy, Shopify, Stan Store, link-in-bio checkout, local service outreach, or a paid marketplace.
+
+Risks and boundaries:
+- ${currentLead.risk}
+${checks.map((item) => `- ${item}`).join('\n')}
+
+Routemap judgment:
+- User reviews the evidence, risk, channel, and smallest experiment in MAH.
+- If the judgment is yes, create execution tasks.
+- If the judgment is no, archive this lead and ask Opportunity Pet to scout again.`;
 }
 
 async function skipCurrentLead() {
@@ -449,7 +469,7 @@ async function skipCurrentLead() {
 }
 
 async function reviewCurrentPlan() {
-  document.getElementById('leadStatus').textContent = 'Brief copied. Paste it into Codex with grill-with-docs.';
+  document.getElementById('leadStatus').textContent = 'Plan copied. Paste it into MAH routemap.';
   leadCard.dataset.approved = 'true';
   setBriefOpen(true);
   briefPanel.classList.add('visible');
@@ -459,9 +479,9 @@ async function reviewCurrentPlan() {
   setPetMotion('chasing', 1500);
   playActionOnce('chase', 330, 'idle', () => setPetMotion('found'));
   try {
-    await navigator.clipboard.writeText(buildGrillingBrief());
+    await navigator.clipboard.writeText(buildRoutemapPlan());
   } catch {
-    document.getElementById('leadStatus').textContent = 'Grill-with-docs brief prepared.';
+    document.getElementById('leadStatus').textContent = 'Routemap-ready plan prepared.';
   }
 }
 

@@ -2,7 +2,7 @@
 
 Opportunity Pet turns product discovery into a small free desktop companion loop.
 
-It is not a paid product, a bookmark tool, or a promise that the user will make money. The pet should bring back practical leads: what the opportunity is, why it might exist, what public signals support it, what a small experiment could be, and what needs grilling before the user commits time.
+It is not a paid product, a bookmark tool, or a promise that the user will make money. The pet should bring back practical leads: what the opportunity is, why it might exist, what public signals support it, what a small experiment could be, and what recommended direction can be reviewed in MAH before the user commits time.
 
 ## Core Loop
 
@@ -11,8 +11,8 @@ It is not a paid product, a bookmark tool, or a promise that the user will make 
 3. The generated pet scouts for small opportunities a GitHub/Codex builder can package and fulfill.
 4. The pet brings back a money lead as a compact card, such as a creator-store launch kit.
 5. The user approves, skips, or reviews the lead.
-6. Approved leads become a Grill-with-docs brief and can show a virtual result page.
-7. Later, grilled projects route into MAH routemap.
+6. Approved leads become a routemap-ready plan and can show a virtual result page.
+7. The user makes the final go/no-go judgment inside MAH routemap.
 
 ## Opportunity Types
 
@@ -30,8 +30,8 @@ Each card should answer:
 - What is the risk?
 - What small experiment could be tried?
 - What result page would prove the experiment worked?
-- What should be grilled next?
+- What direction should be reviewed in MAH?
 
 ## MVP Boundary
 
-The current MVP ends before running the full grill-with-docs session. It prepares a handoff brief that can be pasted into grill-with-docs and shaped into a routemap-ready candidate. The uploaded photo set is source material for the animated pet generator.
+The current MVP prepares a routemap-ready plan instead of running an interview loop. It keeps the recommended answers, turns them into validation/build/distribution tasks, and leaves the final judgment to MAH. The uploaded photo set is source material for the animated pet generator.
