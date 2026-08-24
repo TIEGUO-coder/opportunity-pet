@@ -99,7 +99,12 @@ function removeEdgeMatte(image) {
   if (!background) return;
 
   const seen = new Uint8Array(image.width * image.height);
+  const remove = new Uint8Array(image.width * image.height);
   const stack = [];
+  const rowMin = new Int32Array(image.height).fill(image.width);
+  const rowMax = new Int32Array(image.height).fill(-1);
+  const colMin = new Int32Array(image.width).fill(image.height);
+  const colMax = new Int32Array(image.width).fill(-1);
   const isBackground = (x, y) => {
     const index = (y * image.width + x) * 4;
     const alpha = image.data[index + 3];
@@ -116,6 +121,22 @@ function removeEdgeMatte(image) {
     const nearWhite = r >= 218 && g >= 218 && b >= 218 && spread <= 34;
     return nearCorner || nearWhite;
   };
+  const markForeground = (x, y) => {
+    rowMin[y] = Math.min(rowMin[y], x);
+    rowMax[y] = Math.max(rowMax[y], x);
+    colMin[x] = Math.min(colMin[x], y);
+    colMax[x] = Math.max(colMax[x], y);
+  };
+
+  for (let y = 0; y < image.height; y += 1) {
+    for (let x = 0; x < image.width; x += 1) {
+      const index = (y * image.width + x) * 4;
+      const alpha = image.data[index + 3];
+      if (alpha < 80 || isBackground(x, y)) continue;
+      markForeground(x, y);
+    }
+  }
+
   const push = (x, y) => {
     if (x < 0 || y < 0 || x >= image.width || y >= image.height) return;
     const offset = y * image.width + x;
@@ -137,15 +158,27 @@ function removeEdgeMatte(image) {
     const offset = stack.pop();
     const x = offset % image.width;
     const y = Math.floor(offset / image.width);
-    const index = offset * 4;
-    image.data[index] = 0;
-    image.data[index + 1] = 0;
-    image.data[index + 2] = 0;
-    image.data[index + 3] = 0;
+    remove[offset] = 1;
     push(x + 1, y);
     push(x - 1, y);
     push(x, y + 1);
     push(x, y - 1);
+  }
+
+  for (let y = 0; y < image.height; y += 1) {
+    for (let x = 0; x < image.width; x += 1) {
+      const offset = y * image.width + x;
+      if (!remove[offset]) continue;
+      const silhouettePad = 18;
+      const insideRow = rowMax[y] >= 0 && x >= rowMin[y] - silhouettePad && x <= rowMax[y] + silhouettePad;
+      const insideCol = colMax[x] >= 0 && y >= colMin[x] - silhouettePad && y <= colMax[x] + silhouettePad;
+      if (insideRow && insideCol) continue;
+      const index = offset * 4;
+      image.data[index] = 0;
+      image.data[index + 1] = 0;
+      image.data[index + 2] = 0;
+      image.data[index + 3] = 0;
+    }
   }
 }
 
