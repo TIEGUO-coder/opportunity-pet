@@ -264,6 +264,16 @@ function savePetProfile(profile) {
   petProfile = profile;
 }
 
+function hideSetupPanel() {
+  petSetup.classList.remove('visible');
+  petSetup.setAttribute('aria-hidden', 'true');
+  petSetup.inert = true;
+}
+
+function setBriefOpen(open) {
+  document.body.classList.toggle('brief-open', Boolean(open));
+}
+
 function applyPetProfile() {
   if (!petProfile) {
     petSetup.classList.add('visible');
@@ -278,9 +288,7 @@ function applyPetProfile() {
     return;
   }
 
-  petSetup.classList.remove('visible');
-  petSetup.setAttribute('aria-hidden', 'true');
-  petSetup.inert = true;
+  hideSetupPanel();
   pet.alt = petProfile.name || 'Opportunity Pet';
   document.body.dataset.hasPet = 'true';
   document.body.dataset.view = 'pet';
@@ -302,9 +310,12 @@ function nextLead() {
 async function showLeadCard() {
   if (!opportunities.length || leadCard.classList.contains('visible')) return;
   nextLead();
+  hideSetupPanel();
   resultCard.classList.remove('visible');
   leadCard.classList.add('visible');
+  leadCard.scrollTop = 0;
   document.body.dataset.view = 'lead';
+  setBriefOpen(false);
   briefPanel.classList.remove('visible');
   document.getElementById('leadStatus').textContent = 'Waiting for owner approval';
   stopAnimationOnFirstFrame('idle');
@@ -319,6 +330,7 @@ async function scoutForLead() {
   isScouting = true;
   clearTimeout(scoutingTimer);
   clearTimeout(ambientTimer);
+  hideSetupPanel();
   document.body.dataset.view = 'pet';
   setPetMotion('pacing');
   startAnimation('walk', 190, true);
@@ -331,9 +343,11 @@ async function scoutForLead() {
 }
 
 async function closeLeadCardView() {
+  hideSetupPanel();
   leadCard.classList.remove('visible');
   resultCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
+  setBriefOpen(false);
   document.body.dataset.view = 'pet';
   setPetMotion('');
   await bridge.setMode('pet');
@@ -423,9 +437,11 @@ ${currentLead.grillQuestions.map((question) => `- ${question}`).join('\n')}`;
 }
 
 async function skipCurrentLead() {
+  hideSetupPanel();
   leadCard.dataset.approved = 'false';
   leadCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
+  setBriefOpen(false);
   setPetMotion('');
   document.body.dataset.view = 'pet';
   await bridge.setMode('pet');
@@ -435,7 +451,11 @@ async function skipCurrentLead() {
 async function reviewCurrentPlan() {
   document.getElementById('leadStatus').textContent = 'Brief copied. Paste it into Codex with grill-with-docs.';
   leadCard.dataset.approved = 'true';
+  setBriefOpen(true);
   briefPanel.classList.add('visible');
+  requestAnimationFrame(() => {
+    briefPanel.scrollIntoView({ block: 'nearest' });
+  });
   setPetMotion('chasing', 1500);
   playActionOnce('chase', 330, 'idle', () => setPetMotion('found'));
   try {
@@ -447,8 +467,10 @@ async function reviewCurrentPlan() {
 
 async function showResultPage() {
   if (!currentLead) return;
+  hideSetupPanel();
   leadCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
+  setBriefOpen(false);
   resultCard.classList.add('visible');
   document.body.dataset.view = 'result';
   setPetMotion('found');
@@ -457,6 +479,7 @@ async function showResultPage() {
 }
 
 async function closeResultPage() {
+  hideSetupPanel();
   resultCard.classList.remove('visible');
   leadCard.classList.add('visible');
   document.body.dataset.view = 'lead';

@@ -53,6 +53,10 @@ body[data-view="lead"] .pet-wrap {
   z-index: 4;
 }
 
+body[data-view="lead"].brief-open .pet-wrap {
+  display: none;
+}
+
 body[data-view="result"] {
   background: #0d1117;
 }
@@ -381,6 +385,14 @@ body[data-view="lead"] .lead-notice {
     0 0 0 1px rgba(255, 252, 245, 0.42) inset;
   backdrop-filter: none;
   overflow: visible;
+}
+
+body.brief-open .lead-card {
+  bottom: 12px;
+  max-height: calc(100vh - 56px);
+  padding-bottom: 14px;
+  overflow-y: auto;
+  scrollbar-width: thin;
 }
 
 .lead-card::after {
@@ -856,6 +868,11 @@ dd {
   z-index: 6;
 }
 
+body.brief-open .action-stack {
+  position: static;
+  margin-top: 10px;
+}
+
 button {
   border: 0;
   border-radius: 14px;
@@ -917,6 +934,10 @@ button {
   padding: 14px;
   border-radius: 14px;
   background: rgba(255, 252, 243, 0.72);
+}
+
+body.brief-open .brief-panel {
+  padding-bottom: 18px;
 }
 
 .brief-panel.visible {
