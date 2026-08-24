@@ -17,10 +17,10 @@ window.OPPORTUNITIES = [
       revenue: '$203',
       subtitle: 'Sales analytics from one Codex-packaged creator product',
       stats: [
-        ['Orders', '7'],
-        ['Auto-delivered', '7/7'],
-        ['Refunds', '0'],
-        ['Net after fees', '$181']
+        ['Balance', '$181'],
+        ['Last 7 days', '$203'],
+        ['Last 28 days', '$203'],
+        ['Total earnings', '$203']
       ],
       ledger: [
         ['Fri 8:10 PM', 'Gumroad order x3', '+$87'],

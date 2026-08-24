@@ -1,65 +1,57 @@
 <svg width="1280" height="820" viewBox="0 0 1280 820" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="1280" height="820" fill="#111111"/>
-  <rect x="42" y="36" width="1196" height="748" rx="26" fill="#F8F4EA" stroke="#111111" stroke-width="2"/>
+  <rect width="1280" height="820" fill="#242422"/>
 
-  <rect x="42" y="36" width="220" height="748" rx="26" fill="#FF90E8" stroke="#111111" stroke-width="2"/>
-  <text x="78" y="94" fill="#111111" font-family="Arial, sans-serif" font-size="34" font-weight="900">gumroad</text>
-  <rect x="72" y="136" width="160" height="42" rx="10" fill="#111111"/>
-  <text x="102" y="163" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="900">Dashboard</text>
-  <text x="92" y="224" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="800">Products</text>
-  <text x="92" y="268" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="800">Sales</text>
-  <text x="92" y="312" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="800">Analytics</text>
-  <text x="92" y="356" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="800">Customers</text>
-  <text x="92" y="400" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="800">Payouts</text>
+  <rect width="206" height="820" fill="#000000"/>
+  <text x="22" y="88" fill="#F0F0F0" font-family="Arial, sans-serif" font-size="30" font-weight="900">gumroad</text>
+  <line x1="0" y1="134" x2="206" y2="134" stroke="#555555"/>
+  <rect x="0" y="134" width="206" height="58" fill="#000000"/>
+  <text x="58" y="170" fill="#FF7EE7" font-family="Arial, sans-serif" font-size="18" font-weight="800">Home</text>
+  <text x="25" y="170" fill="#FF7EE7" font-family="Arial, sans-serif" font-size="23" font-weight="900">⌂</text>
+  <line x1="0" y1="192" x2="206" y2="192" stroke="#555555"/>
+  <text x="58" y="228" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Products</text>
+  <text x="25" y="228" fill="#EDEDED" font-family="Arial, sans-serif" font-size="20">▣</text>
+  <line x1="0" y1="250" x2="206" y2="250" stroke="#555555"/>
+  <text x="58" y="286" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Sales</text>
+  <text x="25" y="286" fill="#EDEDED" font-family="Arial, sans-serif" font-size="20">$</text>
+  <line x1="0" y1="308" x2="206" y2="308" stroke="#555555"/>
+  <text x="58" y="344" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Payouts</text>
+  <text x="25" y="344" fill="#EDEDED" font-family="Arial, sans-serif" font-size="20">▦</text>
+  <line x1="0" y1="366" x2="206" y2="366" stroke="#555555"/>
+  <text x="58" y="402" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Discover</text>
+  <text x="25" y="402" fill="#EDEDED" font-family="Arial, sans-serif" font-size="20">⌕</text>
+  <line x1="0" y1="424" x2="206" y2="424" stroke="#555555"/>
+  <text x="58" y="474" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Everything else</text>
+  <text x="25" y="474" fill="#EDEDED" font-family="Arial, sans-serif" font-size="20">...</text>
+  <line x1="0" y1="724" x2="206" y2="724" stroke="#555555"/>
+  <text x="58" y="766" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">zihan xing</text>
+  <circle cx="32" cy="758" r="15" fill="#0D74CE" stroke="#777777"/>
+  <text x="27" y="764" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="14">z</text>
 
-  <text x="304" y="90" fill="#111111" font-family="Arial, sans-serif" font-size="42" font-weight="900">Sales analytics</text>
-  <rect x="944" y="58" width="244" height="46" rx="12" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="972" y="87" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="900">Last 7 days: Aug 18-24</text>
-  <rect x="304" y="122" width="418" height="52" rx="12" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="326" y="154" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="900">Product: Freelance Client Portal Kit</text>
-  <rect x="744" y="122" width="210" height="52" rx="12" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="770" y="154" fill="#111111" font-family="Arial, sans-serif" font-size="18" font-weight="900">Price: $29</text>
+  <rect x="238" y="56" width="988" height="220" rx="4" fill="#000000" stroke="#555555" stroke-dasharray="3 3"/>
+  <rect x="264" y="56" width="936" height="78" fill="#24A69A"/>
+  <rect x="264" y="134" width="936" height="78" fill="#FFC900"/>
+  <text x="534" y="244" fill="#EDEDED" font-family="Arial, sans-serif" font-size="22">Freelance Client Portal Kit is live and taking orders.</text>
+  <rect x="600" y="260" width="220" height="48" rx="6" fill="#FF7EE7"/>
+  <text x="642" y="291" fill="#000000" font-family="Arial, sans-serif" font-size="18">View product</text>
 
-  <rect x="304" y="204" width="220" height="126" rx="16" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="328" y="244" fill="#646464" font-family="Arial, sans-serif" font-size="14" font-weight="900">GROSS SALES</text>
-  <text x="328" y="302" fill="#111111" font-family="Arial, sans-serif" font-size="56" font-weight="900">$203</text>
-  <rect x="546" y="204" width="180" height="126" rx="16" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="570" y="244" fill="#646464" font-family="Arial, sans-serif" font-size="14" font-weight="900">CUSTOMERS</text>
-  <text x="570" y="302" fill="#111111" font-family="Arial, sans-serif" font-size="56" font-weight="900">7</text>
-  <rect x="748" y="204" width="198" height="126" rx="16" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="772" y="244" fill="#646464" font-family="Arial, sans-serif" font-size="14" font-weight="900">REFUNDS</text>
-  <text x="772" y="302" fill="#111111" font-family="Arial, sans-serif" font-size="56" font-weight="900">$0</text>
-  <rect x="968" y="204" width="220" height="126" rx="16" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="992" y="244" fill="#646464" font-family="Arial, sans-serif" font-size="14" font-weight="900">BALANCE</text>
-  <text x="992" y="302" fill="#111111" font-family="Arial, sans-serif" font-size="56" font-weight="900">$181</text>
+  <text x="238" y="388" fill="#EDEDED" font-family="Arial, sans-serif" font-size="26">Activity</text>
+  <rect x="238" y="432" width="224" height="142" rx="4" fill="#000000" stroke="#555555"/>
+  <text x="272" y="484" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Balance</text>
+  <text x="272" y="538" fill="#EDEDED" font-family="Arial, sans-serif" font-size="42">$181</text>
 
-  <rect x="304" y="358" width="590" height="356" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="330" y="402" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="900">Sales by source</text>
-  <line x1="350" y1="650" x2="846" y2="650" stroke="#111111" stroke-width="2"/>
-  <line x1="350" y1="458" x2="350" y2="650" stroke="#111111" stroke-width="2"/>
-  <rect x="390" y="508" width="70" height="142" fill="#FF90E8" stroke="#111111" stroke-width="2"/>
-  <rect x="506" y="552" width="70" height="98" fill="#FFC900" stroke="#111111" stroke-width="2"/>
-  <rect x="622" y="552" width="70" height="98" fill="#23A094" stroke="#111111" stroke-width="2"/>
-  <rect x="738" y="602" width="70" height="48" fill="#90A8ED" stroke="#111111" stroke-width="2"/>
-  <text x="404" y="492" fill="#111111" font-family="Arial, sans-serif" font-size="15" font-weight="900">$87</text>
-  <text x="520" y="536" fill="#111111" font-family="Arial, sans-serif" font-size="15" font-weight="900">$58</text>
-  <text x="636" y="536" fill="#111111" font-family="Arial, sans-serif" font-size="15" font-weight="900">$58</text>
-  <text x="386" y="682" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="800">TikTok</text>
-  <text x="510" y="682" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="800">Email</text>
-  <text x="620" y="682" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="800">Profile</text>
-  <text x="742" y="682" fill="#111111" font-family="Arial, sans-serif" font-size="14" font-weight="800">Etsy</text>
+  <rect x="486" y="432" width="224" height="142" rx="4" fill="#000000" stroke="#555555"/>
+  <text x="520" y="484" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Last 7 days</text>
+  <text x="520" y="538" fill="#EDEDED" font-family="Arial, sans-serif" font-size="42">$203</text>
 
-  <rect x="922" y="358" width="266" height="356" rx="18" fill="#FFFFFF" stroke="#111111" stroke-width="2"/>
-  <text x="948" y="402" fill="#111111" font-family="Arial, sans-serif" font-size="24" font-weight="900">Recent sales</text>
-  <text x="948" y="446" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="900">amy@studio.co</text>
-  <text x="1130" y="446" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="900">$29</text>
-  <text x="948" y="474" fill="#555555" font-family="Arial, sans-serif" font-size="14">Receipt sent · Files delivered</text>
-  <line x1="948" y1="500" x2="1164" y2="500" stroke="#111111" stroke-width="1"/>
-  <text x="948" y="536" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="900">marco@solo.dev</text>
-  <text x="1130" y="536" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="900">$29</text>
-  <text x="948" y="564" fill="#555555" font-family="Arial, sans-serif" font-size="14">No refund · UTM tracked</text>
-  <line x1="948" y1="590" x2="1164" y2="590" stroke="#111111" stroke-width="1"/>
-  <text x="948" y="626" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="900">jules@coach.ai</text>
-  <text x="1130" y="626" fill="#111111" font-family="Arial, sans-serif" font-size="16" font-weight="900">$29</text>
-  <text x="948" y="654" fill="#555555" font-family="Arial, sans-serif" font-size="14">Delivered Notion link</text>
+  <rect x="734" y="432" width="224" height="142" rx="4" fill="#000000" stroke="#555555"/>
+  <text x="768" y="484" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Last 28 days</text>
+  <text x="768" y="538" fill="#EDEDED" font-family="Arial, sans-serif" font-size="42">$203</text>
+
+  <rect x="982" y="432" width="224" height="142" rx="4" fill="#000000" stroke="#555555"/>
+  <text x="1016" y="484" fill="#EDEDED" font-family="Arial, sans-serif" font-size="18">Total earnings</text>
+  <text x="1016" y="538" fill="#EDEDED" font-family="Arial, sans-serif" font-size="42">$203</text>
+
+  <rect x="238" y="604" width="988" height="132" rx="4" fill="#000000" stroke="#555555" stroke-dasharray="3 3"/>
+  <text x="302" y="650" fill="#EDEDED" font-family="Arial, sans-serif" font-size="19">7 sales · 0 refunds · 7 files delivered · top source: TikTok bio</text>
+  <text x="302" y="692" fill="#EDEDED" font-family="Arial, sans-serif" font-size="17">Recent: amy@studio.co $29 · marco@solo.dev $29 · jules@coach.ai $29</text>
 </svg>
