@@ -22,8 +22,8 @@ The pet is playful. The workflow behind it is serious:
 your pet photos
       -> animated desktop scout
       -> a small sellable opportunity
-      -> Grill-with-docs
-      -> routemap-ready work in MAH
+      -> routemap-ready plan
+      -> MAH review and execution
       -> a shipped product and measurable result
 ```
 
@@ -41,7 +41,7 @@ The generated action pack is not one photo sliding around the screen. It contain
 - **Scout:** walks left and right in side view with its tail raised.
 - **Rest:** curls into a ball and stays still long enough to feel asleep.
 - **Found:** turns toward you when it brings back an opportunity.
-- **Send:** chases a butterfly while the brief moves into Grill-with-docs.
+- **Send:** chases a butterfly while the plan is copied for MAH.
 - **Happy:** reacts briefly when clicked or when a task moves forward.
 
 The setup window disappears after generation, leaving only the small transparent desktop pet. Iron is just the included sample pet; you can replace him with your own animal.
@@ -81,7 +81,7 @@ Approving a card does not launch a giant autonomous project. Opportunity Pet tur
   <img src="docs/screenshots/grill-brief.svg" width="820" alt="Opportunity card converted into a routemap-ready plan">
 </p>
 
-The plan keeps the good answers instead of forcing another interview loop. It should already say:
+The plan keeps the good answers instead of forcing another interview loop. You can copy it, skim the direction, and return to the lead card without losing your place. It should already say:
 
 - Who already pays for this outcome.
 - What the smallest deliverable should be.
@@ -91,14 +91,14 @@ The plan keeps the good answers instead of forcing another interview loop. It sh
 
 For a creator-store lead, a practical first experiment is one asset, one storefront, one price, and one launch channel. Codex can draft the package and supporting files; you choose the niche, validate demand, approve claims, and publish the offer.
 
-## 4. Move The Surviving Work Into MAH
+## 4. Move The Plan Into MAH
 
-Once the idea has been challenged, the brief should stop being a chat artifact and become durable project work: tasks, dependencies, decisions, follow-ups, and review points.
+Once the idea has a first plan, it should stop being a chat artifact and become durable project work: tasks, dependencies, decisions, follow-ups, and review points.
 
-That is where Opportunity Pet quietly hands the story to **MAH**. The pet creates the moment of curiosity; Grill-with-docs sharpens the idea; MAH is the ongoing system that can carry the work after the first exciting prompt has ended.
+That is where Opportunity Pet quietly hands the story to **MAH**. The pet creates the moment of curiosity; the plan gives you a first direction; MAH is the ongoing system that can carry the work after the first exciting prompt has ended.
 
 ```text
-lead card -> grilled brief -> routemap -> tasks -> execution -> review
+lead card -> copied plan -> MAH routemap -> tasks -> execution -> review
 ```
 
 [Explore the MAH Product System ->](https://dev.mah.bot/product)
@@ -195,7 +195,7 @@ Opportunity Pet has no paid backend and requires no Opportunity Pet API key. Its
 
 Selected photos are copied into the app's local user-data directory for the generation job. Temporary input copies are deleted afterward; generated action assets remain local.
 
-Opportunity Pet does not choose what someone should build, promise revenue, publish unreviewed claims, or make business decisions. It turns “maybe this is interesting” into a visible choice, a structured brief, and a path toward reviewable work.
+Opportunity Pet does not choose what someone should build, promise revenue, publish unreviewed claims, or make business decisions. It turns “maybe this is interesting” into a visible choice, a structured plan, and a path toward reviewable work.
 
 ## Roadmap
 

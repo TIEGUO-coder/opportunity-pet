@@ -20,7 +20,7 @@
   <g transform="translate(92 602)">
     <rect width="576" height="142" rx="22" fill="#FCFAF3" stroke="#D0C7B6" stroke-width="2"/>
     <text x="28" y="44" fill="#8B5B0C" font-family="Arial, sans-serif" font-size="16" font-weight="700">3. ROUTE</text>
-    <text x="28" y="82" fill="#2B2924" font-family="Arial, sans-serif" font-size="30" font-weight="700">Copy a brief for grilling</text>
+    <text x="28" y="82" fill="#2B2924" font-family="Arial, sans-serif" font-size="30" font-weight="700">Copy a routemap-ready plan</text>
     <rect x="28" y="98" width="214" height="32" rx="10" fill="#647568"/>
     <text x="55" y="120" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="16" font-weight="700">Make a routemap</text>
   </g>
