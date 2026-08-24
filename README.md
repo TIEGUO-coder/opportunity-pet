@@ -2,11 +2,13 @@
 
 > Your pet is tired of sitting at home doing nothing. Now it scouts tiny money-making leads, brings them back to your desktop, and helps earn its own food.
 
-![Opportunity Pet lead card](docs/screenshots/lead-card.svg)
+![Opportunity Pet setup screen](docs/screenshots/setup-page.png)
 
 Opportunity Pet is a free, open-source experiment for builders who collect too many ideas and execute too few of them.
 
 You give it 3-5 photos of your own pet. It creates a small animated scout. Your pet wanders around your desktop, sniffs out a curated opportunity card, and asks: should we ignore this, keep scouting, or grill it into real project work?
+
+![Opportunity Pet lead card](docs/screenshots/lead-card.svg)
 
 ![Opportunity Pet workflow](docs/screenshots/hero-flow.svg)
 
