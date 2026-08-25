@@ -84,7 +84,7 @@ The pet does not claim that every lead will make money. Its job is to make plaus
 Approving a card does not launch a giant autonomous project. Opportunity Pet turns the lead into a structured plan: recommended direction, smallest useful experiment, validation tasks, build tasks, distribution path, risks, and the judgment points that should go into MAH.
 
 <p align="center">
-  <img src="docs/screenshots/grill-brief.svg" width="820" alt="Opportunity card converted into a routemap-ready plan">
+  <img src="docs/screenshots/creator-store-brief.png" width="420" alt="Current Opportunity Pet brief panel showing a routemap-ready plan">
 </p>
 
 The plan keeps the good answers instead of forcing another interview loop. You can copy it, skim the direction, and return to the lead card without losing your place. It should already say:

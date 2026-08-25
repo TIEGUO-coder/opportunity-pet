@@ -7,6 +7,7 @@ const sizes = {
   pet: { width: 120, height: 130 },
   setup: { width: 280, height: 450 },
   lead: { width: 280, height: 450 },
+  brief: { width: 320, height: 560 },
   result: { width: 320, height: 520 }
 };
 
@@ -68,12 +69,21 @@ async function main() {
   await waitFor(win, `document.body.dataset.view === 'lead' && document.getElementById('leadTitle').textContent.includes('Creator Store')`);
   await capture(win, path.join(outputRoot, 'creator-store-lead.png'));
 
+  win.setBounds({ width: sizes.brief.width, height: sizes.brief.height }, true);
+  await win.webContents.executeJavaScript(`document.getElementById('reviewPlan').click();`);
+  await waitFor(
+    win,
+    `document.body.classList.contains('brief-open') && document.getElementById('briefPanel').classList.contains('visible') && document.getElementById('briefOpportunity').textContent.includes('Creator Store')`
+  );
+  await new Promise((resolve) => setTimeout(resolve, 250));
+  await capture(win, path.join(outputRoot, 'creator-store-brief.png'));
+
   await win.webContents.executeJavaScript(`document.getElementById('showResult').click();`);
   await waitFor(win, `document.body.dataset.view === 'result' && document.getElementById('resultRevenue').textContent === '$203'`);
   await new Promise((resolve) => setTimeout(resolve, 200));
   await capture(win, path.join(outputRoot, 'creator-store-result.png'));
 
-  console.log('Captured creator-store-lead.png and creator-store-result.png');
+  console.log('Captured creator-store-lead.png, creator-store-brief.png, and creator-store-result.png');
   app.exit(0);
 }
 
