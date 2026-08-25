@@ -1,22 +1,22 @@
 # Opportunity Pet
 
-> **My pet learned to earn its own treats. Now it is working on paying my rent.**
+> **Your pet is tired of doing nothing at home. Now it brings back sellable opportunities and starts earning its keep.**
 
 <p align="center">
   <img src="docs/screenshots/lead-card.svg" width="460" alt="Iron brings back a Creator Store Launch Kit opportunity">
 </p>
 
-<p align="center"><em>Iron found something small enough to build and concrete enough to sell.</em></p>
+<p align="center"><em>Not a wallpaper pet. A tiny scout that paces across your desktop, spots something you can actually sell, and drops it in your lap.</em></p>
 
 <p align="center">
   <img src="docs/screenshots/creator-store-result.svg" width="920" alt="Gumroad-style sales result for a creator product">
 </p>
 
-<p align="center"><em>The finish line is not another idea document. It is a product, delivered orders, and a result you can inspect.</em></p>
+<p align="center"><em>The goal is not another saved idea. It is a real offer, a real checkout path, and a result you can point at.</em></p>
 
-Opportunity Pet is a free, open-source desktop pet for builders. Give it 3-5 photos of your own animal and it becomes a small animated scout: it wanders across your desktop, brings back opportunities that match your interests, and asks whether you want to reject one, test it, or turn it into real work.
+Opportunity Pet is a free, open-source desktop pet for builders. Give it 3-5 photos of your own animal and it turns into a small animated scout: it wanders across your desktop, brings back opportunities that match your interests, and asks whether you want to ignore one, test one, or turn one into something people can pay for.
 
-The pet is playful. The workflow behind it is serious:
+Cute is the wrapper. The real loop is this:
 
 ```text
 your pet photos
