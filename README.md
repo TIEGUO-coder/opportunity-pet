@@ -1,6 +1,6 @@
 # Opportunity Pet
 
-> **My pet learned to earn its own treats. Now it is working on paying my rent.**
+> **My pet learned to earn its own treats by bringing back sellable opportunities. Now it is working on paying my rent.**
 
 <p align="center">
   <img src="docs/screenshots/lead-card.svg" width="460" alt="Iron brings back a Creator Store Launch Kit opportunity">
