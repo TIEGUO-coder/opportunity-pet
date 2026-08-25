@@ -10,6 +10,7 @@
     "check": "node scripts/verify-assets.js && node scripts/test-pet-generation.js",
     "check:local-fallback": "electron scripts/test-local-cartoon-fallback.js",
     "capture:demo": "electron scripts/capture-demo-screenshots.js",
+    "capture:gif": "electron scripts/create-readme-demo-gif.js",
     "dist": "electron-builder --publish never",
     "dist:dir": "electron-builder --dir"
   },
@@ -27,7 +28,8 @@
   },
   "devDependencies": {
     "electron": "latest",
-    "electron-builder": "^26.15.3"
+    "electron-builder": "^26.15.3",
+    "gif-encoder-2": "^1.0.5"
   },
   "build": {
     "appId": "com.tieguocoder.opportunitypet",

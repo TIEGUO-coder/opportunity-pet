@@ -9,6 +9,10 @@
 <p align="center"><em>Iron found something small enough to build and concrete enough to sell.</em></p>
 
 <p align="center">
+  <img src="docs/demo/pet-finds-lead.gif" width="460" alt="Iron scouts left and right, then brings back a Creator Store Launch Kit lead card">
+</p>
+
+<p align="center">
   <img src="docs/screenshots/creator-store-result.svg" width="920" alt="Gumroad-style sales result for a creator product">
 </p>
 
