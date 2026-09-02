@@ -55,7 +55,7 @@ The setup window disappears after generation, leaving only the small transparent
 Opportunity Pet is not limited to one kind of business idea. It can bring back different leads based on your preferences, skills, audience, region, risk tolerance, and the platforms you already understand.
 
 <p align="center">
-  <img src="docs/demo/scout-motion.gif" width="400" alt="Iron performs the real in-app scouting walk cycle">
+  <img src="docs/demo/scout-motion-v2.gif" width="400" alt="Iron performs the real frame-synchronized scouting walk cycle">
 </p>
 
 <p align="center"><em>The scout loop lives on your desktop: pace, notice, return, and ask for your call.</em></p>
