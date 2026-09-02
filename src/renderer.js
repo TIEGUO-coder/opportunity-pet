@@ -237,14 +237,6 @@ function runAnimationFrame(timestamp) {
   const frameCount = Math.max(1, (actions[currentAction] || []).length);
   const elapsed = timestamp - animationState.startedAt;
   const duration = animationTiming.actionDuration(animationState.frameDuration, frameCount);
-  if (currentAction === 'walk' && petWrap.classList.contains('pacing')) {
-    const stepOffset = animationTiming.scoutStepOffsetAtElapsed(
-      elapsed,
-      animationState.frameDuration,
-      frameCount * 2
-    );
-    petWrap.style.setProperty('--scout-step-x', `${stepOffset.toFixed(2)}px`);
-  }
   if (!animationState.loop && elapsed >= duration) {
     const onComplete = animationState.onComplete;
     const nextAction = animationState.nextAction || 'idle';

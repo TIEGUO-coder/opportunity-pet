@@ -94,10 +94,6 @@ body[data-view="result"] .pet-wrap {
   cursor: grabbing;
 }
 
-body[data-view="scout"] .pet-wrap.pacing {
-  transform: translateX(calc(-50% + var(--scout-step-x, 24px)));
-}
-
 .pet-wrap.found #pet {
   animation: faceOwner 420ms ease-out both;
 }

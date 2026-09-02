@@ -4,7 +4,7 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const GIFEncoder = require('gif-encoder-2');
 
 const ROOT = path.join(__dirname, '..');
-const OUTPUT = path.join(ROOT, 'docs', 'demo', 'scout-motion-v2.gif');
+const OUTPUT = path.join(ROOT, 'docs', 'demo', 'scout-motion-v3.gif');
 const WIDTH = 200;
 const HEIGHT = 140;
 const FPS = 20;
