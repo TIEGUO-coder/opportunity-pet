@@ -52,6 +52,32 @@ for (let i = 1; i <= 8; i += 1) {
     if (image.data[p] > 180) opaque += 1;
   }
   if (transparent === 0 || opaque < 500) throw new Error(`Invalid smooth walk frame: ${file}`);
+  const groundedColumns = [];
+  for (let x = 0; x < image.width; x += 1) {
+    let grounded = false;
+    for (let y = Math.floor(image.height * 0.82); y < image.height; y += 1) {
+      if (image.data[(y * image.width + x) * 4 + 3] > 180) {
+        grounded = true;
+        break;
+      }
+    }
+    if (grounded) groundedColumns.push(x);
+  }
+  let pawGroups = 0;
+  let previousX = -10;
+  groundedColumns.forEach((x) => {
+    if (x - previousX > 3) pawGroups += 1;
+    previousX = x;
+  });
+  if (pawGroups < 3) throw new Error(`Smooth walk frame appears to be missing legs or paws: ${file}`);
+  for (let x = 0; x < image.width; x += 1) {
+    if (image.data[x * 4 + 3] > 20) throw new Error(`Smooth walk frame touches top edge: ${file}`);
+    if (image.data[((image.height - 1) * image.width + x) * 4 + 3] > 20) throw new Error(`Smooth walk frame touches bottom edge: ${file}`);
+  }
+  for (let y = 0; y < image.height; y += 1) {
+    if (image.data[y * image.width * 4 + 3] > 20) throw new Error(`Smooth walk frame touches left edge: ${file}`);
+    if (image.data[(y * image.width + image.width - 1) * 4 + 3] > 20) throw new Error(`Smooth walk frame touches right edge: ${file}`);
+  }
   checked += 1;
 }
 

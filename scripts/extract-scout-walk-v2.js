@@ -3,12 +3,19 @@ const path = require('path');
 const { PNG } = require('pngjs');
 
 const root = path.resolve(__dirname, '..');
-const source = path.join(root, 'assets', 'source', 'teiguo-scout-walk-8frame-v2.png');
+const source = path.join(root, 'assets', 'source', 'teiguo-scout-walk-8frame-green-v3.png');
 const output = path.join(root, 'assets', 'teiguo', 'walk-v2');
 const frameCount = 8;
 
 function isBackgroundCandidate(r, g, b) {
-  return Math.min(r, g, b) >= 224 && Math.max(r, g, b) - Math.min(r, g, b) <= 18;
+  return g > 105 && g > r * 1.16 && g > b * 1.16;
+}
+
+function edgeAlpha(r, g, b) {
+  if (isBackgroundCandidate(r, g, b)) return 0;
+  const greenDominance = g - Math.max(r, b);
+  if (g > 90 && greenDominance > 8) return Math.max(0, 255 - greenDominance * 8);
+  return 255;
 }
 
 function findBackground(sheet) {
@@ -74,47 +81,6 @@ function findCats(sheet, background) {
   return components.sort((a, b) => b.pixels.length - a.pixels.length).slice(0, frameCount).sort((a, b) => a.minX - b.minX);
 }
 
-function pruneThinProtrusions(sheet, component) {
-  const source = new Uint8Array(sheet.width * sheet.height);
-  component.pixels.forEach((pixel) => { source[pixel] = 1; });
-  const core = new Uint8Array(source.length);
-  component.pixels.forEach((pixel) => {
-    const x = pixel % sheet.width;
-    const y = Math.floor(pixel / sheet.width);
-    let neighbors = 0;
-    for (let dy = -2; dy <= 2; dy += 1) {
-      for (let dx = -2; dx <= 2; dx += 1) {
-        const nx = x + dx;
-        const ny = y + dy;
-        if (nx >= 0 && nx < sheet.width && ny >= 0 && ny < sheet.height) neighbors += source[ny * sheet.width + nx];
-      }
-    }
-    if (neighbors >= 13) core[pixel] = 1;
-  });
-
-  const pixels = component.pixels.filter((pixel) => {
-    const x = pixel % sheet.width;
-    const y = Math.floor(pixel / sheet.width);
-    for (let dy = -2; dy <= 2; dy += 1) {
-      for (let dx = -2; dx <= 2; dx += 1) {
-        const nx = x + dx;
-        const ny = y + dy;
-        if (nx >= 0 && nx < sheet.width && ny >= 0 && ny < sheet.height && core[ny * sheet.width + nx]) return true;
-      }
-    }
-    return false;
-  });
-  const xs = pixels.map((pixel) => pixel % sheet.width);
-  const ys = pixels.map((pixel) => Math.floor(pixel / sheet.width));
-  return {
-    pixels,
-    minX: Math.min(...xs),
-    maxX: Math.max(...xs),
-    minY: Math.min(...ys),
-    maxY: Math.max(...ys)
-  };
-}
-
 function cropCat(sheet, component) {
   const pad = 5;
   const minX = Math.max(0, component.minX - pad);
@@ -129,10 +95,14 @@ function cropCat(sheet, component) {
       if (!componentPixels.has(sheetPixel)) continue;
       const sourceIndex = sheetPixel << 2;
       const targetIndex = ((y - minY) * frame.width + x - minX) << 2;
-      frame.data[targetIndex] = sheet.data[sourceIndex];
-      frame.data[targetIndex + 1] = sheet.data[sourceIndex + 1];
-      frame.data[targetIndex + 2] = sheet.data[sourceIndex + 2];
-      frame.data[targetIndex + 3] = 255;
+      const r = sheet.data[sourceIndex];
+      const g = sheet.data[sourceIndex + 1];
+      const b = sheet.data[sourceIndex + 2];
+      const alpha = edgeAlpha(r, g, b);
+      frame.data[targetIndex] = r;
+      frame.data[targetIndex + 1] = Math.min(g, Math.max(r, b) + 12);
+      frame.data[targetIndex + 2] = b;
+      frame.data[targetIndex + 3] = alpha;
     }
   }
   return frame;
@@ -155,7 +125,7 @@ function main() {
   const sheet = PNG.sync.read(fs.readFileSync(source));
   const cats = findCats(sheet, findBackground(sheet));
   if (cats.length !== frameCount) throw new Error(`Expected ${frameCount} cats, found ${cats.length}`);
-  const frames = normalize(cats.map((cat) => cropCat(sheet, pruneThinProtrusions(sheet, cat))));
+  const frames = normalize(cats.map((cat) => cropCat(sheet, cat)));
   fs.mkdirSync(output, { recursive: true });
   frames.forEach((frame, index) => {
     const name = `walk_${String(index + 1).padStart(3, '0')}.png`;

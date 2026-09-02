@@ -94,12 +94,8 @@ body[data-view="result"] .pet-wrap {
   cursor: grabbing;
 }
 
-.pet-wrap.pacing {
-  animation: paceAround 2.24s linear both;
-}
-
-.pet-wrap.pacing #pet {
-  animation: scoutDirection 2.24s linear both;
+body[data-view="scout"] .pet-wrap.pacing {
+  transform: translateX(calc(-50% + var(--scout-step-x, 24px)));
 }
 
 .pet-wrap.found #pet {
@@ -1441,27 +1437,6 @@ body[data-view="lead"] #resetPet {
   50% {
     transform: translateX(-50%) translateY(-2px);
   }
-}
-
-@keyframes paceAround {
-  0% {
-    transform: translateX(calc(-50% + 0px));
-  }
-  44% {
-    transform: translateX(calc(-50% - 24px));
-  }
-  50% {
-    transform: translateX(calc(-50% - 24px));
-  }
-  94%,
-  100% {
-    transform: translateX(calc(-50% + 24px));
-  }
-}
-
-@keyframes scoutDirection {
-  0%, 49.9% { transform: translateX(-50%) scaleX(1); }
-  50%, 100% { transform: translateX(-50%) scaleX(-1); }
 }
 
 @keyframes faceOwner {

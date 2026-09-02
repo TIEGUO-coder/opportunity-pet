@@ -126,6 +126,8 @@ async function main() {
   for (let index = 0; index < frameCount; index += 1) {
     const remaining = startedAt + index * FRAME_DELAY_MS - Date.now();
     if (remaining > 0) await wait(remaining);
+    const view = await win.webContents.executeJavaScript(`document.body.dataset.view`);
+    if (view !== 'scout') throw new Error(`Capture left the pet-only scout view at frame ${index}: ${view}`);
     const image = await win.webContents.capturePage();
     if ([0, 8, 16, 24, 31].includes(index)) {
       fs.writeFileSync(path.join(app.getPath('temp'), `opportunity-pet-scout-${index}.png`), image.toPNG());
