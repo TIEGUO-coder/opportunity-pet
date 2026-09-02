@@ -1,27 +1,34 @@
 window.OPPORTUNITIES = [
   {
     title: 'Creator Store Launch Kit',
-    type: 'Codex-fulfillable service',
-    summary: 'Creators already sell templates, guides, prompt packs, and setup kits from Gumroad, Etsy, Stan Store, and link-in-bio pages. Many have a useful asset but no product page, delivery PDF, FAQ, launch copy, or proof dashboard.',
-    evidence: 'Look at Gumroad, Etsy, Notion Marketplace, Stan Store, TikTok link-in-bio offers, and Reddit creator threads where people ask why their digital product is not selling.',
+    id: 'creator-store-launch-kit',
+    type: 'Creator product packaging',
+    roles: ['creator', 'designer', 'operator', 'expert'],
+    interests: ['digital-products', 'content-ip'],
+    effortLevel: 3,
+    riskLevel: 2,
+    summary: 'Turn one useful asset you already own into a focused digital product with a complete download, storefront page, delivery instructions, and a result you can inspect.',
+    evidence: 'Before acting, collect at least two recent public examples with source links and dates that show similar products sell or that creators struggle to package this kind of asset.',
     risk: 'The first version must package one narrow asset into a sellable product. It should not promise passive income, fake sales, or automate spammy social posting.',
-    v1: 'Offer a $29-$79 launch-kit service: turn a messy Notion/Canva/prompt asset into a product page, checkout copy, delivery PDF, FAQ, launch post, and result dashboard.',
+    v1: 'Package one user-owned asset into the Freelance Client Portal Kit: a complete ZIP download, quick-start guide, storefront copy, FAQ, cover brief, and reviewable $29-$79 price range.',
     recommendedDirection: [
-      'Start with one creator asset that is already useful but poorly packaged. Best first targets: Notion template, Canva template, prompt pack, setup checklist, or a short workflow guide.',
-      'Aim at buyers who already understand digital products and can act quickly: freelancers, coaches, Etsy sellers, small creators, or solo agency owners.',
-      'Use a weekend pilot as proof. Package one asset, publish one checkout page, send one launch post, and track orders, delivered files, refunds, and net revenue.'
+      'Start with the included messy freelance-client sample or one template, prompt pack, checklist, guide, or workflow that the user owns.',
+      'Aim the first product at freelancers and solo service businesses that need repeatable client onboarding and delivery.',
+      'Finish one complete downloadable package, ask the owner to approve the product and listing, then verify the public product URL before monitoring results.'
     ],
     routemapChecks: [
-      'User chooses the niche and approves all claims before publishing.',
-      'Codex can draft the product page, delivery file, FAQ, launch copy, and result report.',
-      'MAH should decide whether the first route is Gumroad, Etsy, Stan Store, Shopify, or a service checkout.',
-      'Stop if there is no specific asset owner, no launch channel, or no evidence that similar offers sell.'
+      'The user confirms ownership or permission to sell the source material.',
+      'The opportunity has at least two recent demand signals with source links and dates.',
+      'The user approves the final product, price, storefront copy, and public claims before publishing.',
+      'Stop if the product cannot return a complete ZIP, a verified public URL, or a sourced result snapshot.'
     ],
+    blueprint: window.CREATOR_STORE_BLUEPRINT,
     result: {
+      isIllustrative: true,
       title: 'Weekend store result',
       customer: 'Freelance Client Portal Kit',
       revenue: '$203',
-      subtitle: 'Sales analytics from one Codex-packaged creator product',
+      subtitle: 'Illustrative sales target for one packaged creator product',
       stats: [
         ['Balance', '$181'],
         ['Last 7 days', '$203'],
@@ -33,12 +40,17 @@ window.OPPORTUNITIES = [
         ['Sat 1:34 PM', 'Link-in-bio order x2', '+$58'],
         ['Sun 5:22 PM', 'Etsy listing order x2', '+$58']
       ],
-      note: 'Sales proof generated after Codex packages one creator asset into a paid micro-product.'
+      note: 'Illustrative target only. Live orders and revenue must come from a connected storefront monitor; this screen does not claim real sales.'
     }
   },
   {
+    id: 'review-rescue-inbox',
     title: 'Review Rescue Inbox',
     type: 'Reputation',
+    roles: ['developer', 'operator', 'expert'],
+    interests: ['tools-apps', 'services'],
+    effortLevel: 2,
+    riskLevel: 3,
     summary: 'Many U.S. local businesses get Google reviews every week, but owners either ignore them or write rushed replies that make the business look less trustworthy.',
     evidence: 'Look at public Google Business profiles for dentists, cleaners, salons, auto shops, and restaurants with unanswered reviews or repeated copy-paste replies.',
     risk: 'Replies must sound specific and human. A bland AI answer can make an already unhappy customer feel even more ignored.',
@@ -56,8 +68,13 @@ window.OPPORTUNITIES = [
     ]
   },
   {
+    id: 'resale-listing-polisher',
     title: 'Resale Listing Polisher',
     type: 'Underserved',
+    roles: ['developer', 'creator', 'designer', 'operator'],
+    interests: ['tools-apps', 'services'],
+    effortLevel: 1,
+    riskLevel: 1,
     summary: 'Americans selling used phones, furniture, baby gear, tools, and sneakers on Facebook Marketplace, Craigslist, Mercari, OfferUp, or eBay often post bad photos and weak titles.',
     evidence: 'Look for listings with blurry cover photos, missing measurements, vague titles, and repeated buyer questions in public marketplace examples.',
     risk: 'Must not create fake condition claims; trust matters more than looking fancy.',

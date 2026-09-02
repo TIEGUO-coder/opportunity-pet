@@ -1,9 +1,17 @@
 const pet = document.getElementById('pet');
+const petContext = pet.getContext('2d', { alpha: true, desynchronized: true });
+const animationTiming = window.PET_ANIMATION_TIMING;
 const petWrap = document.getElementById('petWrap');
 const fallbackPet = document.getElementById('fallbackPet');
 const leadCard = document.getElementById('leadCard');
 const resultCard = document.getElementById('resultCard');
 const petSetup = document.getElementById('petSetup');
+const preferenceSetup = document.getElementById('preferenceSetup');
+const roleChoices = document.getElementById('roleChoices');
+const interestChoices = document.getElementById('interestChoices');
+const savePreferences = document.getElementById('savePreferences');
+const skipPreferences = document.getElementById('skipPreferences');
+const backPreference = document.getElementById('backPreference');
 const petPhotoInput = document.getElementById('petPhotoInput');
 const petPhotoPreview = document.getElementById('petPhotoPreview');
 const photoPrompt = document.getElementById('photoPrompt');
@@ -24,6 +32,9 @@ const minimize = document.getElementById('minimize');
 const quit = document.getElementById('quit');
 const approveLead = document.getElementById('approveLead');
 const skipLead = document.getElementById('skipLead');
+const skipFeedback = document.getElementById('skipFeedback');
+const feedbackChoices = document.getElementById('feedbackChoices');
+const skipWithoutFeedback = document.getElementById('skipWithoutFeedback');
 const reviewPlan = document.getElementById('reviewPlan');
 const showResult = document.getElementById('showResult');
 const closeResult = document.getElementById('closeResult');
@@ -40,13 +51,35 @@ const bridge = window.teiguoWindow || {
   getCodexStatus: () => Promise.resolve({ available: false }),
   generatePetWithCodex: () => Promise.resolve({ ok: false, error: 'Codex integration is unavailable.' }),
   onGenerationProgress: () => () => {},
+  getMahStatus: () => Promise.resolve({ connected: false, mode: 'preview', label: 'MAH preview adapter' }),
+  registerMahProjectEntry: () => Promise.resolve({ id: 'preview-entry:opportunity-pet', isLive: false }),
+  createOpportunityRoutemap: () => Promise.reject(new Error('MAH integration is unavailable.')),
+  getMahProjectSnapshot: () => Promise.reject(new Error('MAH integration is unavailable.')),
+  submitMahCheckpointDecision: () => Promise.reject(new Error('MAH integration is unavailable.')),
   quit: () => window.close()
 };
 
-const opportunities = window.OPPORTUNITIES || [];
+const preferenceApi = window.SCOUT_PREFERENCE_API;
+const sourceOpportunities = window.OPPORTUNITIES || [];
+const SCOUT_PREFERENCES_KEY = 'opportunityPet.scoutPreferences';
+const SCOUT_FEEDBACK_KEY = 'opportunityPet.scoutFeedback';
+let scoutPreferences = loadScoutPreferences();
+let scoutFeedback = loadScoutFeedback();
+let pendingRole = scoutPreferences?.role || '';
+let pendingInterests = new Set(scoutPreferences?.interests || []);
+let opportunities = preferenceApi.rankOpportunities(sourceOpportunities, scoutPreferences || {}, scoutFeedback);
 const defaultActions = {
   idle: ['../assets/teiguo/idle/idle_001.png', '../assets/teiguo/idle/idle_002.png', '../assets/teiguo/idle/idle_003.png', '../assets/teiguo/idle/idle_004.png'],
-  walk: ['../assets/teiguo/walk/walk_001.png', '../assets/teiguo/walk/walk_002.png', '../assets/teiguo/walk/walk_003.png', '../assets/teiguo/walk/walk_004.png'],
+  walk: [
+    '../assets/teiguo/walk-v2/walk_001.png',
+    '../assets/teiguo/walk-v2/walk_002.png',
+    '../assets/teiguo/walk-v2/walk_003.png',
+    '../assets/teiguo/walk-v2/walk_004.png',
+    '../assets/teiguo/walk-v2/walk_005.png',
+    '../assets/teiguo/walk-v2/walk_006.png',
+    '../assets/teiguo/walk-v2/walk_007.png',
+    '../assets/teiguo/walk-v2/walk_008.png'
+  ],
   sleep: ['../assets/teiguo/sleep/sleep_001.png', '../assets/teiguo/sleep/sleep_002.png', '../assets/teiguo/sleep/sleep_003.png', '../assets/teiguo/sleep/sleep_004.png'],
   happy: ['../assets/teiguo/happy/happy_001.png', '../assets/teiguo/happy/happy_002.png', '../assets/teiguo/happy/happy_003.png', '../assets/teiguo/happy/happy_004.png'],
   chase: ['../assets/teiguo/chase/chase_001.png', '../assets/teiguo/chase/chase_002.png', '../assets/teiguo/chase/chase_003.png', '../assets/teiguo/chase/chase_004.png'],
@@ -68,7 +101,10 @@ let actions = withActionFallbacks(loadImportedActions());
 
 let currentAction = 'idle';
 let frameIndex = 0;
-let animationTimer = null;
+let animationFrameRequest = null;
+let animationState = { running: false, loop: false, frameDuration: 260, startedAt: null, onComplete: null };
+let renderedActionFrames = {};
+let actionPackLoadToken = 0;
 let settleTimer = null;
 let scoutingTimer = null;
 let ambientTimer = null;
@@ -86,6 +122,11 @@ let isScouting = false;
 let codexAvailable = false;
 let generationBusy = false;
 let generationStatusTimer = null;
+let mahStatus = null;
+let currentMahSnapshot = null;
+let workflowPollingTimer = null;
+let workflowRestoreToken = 0;
+const PROJECT_INDEX_KEY = 'opportunityPet.mahProjectIndex';
 
 pin.style.opacity = '0.48';
 
@@ -133,16 +174,88 @@ function setPetMotion(motion, duration = 0) {
 function setVisualClass(action, moving = false) {
   pet.className = petProfile && petProfile.photoDataUrl && petProfile.assetMode !== 'generated' ? 'photo-pet' : '';
   fallbackPet.className = fallbackPet.className.replace(/\b(bob|happy|scouting)\b/g, '').trim();
-  const target = pet.complete && pet.naturalWidth > 0 ? pet : fallbackPet;
+  const target = renderedActionFrames[action]?.length ? pet : fallbackPet;
   if (moving && action === 'walk' && !petWrap.classList.contains('pacing')) target.classList.add('bob');
   if (action === 'happy') target.classList.add('happy');
   if (action === 'walk' && leadCard.classList.contains('visible')) target.classList.add('scouting');
 }
 
-function showFrame() {
-  const frames = actions[currentAction];
-  pet.src = frames[frameIndex % frames.length];
-  frameIndex += 1;
+function loadCanvasFrame(source) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.decoding = 'async';
+    image.addEventListener('load', () => resolve(image), { once: true });
+    image.addEventListener('error', () => resolve(null), { once: true });
+    image.src = source;
+  });
+}
+
+async function preloadActionFrames(nextActions) {
+  const token = ++actionPackLoadToken;
+  const entries = await Promise.all(Object.entries(nextActions).map(async ([action, sources]) => {
+    const frames = await Promise.all((sources || []).map(loadCanvasFrame));
+    return [action, frames.filter(Boolean)];
+  }));
+  if (token !== actionPackLoadToken) return false;
+  renderedActionFrames = Object.fromEntries(entries);
+  drawCurrentFrame();
+  return true;
+}
+
+function drawCurrentFrame() {
+  const frames = renderedActionFrames[currentAction] || [];
+  const image = frames[frameIndex % Math.max(1, frames.length)];
+  petContext.clearRect(0, 0, pet.width, pet.height);
+  if (!image) {
+    pet.style.display = 'none';
+    fallbackPet.classList.add('visible');
+    return;
+  }
+  const scale = Math.min(pet.width / image.naturalWidth, pet.height / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  petContext.imageSmoothingEnabled = true;
+  petContext.imageSmoothingQuality = 'high';
+  petContext.drawImage(image, (pet.width - width) / 2, pet.height - height, width, height);
+  pet.style.display = '';
+  fallbackPet.classList.remove('visible');
+}
+
+function isAnimationRunning() {
+  return animationState.running;
+}
+
+function requestNextAnimationFrame() {
+  if (animationFrameRequest === null) animationFrameRequest = requestAnimationFrame(runAnimationFrame);
+}
+
+function runAnimationFrame(timestamp) {
+  animationFrameRequest = null;
+  if (!animationState.running) return;
+  if (animationState.startedAt === null) animationState.startedAt = timestamp;
+
+  const frameCount = Math.max(1, (actions[currentAction] || []).length);
+  const elapsed = timestamp - animationState.startedAt;
+  const duration = animationTiming.actionDuration(animationState.frameDuration, frameCount);
+  if (!animationState.loop && elapsed >= duration) {
+    const onComplete = animationState.onComplete;
+    const nextAction = animationState.nextAction || 'idle';
+    stopAnimationOnFirstFrame(nextAction);
+    if (onComplete) onComplete();
+    return;
+  }
+
+  const nextFrameIndex = animationTiming.frameIndexAtElapsed(
+    elapsed,
+    animationState.frameDuration,
+    frameCount,
+    animationState.loop
+  );
+  if (nextFrameIndex !== frameIndex) {
+    frameIndex = nextFrameIndex;
+    drawCurrentFrame();
+  }
+  requestNextAnimationFrame();
 }
 
 function loadImportedActions() {
@@ -156,10 +269,12 @@ function loadImportedActions() {
 function startAnimation(action, speed = 260, moving = false) {
   currentAction = action;
   frameIndex = 0;
-  clearInterval(animationTimer);
-  showFrame();
+  if (animationFrameRequest !== null) cancelAnimationFrame(animationFrameRequest);
+  animationFrameRequest = null;
+  animationState = { running: true, loop: true, frameDuration: speed, startedAt: null, onComplete: null };
+  drawCurrentFrame();
   setVisualClass(action, moving);
-  animationTimer = setInterval(showFrame, speed);
+  requestNextAnimationFrame();
 }
 
 function playActionOnce(action, speed = 240, nextAction = 'idle', onComplete) {
@@ -172,32 +287,35 @@ function playActionOnce(action, speed = 240, nextAction = 'idle', onComplete) {
 
   currentAction = action;
   frameIndex = 0;
-  clearInterval(animationTimer);
-  showFrame();
+  if (animationFrameRequest !== null) cancelAnimationFrame(animationFrameRequest);
+  animationFrameRequest = null;
+  animationState = {
+    running: true,
+    loop: false,
+    frameDuration: speed,
+    startedAt: null,
+    nextAction,
+    onComplete
+  };
+  drawCurrentFrame();
   setVisualClass(action, true);
-  animationTimer = setInterval(() => {
-    if (frameIndex >= frames.length) {
-      stopAnimationOnFirstFrame(nextAction);
-      if (onComplete) onComplete();
-      return;
-    }
-    showFrame();
-  }, speed);
+  requestNextAnimationFrame();
 }
 
 function stopAnimationOnFirstFrame(action = 'idle') {
-  clearInterval(animationTimer);
-  animationTimer = null;
+  if (animationFrameRequest !== null) cancelAnimationFrame(animationFrameRequest);
+  animationFrameRequest = null;
+  animationState = { running: false, loop: false, frameDuration: 260, startedAt: null, onComplete: null };
   currentAction = action;
   frameIndex = 0;
-  showFrame();
+  drawCurrentFrame();
   setVisualClass(action, false);
 }
 
 function animateWhileCursorMoves() {
   if (Date.now() < manualModeUntil || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || isScouting) return;
   clearTimeout(ambientTimer);
-  if (currentAction !== 'walk' || !animationTimer) startAnimation('walk', 300, true);
+  if (currentAction !== 'walk' || !isAnimationRunning()) startAnimation('walk', 140, true);
   clearTimeout(settleTimer);
   settleTimer = setTimeout(() => {
     if (Date.now() >= manualModeUntil) {
@@ -211,17 +329,21 @@ function setLeadText(lead) {
   const petName = petProfile?.name || 'Your pet';
   document.getElementById('cardEyebrow').textContent = `${petName.toUpperCase()} FOUND A LEAD`;
   document.getElementById('leadTitle').textContent = lead.title;
+  document.getElementById('leadMatch').textContent = preferenceApi.explainOpportunityFit(lead, scoutPreferences || { skipped: true });
   document.getElementById('leadSummary').textContent = lead.summary;
   document.getElementById('leadType').textContent = lead.type;
   document.getElementById('leadEvidence').textContent = lead.evidence;
   document.getElementById('leadRisk').textContent = lead.risk;
   document.getElementById('briefOpportunity').textContent = `${lead.title} (${lead.type}): ${lead.summary}`;
-  document.getElementById('briefV1').textContent = lead.v1;
-  document.getElementById('briefQuestions').innerHTML = (lead.recommendedDirection || []).map((answer) => `<span>${answer}</span>`).join('');
+  document.getElementById('briefV1').textContent = 'Waiting for the opportunity to be accepted.';
+  document.getElementById('briefQuestions').innerHTML = '';
   setResultText(lead.result);
 }
 
 function setResultText(result = {}) {
+  const isIllustrative = result.isIllustrative !== false;
+  document.getElementById('resultProvenance').textContent = isIllustrative ? 'ILLUSTRATIVE TARGET' : 'LIVE CONNECTED RESULT';
+  document.getElementById('resultProvenance').classList.toggle('live', !isIllustrative);
   document.getElementById('resultTitle').textContent = result.title || 'Pilot result';
   document.getElementById('resultSubtitle').textContent = result.subtitle || '';
   document.getElementById('resultRevenue').textContent = result.revenue || '$0';
@@ -265,6 +387,162 @@ function savePetProfile(profile) {
   petProfile = profile;
 }
 
+function loadScoutPreferences() {
+  try {
+    return JSON.parse(localStorage.getItem(SCOUT_PREFERENCES_KEY)) || null;
+  } catch {
+    return null;
+  }
+}
+
+function loadScoutFeedback() {
+  try {
+    const feedback = JSON.parse(localStorage.getItem(SCOUT_FEEDBACK_KEY));
+    return Array.isArray(feedback) ? feedback : [];
+  } catch {
+    return [];
+  }
+}
+
+function hideSkipFeedback() {
+  skipFeedback.parentElement.classList.remove('feedback-open');
+}
+
+function showSkipFeedback() {
+  skipFeedback.parentElement.classList.add('feedback-open');
+}
+
+function recordLeadFeedback(reason) {
+  if (!currentLead) return;
+  scoutFeedback.push({
+    opportunityId: currentLead.id,
+    reason,
+    roles: currentLead.roles || [],
+    interests: currentLead.interests || [],
+    effortLevel: currentLead.effortLevel || 2,
+    riskLevel: currentLead.riskLevel || 2,
+    createdAt: new Date().toISOString()
+  });
+  scoutFeedback = scoutFeedback.slice(-50);
+  localStorage.setItem(SCOUT_FEEDBACK_KEY, JSON.stringify(scoutFeedback));
+  opportunities = preferenceApi.rankOpportunities(sourceOpportunities, scoutPreferences || {}, scoutFeedback);
+  currentLeadIndex = opportunities.findIndex((opportunity) => opportunity.id === currentLead.id);
+}
+
+function renderFeedbackChoices() {
+  feedbackChoices.replaceChildren();
+  preferenceApi.SCOUT_PREFERENCES.feedbackReasons.forEach((reason) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'feedback-reason';
+    button.dataset.feedbackReason = reason.id;
+    button.textContent = reason.label;
+    button.addEventListener('click', async () => {
+      recordLeadFeedback(reason.id);
+      await skipCurrentLead();
+    });
+    feedbackChoices.appendChild(button);
+  });
+}
+
+function hidePreferencePanel() {
+  preferenceSetup.classList.remove('visible');
+  preferenceSetup.setAttribute('aria-hidden', 'true');
+  preferenceSetup.inert = true;
+}
+
+function updatePreferenceActions() {
+  const ready = Boolean(pendingRole && pendingInterests.size);
+  savePreferences.disabled = !ready;
+  if (preferenceSetup.dataset.step === 'role') {
+    document.getElementById('preferenceHint').textContent = 'Choose one to continue.';
+    return;
+  }
+  document.getElementById('preferenceHint').textContent = ready
+    ? 'That is enough. I can learn the rest from what you choose.'
+    : 'Choose at least one. You can change this later.';
+}
+
+function setPreferenceStep(step) {
+  preferenceSetup.dataset.step = step;
+  const isRole = step === 'role';
+  const petName = (petProfile?.name || 'YOUR PET').toUpperCase();
+  document.getElementById('preferenceEyebrow').textContent = `${petName} · ${isRole ? '1' : '2'} OF 2`;
+  document.getElementById('preferenceTitle').textContent = isRole ? 'What are you good at?' : 'What should I look for?';
+  document.getElementById('preferenceSummary').textContent = isRole
+    ? 'Pick the role that feels closest. I will learn the details later.'
+    : 'Choose one or more. I will bring the promising ones back to you.';
+  updatePreferenceActions();
+}
+
+function renderPreferenceChoices() {
+  roleChoices.replaceChildren();
+  interestChoices.replaceChildren();
+
+  preferenceApi.SCOUT_PREFERENCES.roles.forEach((option) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'choice-chip';
+    button.dataset.roleId = option.id;
+    button.textContent = option.label;
+    button.setAttribute('aria-pressed', String(pendingRole === option.id));
+    button.addEventListener('click', () => {
+      pendingRole = option.id;
+      roleChoices.querySelectorAll('.choice-chip').forEach((chip) => {
+        chip.setAttribute('aria-pressed', String(chip === button));
+      });
+      setPreferenceStep('interests');
+    });
+    roleChoices.appendChild(button);
+  });
+
+  preferenceApi.SCOUT_PREFERENCES.interests.forEach((option) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'choice-chip';
+    button.dataset.interestId = option.id;
+    button.textContent = option.label;
+    button.setAttribute('aria-pressed', String(pendingInterests.has(option.id)));
+    button.addEventListener('click', () => {
+      if (option.id === 'open') {
+        pendingInterests = pendingInterests.has('open') ? new Set() : new Set(['open']);
+      } else {
+        pendingInterests.delete('open');
+        if (pendingInterests.has(option.id)) pendingInterests.delete(option.id);
+        else pendingInterests.add(option.id);
+      }
+      interestChoices.querySelectorAll('.choice-chip').forEach((chip) => {
+        chip.setAttribute('aria-pressed', String(pendingInterests.has(chip.dataset.interestId)));
+      });
+      updatePreferenceActions();
+    });
+    interestChoices.appendChild(button);
+  });
+  setPreferenceStep('role');
+}
+
+async function showPreferenceSetup() {
+  hideSetupPanel();
+  leadCard.classList.remove('visible');
+  resultCard.classList.remove('visible');
+  preferenceSetup.classList.add('visible');
+  preferenceSetup.removeAttribute('aria-hidden');
+  preferenceSetup.inert = false;
+  setPreferenceStep('role');
+  document.body.dataset.view = 'preferences';
+  stopAnimationOnFirstFrame('idle');
+  await bridge.setMode('preferences');
+}
+
+async function finishPreferenceSetup(preferences) {
+  scoutPreferences = preferences;
+  localStorage.setItem(SCOUT_PREFERENCES_KEY, JSON.stringify(preferences));
+  opportunities = preferenceApi.rankOpportunities(sourceOpportunities, preferences, scoutFeedback);
+  currentLeadIndex = -1;
+  hidePreferencePanel();
+  await scoutForLead();
+}
+
 function hideSetupPanel() {
   petSetup.classList.remove('visible');
   petSetup.setAttribute('aria-hidden', 'true');
@@ -273,11 +551,12 @@ function hideSetupPanel() {
 
 function setBriefOpen(open) {
   document.body.classList.toggle('brief-open', Boolean(open));
-  if (!open && reviewPlan) reviewPlan.textContent = 'Copy routemap-ready plan';
+  if (!open && reviewPlan) reviewPlan.textContent = 'View managed workflow';
 }
 
 function applyPetProfile() {
   if (!petProfile) {
+    hidePreferencePanel();
     petSetup.classList.add('visible');
     petSetup.removeAttribute('aria-hidden');
     petSetup.inert = false;
@@ -291,28 +570,81 @@ function applyPetProfile() {
   }
 
   hideSetupPanel();
-  pet.alt = petProfile.name || 'Opportunity Pet';
+  pet.setAttribute('aria-label', petProfile.name || 'Opportunity Pet');
   document.body.dataset.hasPet = 'true';
-  document.body.dataset.view = 'pet';
   if (petProfile.photoDataUrl) {
     pet.classList.toggle('photo-pet', petProfile.assetMode !== 'generated');
-    pet.src = petProfile.assetMode === 'generated' ? actions.idle[0] : petProfile.photoDataUrl;
+    if (petProfile.assetMode !== 'generated') {
+      const staticActions = Object.fromEntries(Object.keys(defaultActions).map((action) => [action, [petProfile.photoDataUrl]]));
+      preloadActionFrames(staticActions);
+    }
   } else {
     pet.classList.remove('photo-pet');
   }
+  if (!scoutPreferences) {
+    showPreferenceSetup();
+    return;
+  }
+  hidePreferencePanel();
+  document.body.dataset.view = 'pet';
   bridge.setMode('pet');
 }
 
 function nextLead() {
+  stopWorkflowPolling();
+  hideSkipFeedback();
+  currentMahSnapshot = null;
+  workflowRestoreToken += 1;
   currentLeadIndex = (currentLeadIndex + 1) % opportunities.length;
   currentLead = opportunities[currentLeadIndex];
   setLeadText(currentLead);
+  reviewPlan.disabled = true;
+  skipLead.disabled = false;
+  approveLead.disabled = false;
+  approveLead.textContent = mahStatus?.connected ? 'Accept and start in MAH' : 'Accept and preview handoff';
+  showResult.textContent = 'Preview target outcome';
+}
+
+function loadProjectIndex() {
+  try {
+    return JSON.parse(localStorage.getItem(PROJECT_INDEX_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveProjectForLead(lead, snapshot) {
+  if (!lead?.id || !snapshot?.project?.id) return;
+  const index = loadProjectIndex();
+  index[lead.id] = snapshot.project.id;
+  localStorage.setItem(PROJECT_INDEX_KEY, JSON.stringify(index));
+}
+
+async function restoreProjectForLead(lead) {
+  const projectId = lead?.id ? loadProjectIndex()[lead.id] : '';
+  if (!projectId) return;
+  const token = ++workflowRestoreToken;
+  document.getElementById('leadStatus').textContent = 'Restoring MAH project...';
+  approveLead.disabled = true;
+  approveLead.textContent = 'Restoring project...';
+  try {
+    const snapshot = await bridge.getMahProjectSnapshot(projectId);
+    if (token !== workflowRestoreToken || currentLead?.id !== lead.id) return;
+    renderMahSnapshot(snapshot);
+    if (snapshot.routemap?.status !== 'route_running') startWorkflowPolling();
+  } catch (error) {
+    if (token !== workflowRestoreToken || currentLead?.id !== lead.id) return;
+    document.getElementById('leadStatus').textContent = `Saved MAH project unavailable: ${error.message || error}`;
+    approveLead.textContent = 'Reconnect MAH to resume';
+    approveLead.disabled = true;
+  }
 }
 
 async function showLeadCard() {
   if (!opportunities.length || leadCard.classList.contains('visible')) return;
   nextLead();
   hideSetupPanel();
+  hidePreferencePanel();
   resultCard.classList.remove('visible');
   leadCard.classList.add('visible');
   leadCard.scrollTop = 0;
@@ -325,6 +657,7 @@ async function showLeadCard() {
   manualModeUntil = Date.now() + 1600;
   clearTimeout(ambientTimer);
   await bridge.setMode('lead');
+  await restoreProjectForLead(currentLead);
 }
 
 async function scoutForLead() {
@@ -333,12 +666,13 @@ async function scoutForLead() {
   clearTimeout(scoutingTimer);
   clearTimeout(ambientTimer);
   hideSetupPanel();
-  document.body.dataset.view = 'pet';
+  hidePreferencePanel();
+  document.body.dataset.view = 'scout';
   setPetMotion('pacing');
-  startAnimation('walk', 190, true);
-  manualModeUntil = Date.now() + 2200;
-  await bridge.setMode('pet');
-  await wait(1900);
+  startAnimation('walk', 140, true);
+  manualModeUntil = Date.now() + 2600;
+  await bridge.setMode('scout');
+  await wait(2240);
   setPetMotion('');
   await showLeadCard();
   isScouting = false;
@@ -346,10 +680,12 @@ async function scoutForLead() {
 
 async function closeLeadCardView() {
   hideSetupPanel();
+  hidePreferencePanel();
   leadCard.classList.remove('visible');
   resultCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
   setBriefOpen(false);
+  hideSkipFeedback();
   document.body.dataset.view = 'pet';
   setPetMotion('');
   await bridge.setMode('pet');
@@ -380,7 +716,7 @@ function runAmbientAction() {
   manualModeUntil = Date.now() + 5200;
   if (Math.random() < 0.52) {
     setPetMotion('resting');
-    playActionOnce('yawn', 360, 'idle', () => {
+    playActionOnce('yawn', 180, 'idle', () => {
       setPetMotion('');
       scheduleAmbient();
     });
@@ -388,7 +724,7 @@ function runAmbientAction() {
   }
 
   setPetMotion('resting');
-  startAnimation('sleep', 620, false);
+  startAnimation('sleep', 420, false);
   ambientTimer = setTimeout(() => {
     setPetMotion('');
     stopAnimationOnFirstFrame('idle');
@@ -396,70 +732,125 @@ function runAmbientAction() {
   }, 4600);
 }
 
-function approveCurrentLead() {
-  document.getElementById('leadStatus').textContent = 'Marked actionable. Plan ready for MAH.';
-  leadCard.dataset.approved = 'true';
-  stopAnimationOnFirstFrame('idle');
-  setPetMotion('found');
+function opportunityRoutemapPayload() {
+  if (!currentLead) return null;
+  return {
+    idempotencyKey: `opportunity:${currentLead.id || currentLead.title}`,
+    opportunity: {
+      id: currentLead.id,
+      title: currentLead.title,
+      type: currentLead.type,
+      summary: currentLead.summary,
+      evidence: currentLead.evidence,
+      risk: currentLead.risk,
+      smallestExperiment: currentLead.v1,
+      recommendedDirection: currentLead.recommendedDirection,
+      checks: currentLead.routemapChecks,
+      salesChannel: 'Gumroad'
+    },
+    scoutingPreferences: scoutPreferences
+  };
 }
 
-function buildRoutemapPlan() {
-  if (!currentLead) return '';
-  const direction = currentLead.recommendedDirection || [];
-  const checks = currentLead.routemapChecks || [];
-  return `Create a MAH routemap from this Opportunity Pet lead.
+function routemapStatusText(snapshot) {
+  const prefix = snapshot.isLive ? 'MAH' : 'Preview';
+  const status = snapshot.routemap?.status;
+  const labels = {
+    accepted: `${prefix}: opportunity accepted`,
+    route_created: `${prefix}: routemap created`,
+    product_build: `${prefix}: product tasks delegated`,
+    listing_preparation: `${prefix}: store listing prepared`,
+    store_monitoring: `${prefix}: store monitor scheduled`,
+    route_running: `${prefix}: routemap running`
+  };
+  return labels[status] || `${prefix}: ${snapshot.routemap?.statusLabel || status}`;
+}
 
-Do not start an interview loop. Treat the recommendations below as the current best plan. Keep the good answers, turn them into tasks, and leave the final go/no-go judgment to the routemap review.
+function renderMahSnapshot(snapshot) {
+  currentMahSnapshot = snapshot;
+  const routemap = snapshot.routemap || {};
+  document.getElementById('leadStatus').textContent = routemapStatusText(snapshot);
+  document.getElementById('briefV1').textContent = routemap.statusLabel || routemap.status;
+  const phaseList = document.getElementById('briefQuestions');
+  phaseList.replaceChildren();
+  (routemap.phases || []).forEach((phase) => {
+    const row = document.createElement('span');
+    row.className = `workflow-phase ${phase.state || 'pending'}`;
+    const marker = phase.state === 'complete' ? '✓' : phase.state === 'active' ? '●' : '○';
+    row.textContent = `${marker} ${phase.label || phase.key || 'Workflow step'}`;
+    phaseList.appendChild(row);
+  });
+  document.getElementById('mahConnection').textContent = snapshot.isLive
+    ? `MAH project ${snapshot.project?.id} · Routemap ${routemap.id}`
+    : `Local preview ${snapshot.project?.id}. No live MAH routemap, task, schedule, listing, order, or revenue has been created.`;
+  reviewPlan.disabled = false;
+  approveLead.disabled = true;
+  approveLead.textContent = 'Workflow started';
+  skipLead.disabled = true;
+  if (!briefPanel.classList.contains('visible')) reviewPlan.textContent = 'View managed workflow';
+  if (snapshot.result && currentLead?.result) {
+    const livePresentation = snapshot.isLive && snapshot.result.isIllustrative === false
+      ? (snapshot.result.presentation || snapshot.result)
+      : null;
+    setResultText(livePresentation || {
+      ...currentLead.result,
+      isIllustrative: true,
+      note: snapshot.result.note || currentLead.result.note
+    });
+    showResult.textContent = livePresentation ? 'View live result' : 'Preview target outcome';
+  }
+  if (routemap.status === 'route_running') {
+    stopAnimationOnFirstFrame('happy');
+    setPetMotion('found');
+  }
+}
 
-Goal:
-- Test whether this opportunity can become a small shipped offer with a visible result.
+function stopWorkflowPolling() {
+  clearInterval(workflowPollingTimer);
+  workflowPollingTimer = null;
+}
 
-Opportunity:
-- ${currentLead.title}
+function startWorkflowPolling() {
+  stopWorkflowPolling();
+  if (!currentMahSnapshot?.project?.id) return;
+  workflowPollingTimer = setInterval(async () => {
+    try {
+      const snapshot = await bridge.getMahProjectSnapshot(currentMahSnapshot.project.id);
+      renderMahSnapshot(snapshot);
+      if (snapshot.routemap?.status === 'route_running') stopWorkflowPolling();
+    } catch (error) {
+      document.getElementById('leadStatus').textContent = `MAH status unavailable: ${error.message || error}`;
+    }
+  }, 2000);
+}
 
-Type:
-- ${currentLead.type}
-
-Why it might matter:
-- ${currentLead.summary}
-
-Public signals to inspect:
-- ${currentLead.evidence}
-
-Recommended direction:
-${direction.map((item) => `- ${item}`).join('\n')}
-
-Smallest useful experiment:
-- ${currentLead.v1}
-
-Validation tasks:
-- Collect 5-10 public examples that prove people already buy or ask for this outcome.
-- Identify one narrow customer situation and one painful before/after.
-- Confirm the first offer can be delivered manually before automating.
-- Define the proof metric: orders, booked calls, delivered files, replies, time saved, or refund rate.
-
-Build tasks:
-- Draft the offer page or service page.
-- Produce the first deliverable template or workflow.
-- Create the delivery checklist and customer handoff notes.
-- Prepare one launch message and one follow-up message.
-- Create a result report that shows what happened.
-
-Distribution path:
-- Pick one channel first. Examples: Gumroad, Etsy, Shopify, Stan Store, link-in-bio checkout, local service outreach, or a paid marketplace.
-
-Risks and boundaries:
-- ${currentLead.risk}
-${checks.map((item) => `- ${item}`).join('\n')}
-
-Routemap judgment:
-- User reviews the evidence, risk, channel, and smallest experiment in MAH.
-- If the judgment is yes, create execution tasks.
-- If the judgment is no, archive this lead and ask Opportunity Pet to scout again.`;
+async function approveCurrentLead() {
+  if (!currentLead || approveLead.disabled) return;
+  approveLead.disabled = true;
+  approveLead.textContent = mahStatus?.connected ? 'Starting in MAH...' : 'Starting handoff preview...';
+  document.getElementById('leadStatus').textContent = mahStatus?.connected
+    ? 'Sending opportunity directly to MAH...'
+    : 'Preparing a local MAH handoff preview...';
+  try {
+    const snapshot = await bridge.createOpportunityRoutemap(opportunityRoutemapPayload());
+    leadCard.dataset.approved = 'true';
+    saveProjectForLead(currentLead, snapshot);
+    renderMahSnapshot(snapshot);
+    startWorkflowPolling();
+    setPetMotion('chasing', 1500);
+    playActionOnce('chase', 125, 'idle', () => setPetMotion('found'));
+  } catch (error) {
+    leadCard.dataset.approved = 'false';
+    document.getElementById('leadStatus').textContent = `Could not start MAH workflow: ${error.message || error}`;
+  } finally {
+    approveLead.disabled = Boolean(currentMahSnapshot);
+    approveLead.textContent = currentMahSnapshot ? 'Routemap started' : (mahStatus?.connected ? 'Accept and start in MAH' : 'Accept and preview handoff');
+  }
 }
 
 async function skipCurrentLead() {
   hideSetupPanel();
+  hideSkipFeedback();
   leadCard.dataset.approved = 'false';
   leadCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
@@ -473,19 +864,19 @@ async function skipCurrentLead() {
 function closePlanPanel() {
   briefPanel.classList.remove('visible');
   setBriefOpen(false);
-  document.getElementById('leadStatus').textContent = 'Marked actionable. Plan ready for MAH.';
-  reviewPlan.textContent = 'Copy routemap-ready plan';
+  if (currentMahSnapshot) renderMahSnapshot(currentMahSnapshot);
+  reviewPlan.textContent = 'View managed workflow';
   setPetMotion('found');
   stopAnimationOnFirstFrame('idle');
   leadCard.scrollTop = 0;
 }
 
 async function reviewCurrentPlan() {
+  if (!currentMahSnapshot) return;
   if (briefPanel.classList.contains('visible')) {
     closePlanPanel();
     return;
   }
-  document.getElementById('leadStatus').textContent = 'Plan copied. Paste it into MAH routemap.';
   leadCard.dataset.approved = 'true';
   setBriefOpen(true);
   briefPanel.classList.add('visible');
@@ -493,18 +884,14 @@ async function reviewCurrentPlan() {
   requestAnimationFrame(() => {
     briefPanel.scrollIntoView({ block: 'nearest' });
   });
-  setPetMotion('chasing', 1500);
-  playActionOnce('chase', 330, 'idle', () => setPetMotion('found'));
-  try {
-    await navigator.clipboard.writeText(buildRoutemapPlan());
-  } catch {
-    document.getElementById('leadStatus').textContent = 'Routemap-ready plan prepared.';
-  }
+  renderMahSnapshot(currentMahSnapshot);
+  reviewPlan.textContent = 'Back to lead';
 }
 
 async function showResultPage() {
   if (!currentLead) return;
   hideSetupPanel();
+  hidePreferencePanel();
   leadCard.classList.remove('visible');
   briefPanel.classList.remove('visible');
   setBriefOpen(false);
@@ -525,6 +912,8 @@ async function closeResultPage() {
 
 async function resetPetProfile() {
   if (!window.confirm('Change pet and return to setup?')) return;
+  stopWorkflowPolling();
+  currentMahSnapshot = null;
   clearTimeout(scoutingTimer);
   clearTimeout(ambientTimer);
   clearTimeout(settleTimer);
@@ -536,6 +925,7 @@ async function resetPetProfile() {
   importedSpriteSheet = '';
   petProfile = null;
   actions = defaultActions;
+  await preloadActionFrames(actions);
   petPhotoInput.value = '';
   spriteSheetInput.value = '';
   petPhotoPreview.innerHTML = '';
@@ -551,19 +941,6 @@ async function resetPetProfile() {
   applyPetProfile();
 }
 
-function handleImageError() {
-  pet.style.display = 'none';
-  fallbackPet.classList.add('visible');
-}
-
-function handleImageLoad() {
-  pet.style.display = '';
-  fallbackPet.classList.remove('visible');
-  setVisualClass(currentAction, Boolean(animationTimer));
-}
-
-pet.addEventListener('error', handleImageError);
-pet.addEventListener('load', handleImageLoad);
 petPhotoInput.addEventListener('change', () => {
   const files = Array.from(petPhotoInput.files || []).slice(0, 5);
   if (!files.length) return;
@@ -1037,6 +1414,7 @@ function startGenerationStatusTimer(logPath = '') {
 async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {}) {
   actions = withActionFallbacks(nextActions);
   localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
+  await preloadActionFrames(actions);
   updatePipeline('ready');
   const name = petName();
   savePetProfile({
@@ -1050,7 +1428,7 @@ async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {
     ...extraProfile
   });
   applyPetProfile();
-  await scoutForLead();
+  if (scoutPreferences) await scoutForLead();
 }
 
 function shouldUseLocalStylizedFallback(error) {
@@ -1137,6 +1515,7 @@ spriteSheetInput.addEventListener('change', async () => {
   spritePreview.classList.add('visible');
   actions = withActionFallbacks(await extractSpriteSheet(importedSpriteSheet));
   localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
+  await preloadActionFrames(actions);
   updatePipeline('ready');
   stopAnimationOnFirstFrame('idle');
   assetNote.textContent = 'Legacy sheet imported. Missing chase and yawn states will use compatible fallback actions.';
@@ -1157,11 +1536,12 @@ startScouting.addEventListener('click', async () => {
     createdAt: new Date().toISOString()
   });
   applyPetProfile();
-  await scoutForLead();
+  if (scoutPreferences) await scoutForLead();
 });
 
 createPet.addEventListener('click', async () => {
   actions = defaultActions;
+  await preloadActionFrames(actions);
   const name = petNameInput.value.trim() || 'Iron';
   savePetProfile({
     name,
@@ -1172,11 +1552,32 @@ createPet.addEventListener('click', async () => {
     createdAt: new Date().toISOString()
   });
   applyPetProfile();
-  await scoutForLead();
+  if (scoutPreferences) await scoutForLead();
 });
+savePreferences.addEventListener('click', async () => {
+  if (!pendingRole || !pendingInterests.size) return;
+  await finishPreferenceSetup({
+    version: preferenceApi.SCOUT_PREFERENCES.version,
+    role: pendingRole,
+    interests: Array.from(pendingInterests),
+    skipped: false,
+    updatedAt: new Date().toISOString()
+  });
+});
+skipPreferences.addEventListener('click', async () => {
+  await finishPreferenceSetup({
+    version: preferenceApi.SCOUT_PREFERENCES.version,
+    role: '',
+    interests: [],
+    skipped: true,
+    updatedAt: new Date().toISOString()
+  });
+});
+backPreference.addEventListener('click', () => setPreferenceStep('role'));
 closeCard.addEventListener('click', closeLeadCardView);
 approveLead.addEventListener('click', approveCurrentLead);
-skipLead.addEventListener('click', skipCurrentLead);
+skipLead.addEventListener('click', showSkipFeedback);
+skipWithoutFeedback.addEventListener('click', skipCurrentLead);
 reviewPlan.addEventListener('click', reviewCurrentPlan);
 closeBrief.addEventListener('click', closePlanPanel);
 showResult.addEventListener('click', showResultPage);
@@ -1244,6 +1645,8 @@ async function watchGlobalCursor() {
   if (point) lastCursor = point;
 }
 
+renderPreferenceChoices();
+renderFeedbackChoices();
 applyPetProfile();
 bridge.onGenerationProgress((message) => {
   const logMatch = /Log: (.+)$/.exec(message);
@@ -1266,12 +1669,32 @@ bridge.getCodexStatus().then((status) => {
   codexAvailable = false;
   updateGeneratePetButton();
 });
+bridge.getMahStatus().then((status) => {
+  mahStatus = status;
+  approveLead.textContent = status.connected ? 'Accept and start in MAH' : 'Accept and preview handoff';
+  document.getElementById('mahConnection').textContent = status.message || status.label || 'MAH status available.';
+}).catch((error) => {
+  mahStatus = { connected: false, mode: 'unavailable' };
+  approveLead.textContent = 'MAH unavailable';
+  approveLead.disabled = true;
+  document.getElementById('mahConnection').textContent = `MAH connection unavailable: ${error.message || error}`;
+});
+bridge.registerMahProjectEntry({
+  key: 'opportunity-pet',
+  title: 'Opportunity Pet',
+  launchSurfaces: ['mah-project', 'desktop']
+}).catch(() => {
+  // Status messaging already explains whether the production MAH connection is available.
+});
 if (importedSpriteSheet) {
   spritePreview.src = importedSpriteSheet;
   spritePreview.classList.add('visible');
   updatePipeline('ready');
 }
-stopAnimationOnFirstFrame('idle');
-scheduleAmbient();
-scheduleScouting();
+preloadActionFrames(actions).then((loaded) => {
+  if (!loaded) return;
+  stopAnimationOnFirstFrame('idle');
+  scheduleAmbient();
+  scheduleScouting();
+});
 setInterval(watchGlobalCursor, 180);

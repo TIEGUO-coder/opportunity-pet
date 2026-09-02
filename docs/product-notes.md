@@ -2,7 +2,7 @@
 
 Opportunity Pet turns product discovery into a small free desktop companion loop.
 
-It is not a paid product, a bookmark tool, or a promise that the user will make money. The pet should bring back practical leads: what the opportunity is, why it might exist, what public signals support it, what a small experiment could be, and what recommended direction can be reviewed in MAH before the user commits time.
+It is not a paid product, a bookmark tool, or a promise that the user will make money. The pet should bring back practical leads, ask for an explicit owner decision, and pass accepted opportunities directly into a MAH-managed workflow.
 
 ## Core Loop
 
@@ -11,8 +11,9 @@ It is not a paid product, a bookmark tool, or a promise that the user will make 
 3. The generated pet scouts for small opportunities a GitHub/Codex builder can package and fulfill.
 4. The pet brings back a money lead as a compact card, such as a creator-store launch kit.
 5. The user approves, skips, or reviews the lead.
-6. Approved leads become a routemap-ready plan and can show a virtual result page.
-7. The user makes the final go/no-go judgment inside MAH routemap.
+6. Approved leads are sent directly through the MAH adapter without clipboard copying.
+7. MAH owns the routemap, delegated tasks, schedules, retries, and agent routing.
+8. Opportunity Pet renders returned progress and clearly distinguishes illustrative targets from live results.
 
 ## Opportunity Types
 
@@ -30,8 +31,10 @@ Each card should answer:
 - What is the risk?
 - What small experiment could be tried?
 - What result page would prove the experiment worked?
-- What direction should be reviewed in MAH?
+- What work should be delegated through MAH?
 
 ## MVP Boundary
 
-The current MVP prepares a routemap-ready plan instead of running an interview loop. It keeps the recommended answers, turns them into validation/build/distribution tasks, and leaves the final judgment to MAH. The uploaded photo set is source material for the animated pet generator.
+The current MVP has explicit MAH project, routemap, task, schedule, checkpoint, and event boundaries. It sends structured opportunity data after owner approval and renders the returned project snapshot. Until the production MAH interface is available, a local adapter previews those resource boundaries and labels every result as non-live. The uploaded photo set is source material for the animated pet generator.
+
+The Creator Store case is no longer an open-ended service idea. Its business source of truth is the [Creator Store Launch Kit blueprint](creator-store-blueprint.md): one user-owned source asset, one fixed demonstration product, eight reviewable stages, one publishing approval, and two recurring intents.

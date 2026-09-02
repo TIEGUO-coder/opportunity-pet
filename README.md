@@ -3,13 +3,13 @@
 > **My pet learned to earn its own treats by bringing back sellable opportunities. Now it is working on paying my rent.**
 
 <p align="center">
-  <img src="docs/screenshots/lead-card.svg" width="460" alt="Iron brings back a Creator Store Launch Kit opportunity">
+  <img src="docs/screenshots/creator-store-lead.png" width="460" alt="Iron brings back a Creator Store Launch Kit opportunity with a direct MAH handoff action">
 </p>
 
 <p align="center"><em>Iron found something small enough to build and concrete enough to sell.</em></p>
 
 <p align="center">
-  <img src="docs/screenshots/creator-store-result.svg" width="920" alt="Gumroad-style sales result for a creator product">
+  <img src="docs/screenshots/creator-store-result.png" width="460" alt="Clearly labelled illustrative Gumroad-style target result for a creator product">
 </p>
 
 <p align="center"><em>The finish line is not another idea document. It is a product, delivered orders, and a result you can inspect.</em></p>
@@ -22,8 +22,8 @@ The pet is playful. The workflow behind it is serious:
 your pet photos
       -> animated desktop scout
       -> a small sellable opportunity
-      -> routemap-ready plan
-      -> MAH review and execution
+      -> owner approval
+      -> managed MAH workflow
       -> a shipped product and measurable result
 ```
 
@@ -41,7 +41,7 @@ The generated action pack is not one photo sliding around the screen. It contain
 - **Scout:** walks left and right in side view with its tail raised.
 - **Rest:** curls into a ball and stays still long enough to feel asleep.
 - **Found:** turns toward you when it brings back an opportunity.
-- **Send:** chases a butterfly while the plan is copied for MAH.
+- **Send:** chases a butterfly while the approved opportunity is handed directly to MAH.
 - **Happy:** reacts briefly when clicked or when a task moves forward.
 
 The setup window disappears after generation, leaving only the small transparent desktop pet. Iron is just the included sample pet; you can replace him with your own animal.
@@ -55,7 +55,7 @@ The setup window disappears after generation, leaving only the small transparent
 Opportunity Pet is not limited to one kind of business idea. It can bring back different leads based on your preferences, skills, audience, region, risk tolerance, and the platforms you already understand.
 
 <p align="center">
-  <img src="docs/demo/pet-finds-lead.gif" width="460" alt="Iron scouts left and right, then brings back a Creator Store Launch Kit lead card">
+  <img src="docs/demo/scout-motion.gif" width="400" alt="Iron performs the real in-app scouting walk cycle">
 </p>
 
 <p align="center"><em>The scout loop lives on your desktop: pace, notice, return, and ask for your call.</em></p>
@@ -79,35 +79,35 @@ messy creator asset
 
 The pet does not claim that every lead will make money. Its job is to make plausible opportunities visible at the moment when you can still make a small decision: approve one, reject it, or investigate it properly.
 
-## 3. Turn The Lead Into A Plan
+## 3. Accept The Lead Into A Managed Workflow
 
-Approving a card does not launch a giant autonomous project. Opportunity Pet turns the lead into a structured plan: recommended direction, smallest useful experiment, validation tasks, build tasks, distribution path, risks, and the judgment points that should go into MAH.
+Approving a card is a system handoff, not a clipboard handoff. Opportunity Pet creates a native MAH project and routemap, then renders the tasks, schedules, checkpoints, and events returned by that project.
 
 <p align="center">
-  <img src="docs/screenshots/creator-store-brief.png" width="420" alt="Current Opportunity Pet brief panel showing a routemap-ready plan">
+  <img src="docs/screenshots/creator-store-brief.png" width="420" alt="Opportunity Pet showing a managed MAH workflow and its execution phases">
 </p>
 
-The plan keeps the good answers instead of forcing another interview loop. You can copy it, skim the direction, and return to the lead card without losing your place. It should already say:
+The handoff keeps the useful context instead of forcing another interview loop. It includes:
 
 - Who already pays for this outcome.
 - What the smallest deliverable should be.
 - Which claims need evidence or human approval.
-- What Codex can automate, and where a person must decide.
+- What MAH can delegate to an agent, and where a person must decide.
 - What should count as a useful first result.
 
-For a creator-store lead, a practical first experiment is one asset, one storefront, one price, and one launch channel. Codex can draft the package and supporting files; you choose the niche, validate demand, approve claims, and publish the offer.
+For a creator-store lead, a practical first experiment is one asset, one storefront, one price, and one launch channel. MAH owns task delegation and long-running execution; you choose the niche, validate demand, and approve claims or external publishing when required.
 
-## 4. Move The Plan Into MAH
+## 4. Let MAH Run The Work
 
-Opportunity Pet stops at the doorway. It brings back the lead, shapes the first plan, and leaves you with the delicious problem of deciding whether this thing is real enough to pursue.
+Opportunity Pet is MAH's playful business interface. It discovers and presents the lead, captures the owner's decision, and turns MAH's execution state into a visible pet reaction.
 
-Then there is **MAH**: the place where a loose plan starts behaving like a living route. Less chat, more gravity. The pet found the spark; MAH is where it either becomes work, or disappears cleanly before it wastes your week.
+MAH is the running base underneath it: routemap evolution, task delegation, agent routing, retries, scheduled storefront checks, and long-running state. The pet does not reimplement those mechanisms.
 
 ```text
-lead card -> copied plan -> MAH -> something that can actually move
+lead card -> owner accepts -> MAH project + routemap -> tasks and schedules -> progress returned to the pet
 ```
 
-[Open the door to MAH ->](https://dev.mah.bot/product)
+This repository includes a strict adapter boundary instead of inventing unpublished CLI commands. Without a production adapter, the app runs a clearly labelled local handoff preview. See [the MAH integration contract](docs/mah-integration-contract.md). The preview does not create live tasks, products, listings, orders, or revenue.
 
 ## 5. End With A Result, Not A Bookmark
 
@@ -145,8 +145,11 @@ Gumroad is only one possible destination. The same loop can point to Etsy, Shopi
 - Fall back to a local transparent scout if image generation is unavailable.
 - Run as a small transparent Electron desktop pet on top of ordinary work.
 - Scout curated opportunity cards and let the user approve or reject them.
-- Copy a routemap-ready plan for an approved lead.
-- Open a result page that shows the intended business outcome.
+- Hand approved leads directly into explicit MAH project, routemap, task, schedule, checkpoint, and event boundaries without clipboard copying.
+- Persist and render workflow phases returned by that adapter.
+- Recover an existing workflow after the desktop app restarts and prevent duplicate submissions.
+- Run a clearly labelled local workflow preview until the production MAH adapter is installed.
+- Open a result page that explicitly labels the intended business outcome as illustrative.
 - Build packaged desktop downloads for macOS, Windows, and Linux.
 
 The current opportunity feed is curated rather than live web search. That is intentional for this version: the complete decision and handoff loop matters more than showing a large pile of weak leads. Pluggable live sources are a later step.
@@ -207,16 +210,17 @@ Opportunity Pet has no paid backend and requires no Opportunity Pet API key. Its
 
 Selected photos are copied into the app's local user-data directory for the generation job. Temporary input copies are deleted afterward; generated action assets remain local.
 
-Opportunity Pet does not choose what someone should build, promise revenue, publish unreviewed claims, or make business decisions. It turns “maybe this is interesting” into a visible choice, a structured plan, and a path toward reviewable work.
+Opportunity Pet does not choose what someone should build, promise revenue, publish unreviewed claims, or make business decisions. It turns “maybe this is interesting” into a visible choice and a direct handoff to a managed workflow.
 
 ## Roadmap
 
 - Add pluggable live opportunity sources with evidence and freshness checks.
-- Pass approved plans directly into MAH routemap creation.
+- Replace the preview adapter with the official MAH production adapter once its CLI and workflow formats are available.
+- Create live MAH routemaps, delegated tasks, and scheduled storefront checks through that adapter.
 - Improve generated-pet quality checks and visual regression coverage.
 - Add a short product video showing the full loop in under one minute.
 - Keep the pet expressive enough that people want to leave it running.
 
 ---
 
-Opportunity Pet brings the opportunity home. [MAH](https://dev.mah.bot/product) is what happens after you decide to follow it.
+Opportunity Pet brings the opportunity home. MAH is the running base that turns an accepted opportunity into managed work.

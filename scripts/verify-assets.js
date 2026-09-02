@@ -37,4 +37,22 @@ for (const action of actions) {
   }
 }
 
+let expectedWalkSize = null;
+for (let i = 1; i <= 8; i += 1) {
+  const file = path.join(root, 'assets', 'teiguo', 'walk-v2', `walk_${String(i).padStart(3, '0')}.png`);
+  if (!fs.existsSync(file)) throw new Error(`Missing smooth walk frame: ${file}`);
+  const image = PNG.sync.read(fs.readFileSync(file));
+  const size = `${image.width}x${image.height}`;
+  if (expectedWalkSize && size !== expectedWalkSize) throw new Error(`Smooth walk frame size shifts: ${file}`);
+  expectedWalkSize = size;
+  let transparent = 0;
+  let opaque = 0;
+  for (let p = 3; p < image.data.length; p += 4) {
+    if (image.data[p] === 0) transparent += 1;
+    if (image.data[p] > 180) opaque += 1;
+  }
+  if (transparent === 0 || opaque < 500) throw new Error(`Invalid smooth walk frame: ${file}`);
+  checked += 1;
+}
+
 console.log(`Verified ${checked} transparent frames.`);

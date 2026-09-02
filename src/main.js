@@ -1,12 +1,16 @@
 const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 const { DEFAULT_CODEX_MODEL, findCodexExecutable, generatePetWithCodex } = require('./pet-generation');
+const { createMahIntegration } = require('./mah-integration');
 
 let petWindow;
+let managedWorkflowAdapter;
 
 const windowSizes = {
   pet: { width: 120, height: 130 },
+  scout: { width: 200, height: 140 },
   setup: { width: 280, height: 450 },
+  preferences: { width: 300, height: 450 },
   lead: { width: 280, height: 450 },
   result: { width: 320, height: 520 }
 };
@@ -50,6 +54,13 @@ function createWindow() {
 function petActionPackSkillPath() {
   const root = app.isPackaged ? process.resourcesPath : app.getAppPath();
   return path.join(root, 'skills', 'pet-action-pack', 'SKILL.md');
+}
+
+function mahAdapter() {
+  if (!managedWorkflowAdapter) {
+    managedWorkflowAdapter = createMahIntegration({ userDataPath: app.getPath('userData') });
+  }
+  return managedWorkflowAdapter;
 }
 
 app.whenReady().then(() => {
@@ -117,6 +128,24 @@ ipcMain.handle('pet:generate-with-codex', async (event, payload) => {
     skillPath: petActionPackSkillPath(),
     onProgress: (message) => event.sender.send('pet:generation-progress', message)
   });
+});
+
+ipcMain.handle('mah:get-status', async () => mahAdapter().getStatus());
+
+ipcMain.handle('mah:register-project-entry', async (_event, payload) => {
+  return mahAdapter().registerProjectEntry(payload || {});
+});
+
+ipcMain.handle('mah:create-opportunity-routemap', async (_event, payload) => {
+  return mahAdapter().createOpportunityRoutemap(payload || {});
+});
+
+ipcMain.handle('mah:get-project-snapshot', async (_event, projectId) => {
+  return mahAdapter().getProjectSnapshot(projectId);
+});
+
+ipcMain.handle('mah:submit-checkpoint-decision', async (_event, payload) => {
+  return mahAdapter().submitCheckpointDecision(payload || {});
 });
 
 ipcMain.handle('window:quit', () => {

@@ -46,6 +46,29 @@
         <button type="button" id="createPet" class="secondary-action">Use Iron sample</button>
       </section>
 
+      <section id="preferenceSetup" class="preference-card" aria-labelledby="preferenceTitle">
+        <button type="button" id="backPreference" class="preference-back" aria-label="Back to the first question">Back</button>
+        <p id="preferenceEyebrow" class="eyebrow">QUICK INTRO · 1 OF 2</p>
+        <h1 id="preferenceTitle">What are you good at?</h1>
+        <p id="preferenceSummary" class="summary">Pick the role that feels closest. I will learn the details later.</p>
+
+        <fieldset id="roleQuestion" class="preference-question">
+          <legend>Which role feels closest?</legend>
+          <div id="roleChoices" class="choice-grid" aria-label="Choose one role"></div>
+        </fieldset>
+
+        <fieldset id="interestQuestion" class="preference-question">
+          <legend>What kinds of opportunities do you want?</legend>
+          <div id="interestChoices" class="choice-grid" aria-label="Choose one or more opportunity types"></div>
+        </fieldset>
+
+        <p id="preferenceHint" class="preference-hint" aria-live="polite">Choose one to continue.</p>
+        <div class="preference-actions">
+          <button type="button" id="savePreferences" class="review-action" disabled>Start scouting</button>
+          <button type="button" id="skipPreferences" class="secondary-action">Skip for now</button>
+        </div>
+      </section>
+
       <div id="leadNotice" class="lead-notice" aria-live="polite">Ding! I brought back something you can sell.</div>
 
       <section id="leadCard" class="lead-card" aria-live="polite">
@@ -53,6 +76,7 @@
         <button type="button" id="resetPetLead" class="change-pet-action">Change pet</button>
         <p id="cardEyebrow" class="eyebrow">YOUR PET FOUND A LEAD</p>
         <h1 id="leadTitle">AI Resource Pack Shop</h1>
+        <p id="leadMatch" class="lead-match"></p>
         <p id="leadSummary" class="summary"></p>
         <div id="leadStatus" class="status-pill">Waiting for owner approval</div>
 
@@ -72,25 +96,31 @@
         </div>
 
         <div class="action-stack">
-          <button type="button" id="approveLead" class="primary-action">Approved to act</button>
-          <button type="button" id="skipLead" class="secondary-action">Not this one. Keep scouting.</button>
-          <button type="button" id="reviewPlan" class="review-action">Copy routemap-ready plan</button>
-          <button type="button" id="showResult" class="result-action">Show money page</button>
+          <button type="button" id="approveLead" class="primary-action standard-lead-action">Accept and start in MAH</button>
+          <button type="button" id="skipLead" class="secondary-action standard-lead-action">Not this one. Keep scouting.</button>
+          <button type="button" id="reviewPlan" class="review-action standard-lead-action" disabled>View managed workflow</button>
+          <button type="button" id="showResult" class="result-action standard-lead-action">Preview target outcome</button>
+          <section id="skipFeedback" class="skip-feedback" aria-label="Why this opportunity is not a fit">
+            <p>What felt off? Optional, but it helps me scout better.</p>
+            <div id="feedbackChoices" class="feedback-choice-grid"></div>
+            <button type="button" id="skipWithoutFeedback" class="feedback-skip-action">Skip without feedback</button>
+          </section>
         </div>
 
         <section id="briefPanel" class="brief-panel">
-          <h2>Routemap-ready Plan</h2>
+          <h2>MAH Managed Workflow</h2>
+          <p id="mahConnection" class="integration-note">Checking MAH connection...</p>
           <dl>
             <div>
               <dt>Opportunity</dt>
               <dd id="briefOpportunity"></dd>
             </div>
             <div>
-              <dt>Small Experiment</dt>
+              <dt>Current Stage</dt>
               <dd id="briefV1"></dd>
             </div>
             <div>
-              <dt>Recommended Direction</dt>
+              <dt>Execution Path</dt>
               <dd id="briefQuestions"></dd>
             </div>
           </dl>
@@ -101,6 +131,7 @@
       <section id="resultCard" class="result-card" aria-live="polite">
         <button type="button" id="closeResult" class="icon-button close-card" title="Close">×</button>
         <p class="gumroad-logo">gumroad</p>
+        <p id="resultProvenance" class="result-provenance">ILLUSTRATIVE TARGET</p>
         <h1 id="resultTitle">Weekend store result</h1>
         <p id="resultSubtitle" class="summary"></p>
         <div class="revenue-hero">
@@ -122,7 +153,7 @@
           <span></span>
           <span></span>
         </div>
-        <img id="pet" alt="Iron" draggable="false">
+        <canvas id="pet" width="512" height="512" role="img" aria-label="Iron"></canvas>
         <div class="photo-feet" aria-hidden="true">
           <span></span>
           <span></span>
@@ -148,6 +179,9 @@
         <button type="button" id="quit" title="Quit">×</button>
       </nav>
     </main>
+    <script src="./pet-animation-timing.js"></script>
+    <script src="./scout-preferences.js"></script>
+    <script src="./creator-store-blueprint.js"></script>
     <script src="./opportunities.js"></script>
     <script src="./renderer.js"></script>
   </body>

@@ -28,7 +28,7 @@
   <rect x="48" y="496" width="412" height="48" rx="16" fill="#DED9CF"/>
   <text x="115" y="526" fill="#59554D" font-family="Arial, sans-serif" font-size="19" font-weight="800">Not this one. Keep scouting.</text>
   <rect x="48" y="553" width="412" height="48" rx="16" fill="#647568"/>
-  <text x="125" y="583" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="20" font-weight="800">Copy routemap-ready plan</text>
+  <text x="125" y="583" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="20" font-weight="800">View managed workflow</text>
   <rect x="48" y="610" width="412" height="48" rx="16" fill="#1F7847"/>
   <text x="163" y="640" fill="#FFFDF5" font-family="Arial, sans-serif" font-size="20" font-weight="800">Show money page</text>
   <ellipse cx="255" cy="878" rx="83" ry="13" fill="#05080C" opacity="0.36"/>
