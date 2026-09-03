@@ -856,8 +856,6 @@ async function skipCurrentLead() {
   briefPanel.classList.remove('visible');
   setBriefOpen(false);
   setPetMotion('');
-  document.body.dataset.view = 'pet';
-  await bridge.setMode('pet');
   await scoutForLead();
 }
 

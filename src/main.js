@@ -2,9 +2,11 @@ const { app, BrowserWindow, ipcMain, screen } = require('electron');
 const path = require('path');
 const { DEFAULT_CODEX_MODEL, findCodexExecutable, generatePetWithCodex } = require('./pet-generation');
 const { createMahIntegration } = require('./mah-integration');
+const { nextWindowOrigin } = require('./window-layout');
 
 let petWindow;
 let managedWorkflowAdapter;
+let currentWindowMode = 'pet';
 
 const windowSizes = {
   pet: { width: 120, height: 130 },
@@ -99,10 +101,19 @@ ipcMain.handle('window:set-mode', (_event, mode) => {
   const size = windowSizes[mode] || windowSizes.pet;
   const [x, y] = petWindow.getPosition();
   const [oldWidth, oldHeight] = petWindow.getSize();
-  const nextX = x + oldWidth - size.width;
-  const nextY = y + oldHeight - size.height;
-  const next = clampWindowPosition(nextX, nextY, size.width, size.height);
-  petWindow.setBounds({ x: next.x, y: next.y, width: size.width, height: size.height }, true);
+  const origin = nextWindowOrigin({
+    x,
+    y,
+    oldWidth,
+    oldHeight,
+    newWidth: size.width,
+    newHeight: size.height,
+    fromMode: currentWindowMode,
+    toMode: mode
+  });
+  const next = clampWindowPosition(origin.x, origin.y, size.width, size.height);
+  petWindow.setBounds({ x: next.x, y: next.y, width: size.width, height: size.height }, false);
+  currentWindowMode = mode;
   return true;
 });
 
