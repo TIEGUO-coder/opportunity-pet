@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
 const path = require('path');
 const { DEFAULT_CODEX_MODEL, findCodexExecutable, generatePetWithCodex } = require('./pet-generation');
 const { createMahIntegration } = require('./mah-integration');
 const { nextWindowOrigin } = require('./window-layout');
+const { launchMahOpportunity } = require('./mah-launch');
 
 let petWindow;
 let managedWorkflowAdapter;
@@ -142,6 +143,13 @@ ipcMain.handle('pet:generate-with-codex', async (event, payload) => {
 });
 
 ipcMain.handle('mah:get-status', async () => mahAdapter().getStatus());
+
+ipcMain.handle('mah:open-opportunity', async (_event, payload) => {
+  return launchMahOpportunity(payload || {}, {
+    getApplicationInfoForProtocol: app.getApplicationInfoForProtocol?.bind(app),
+    openExternal: (url) => shell.openExternal(url, { activate: true })
+  });
+});
 
 ipcMain.handle('mah:register-project-entry', async (_event, payload) => {
   return mahAdapter().registerProjectEntry(payload || {});

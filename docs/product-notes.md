@@ -10,10 +10,10 @@ It is not a paid product, a bookmark tool, or a promise that the user will make 
 2. Opportunity Pet uses the user's Codex to infer a multi-view identity and generate the six-action scout, with a basic local fallback.
 3. The generated pet scouts for small opportunities a GitHub/Codex builder can package and fulfill.
 4. The pet brings back a money lead as a compact card, such as a creator-store launch kit.
-5. The user approves, skips, or reviews the lead.
-6. Approved leads are sent directly through the MAH adapter without clipboard copying.
+5. The user approves or skips the lead.
+6. Approved leads open directly in installed MAH with the opportunity attached; users without MAH are sent to its web download entry.
 7. MAH owns the routemap, delegated tasks, schedules, retries, and agent routing.
-8. Opportunity Pet renders returned progress and clearly distinguishes illustrative targets from live results.
+8. Opportunity Pet leaves planning and execution inside MAH and keeps its own UI focused on scouting and decisions.
 
 ## Opportunity Types
 
@@ -35,6 +35,6 @@ Each card should answer:
 
 ## MVP Boundary
 
-The current MVP has explicit MAH project, routemap, task, schedule, checkpoint, and event boundaries. It sends structured opportunity data after owner approval and renders the returned project snapshot. Until the production MAH interface is available, a local adapter previews those resource boundaries and labels every result as non-live. The uploaded photo set is source material for the animated pet generator.
+The current MVP builds a structured, idempotent opportunity handoff. Accept checks for MAH's desktop protocol first and falls back to the configured MAH web entry when the app is absent. The final desktop route and web address remain release configuration until MAH publishes them. Opportunity Pet does not show an intermediate plan document. The uploaded photo set is source material for the animated pet generator.
 
 The Creator Store case is no longer an open-ended service idea. Its business source of truth is the [Creator Store Launch Kit blueprint](creator-store-blueprint.md): one user-owned source asset, one fixed demonstration product, eight reviewable stages, one publishing approval, and two recurring intents.

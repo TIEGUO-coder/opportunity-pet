@@ -52,6 +52,7 @@ const bridge = window.teiguoWindow || {
   generatePetWithCodex: () => Promise.resolve({ ok: false, error: 'Codex integration is unavailable.' }),
   onGenerationProgress: () => () => {},
   getMahStatus: () => Promise.resolve({ connected: false, mode: 'preview', label: 'MAH preview adapter' }),
+  openMahOpportunity: () => Promise.resolve({ opened: false, target: 'unconfigured' }),
   registerMahProjectEntry: () => Promise.resolve({ id: 'preview-entry:opportunity-pet', isLive: false }),
   createOpportunityRoutemap: () => Promise.reject(new Error('MAH integration is unavailable.')),
   getMahProjectSnapshot: () => Promise.reject(new Error('MAH integration is unavailable.')),
@@ -83,16 +84,19 @@ const defaultActions = {
   sleep: ['../assets/teiguo/sleep/sleep_001.png', '../assets/teiguo/sleep/sleep_002.png', '../assets/teiguo/sleep/sleep_003.png', '../assets/teiguo/sleep/sleep_004.png'],
   happy: ['../assets/teiguo/happy/happy_001.png', '../assets/teiguo/happy/happy_002.png', '../assets/teiguo/happy/happy_003.png', '../assets/teiguo/happy/happy_004.png'],
   chase: ['../assets/teiguo/chase/chase_001.png', '../assets/teiguo/chase/chase_002.png', '../assets/teiguo/chase/chase_003.png', '../assets/teiguo/chase/chase_004.png'],
+  catch: ['../assets/teiguo/chase/chase_002.png', '../assets/teiguo/chase/chase_003.png', '../assets/teiguo/chase/chase_004.png'],
   yawn: ['../assets/teiguo/yawn/yawn_001.png', '../assets/teiguo/yawn/yawn_002.png', '../assets/teiguo/yawn/yawn_003.png', '../assets/teiguo/yawn/yawn_004.png']
 };
 const ACTION_PACK_POLICY_VERSION = 2;
 
 function withActionFallbacks(imported) {
   if (!imported) return defaultActions;
+  const chaseFrames = imported.chase || imported.happy || defaultActions.chase;
   return {
     ...defaultActions,
     ...imported,
-    chase: imported.chase || imported.happy || defaultActions.chase,
+    chase: chaseFrames,
+    catch: chaseFrames.length > 1 ? chaseFrames.slice(1) : chaseFrames,
     yawn: imported.yawn || imported.idle || defaultActions.yawn
   };
 }
@@ -119,9 +123,11 @@ let selectedPhotoDataUrls = [];
 let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || '';
 let petMotionTimer = null;
 let isScouting = false;
+let scoutingRunToken = 0;
 let codexAvailable = false;
 let generationBusy = false;
 let generationStatusTimer = null;
+let preferenceCueTimer = null;
 let mahStatus = null;
 let currentMahSnapshot = null;
 let workflowPollingTimer = null;
@@ -134,6 +140,24 @@ function wait(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function canBeginScouting() {
+  return preferenceApi.canBeginScouting({
+    hasPet: Boolean(petProfile),
+    hasPreferences: Boolean(scoutPreferences),
+    setupVisible: petSetup.classList.contains('visible'),
+    preferencesVisible: preferenceSetup.classList.contains('visible')
+  });
+}
+
+function cancelAutonomousPetActivity() {
+  scoutingRunToken += 1;
+  isScouting = false;
+  clearTimeout(scoutingTimer);
+  clearTimeout(ambientTimer);
+  clearTimeout(settleTimer);
+  setPetMotion('');
 }
 
 function updateGeneratePetButton() {
@@ -313,7 +337,7 @@ function stopAnimationOnFirstFrame(action = 'idle') {
 }
 
 function animateWhileCursorMoves() {
-  if (Date.now() < manualModeUntil || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || isScouting) return;
+  if (Date.now() < manualModeUntil || preferenceSetup.classList.contains('visible') || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || isScouting) return;
   clearTimeout(ambientTimer);
   if (currentAction !== 'walk' || !isAnimationRunning()) startAnimation('walk', 140, true);
   clearTimeout(settleTimer);
@@ -389,7 +413,8 @@ function savePetProfile(profile) {
 
 function loadScoutPreferences() {
   try {
-    return JSON.parse(localStorage.getItem(SCOUT_PREFERENCES_KEY)) || null;
+    const preferences = JSON.parse(localStorage.getItem(SCOUT_PREFERENCES_KEY)) || null;
+    return preferences?.version === preferenceApi.SCOUT_PREFERENCES.version ? preferences : null;
   } catch {
     return null;
   }
@@ -446,6 +471,8 @@ function renderFeedbackChoices() {
 }
 
 function hidePreferencePanel() {
+  clearTimeout(preferenceCueTimer);
+  preferenceCueTimer = null;
   preferenceSetup.classList.remove('visible');
   preferenceSetup.setAttribute('aria-hidden', 'true');
   preferenceSetup.inert = true;
@@ -491,7 +518,10 @@ function renderPreferenceChoices() {
       roleChoices.querySelectorAll('.choice-chip').forEach((chip) => {
         chip.setAttribute('aria-pressed', String(chip === button));
       });
+      clearTimeout(preferenceCueTimer);
+      preferenceCueTimer = null;
       setPreferenceStep('interests');
+      stopAnimationOnFirstFrame('idle');
     });
     roleChoices.appendChild(button);
   });
@@ -522,6 +552,7 @@ function renderPreferenceChoices() {
 }
 
 async function showPreferenceSetup() {
+  cancelAutonomousPetActivity();
   hideSetupPanel();
   leadCard.classList.remove('visible');
   resultCard.classList.remove('visible');
@@ -532,6 +563,17 @@ async function showPreferenceSetup() {
   document.body.dataset.view = 'preferences';
   stopAnimationOnFirstFrame('idle');
   await bridge.setMode('preferences');
+  if (document.body.dataset.view !== 'preferences' || preferenceSetup.dataset.step !== 'role') return;
+  clearTimeout(preferenceCueTimer);
+  preferenceCueTimer = setTimeout(() => {
+    preferenceCueTimer = null;
+    if (document.body.dataset.view !== 'preferences' || preferenceSetup.dataset.step !== 'role') return;
+    setPetMotion('chasing', 1050);
+    playActionOnce('catch', 300, 'idle', () => {
+      setPetMotion('');
+      if (document.body.dataset.view === 'preferences') startAnimation('idle', 360);
+    });
+  }, 450);
 }
 
 async function finishPreferenceSetup(preferences) {
@@ -556,6 +598,7 @@ function setBriefOpen(open) {
 
 function applyPetProfile() {
   if (!petProfile) {
+    cancelAutonomousPetActivity();
     hidePreferencePanel();
     petSetup.classList.add('visible');
     petSetup.removeAttribute('aria-hidden');
@@ -601,7 +644,7 @@ function nextLead() {
   reviewPlan.disabled = true;
   skipLead.disabled = false;
   approveLead.disabled = false;
-  approveLead.textContent = mahStatus?.connected ? 'Accept and start in MAH' : 'Accept and preview handoff';
+  approveLead.textContent = 'Make this happen →';
   showResult.textContent = 'Preview target outcome';
 }
 
@@ -657,25 +700,30 @@ async function showLeadCard() {
   manualModeUntil = Date.now() + 1600;
   clearTimeout(ambientTimer);
   await bridge.setMode('lead');
-  await restoreProjectForLead(currentLead);
 }
 
 async function scoutForLead() {
-  if (isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible')) return;
+  if (!canBeginScouting() || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible')) return false;
+  const runToken = ++scoutingRunToken;
   isScouting = true;
   clearTimeout(scoutingTimer);
   clearTimeout(ambientTimer);
-  hideSetupPanel();
-  hidePreferencePanel();
-  document.body.dataset.view = 'scout';
-  setPetMotion('pacing');
-  startAnimation('walk', 140, true);
-  manualModeUntil = Date.now() + 2800;
-  await bridge.setMode('scout');
-  await wait(2500);
-  setPetMotion('');
-  await showLeadCard();
-  isScouting = false;
+  try {
+    hideSetupPanel();
+    hidePreferencePanel();
+    document.body.dataset.view = 'scout';
+    setPetMotion('pacing');
+    startAnimation('walk', 140, true);
+    manualModeUntil = Date.now() + 2800;
+    await bridge.setMode('scout');
+    await wait(2500);
+    if (runToken !== scoutingRunToken || !canBeginScouting()) return false;
+    setPetMotion('');
+    await showLeadCard();
+    return true;
+  } finally {
+    if (runToken === scoutingRunToken) isScouting = false;
+  }
 }
 
 async function closeLeadCardView() {
@@ -696,19 +744,19 @@ async function closeLeadCardView() {
 
 function scheduleScouting() {
   clearTimeout(scoutingTimer);
-  if (!petProfile) return;
+  if (!canBeginScouting()) return;
   scoutingTimer = setTimeout(scoutForLead, 18000);
 }
 
 function scheduleAmbient() {
   clearTimeout(ambientTimer);
-  if (!petProfile || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible')) return;
+  if (!canBeginScouting() || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible')) return;
   const delay = 8500 + Math.round(Math.random() * 5000);
   ambientTimer = setTimeout(runAmbientAction, delay);
 }
 
 function runAmbientAction() {
-  if (!petProfile || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || Date.now() < manualModeUntil) {
+  if (!canBeginScouting() || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || Date.now() < manualModeUntil) {
     scheduleAmbient();
     return;
   }
@@ -800,8 +848,8 @@ function renderMahSnapshot(snapshot) {
     showResult.textContent = livePresentation ? 'View live result' : 'Preview target outcome';
   }
   if (routemap.status === 'route_running') {
-    stopAnimationOnFirstFrame('happy');
     setPetMotion('found');
+    if (currentAction !== 'chase' && currentAction !== 'idle') startAnimation('idle', 320);
   }
 }
 
@@ -827,24 +875,33 @@ function startWorkflowPolling() {
 async function approveCurrentLead() {
   if (!currentLead || approveLead.disabled) return;
   approveLead.disabled = true;
-  approveLead.textContent = mahStatus?.connected ? 'Starting in MAH...' : 'Starting handoff preview...';
-  document.getElementById('leadStatus').textContent = mahStatus?.connected
-    ? 'Sending opportunity directly to MAH...'
-    : 'Preparing a local MAH handoff preview...';
+  approveLead.textContent = 'Opening MAH...';
+  document.getElementById('leadStatus').textContent = 'Sending this opportunity to MAH...';
   try {
-    const snapshot = await bridge.createOpportunityRoutemap(opportunityRoutemapPayload());
+    const launch = await bridge.openMahOpportunity(opportunityRoutemapPayload());
+    if (!launch?.opened) {
+      leadCard.dataset.approved = 'false';
+      document.getElementById('leadStatus').textContent = launch?.message || 'MAH download page is not configured yet.';
+      approveLead.disabled = false;
+      approveLead.textContent = 'Make this happen →';
+      return;
+    }
     leadCard.dataset.approved = 'true';
-    saveProjectForLead(currentLead, snapshot);
-    renderMahSnapshot(snapshot);
-    startWorkflowPolling();
+    document.getElementById('leadStatus').textContent = launch.target === 'desktop'
+      ? 'Opportunity sent to MAH.'
+      : 'MAH is not installed. Opening the MAH download page...';
     setPetMotion('chasing', 1500);
-    playActionOnce('chase', 125, 'idle', () => setPetMotion('found'));
+    playActionOnce('chase', 125, 'idle', () => {
+      setPetMotion('found');
+      startAnimation('idle', 320);
+    });
   } catch (error) {
     leadCard.dataset.approved = 'false';
-    document.getElementById('leadStatus').textContent = `Could not start MAH workflow: ${error.message || error}`;
+    document.getElementById('leadStatus').textContent = `Could not open MAH: ${error.message || error}`;
+    approveLead.disabled = false;
+    approveLead.textContent = 'Make this happen →';
   } finally {
-    approveLead.disabled = Boolean(currentMahSnapshot);
-    approveLead.textContent = currentMahSnapshot ? 'Routemap started' : (mahStatus?.connected ? 'Accept and start in MAH' : 'Accept and preview handoff');
+    if (leadCard.dataset.approved === 'true') approveLead.textContent = 'Opened in MAH';
   }
 }
 
@@ -919,6 +976,12 @@ async function resetPetProfile() {
   localStorage.removeItem('opportunityPet.profile');
   localStorage.removeItem('opportunityPet.importedActions');
   localStorage.removeItem('opportunityPet.spriteSheet');
+  localStorage.removeItem(SCOUT_PREFERENCES_KEY);
+  scoutPreferences = null;
+  pendingRole = '';
+  pendingInterests = new Set();
+  opportunities = preferenceApi.rankOpportunities(sourceOpportunities, {}, scoutFeedback);
+  renderPreferenceChoices();
   selectedPhotoDataUrls = [];
   importedSpriteSheet = '';
   petProfile = null;
@@ -1632,6 +1695,7 @@ minimize.addEventListener('click', (event) => {
 
 quit.addEventListener('click', (event) => {
   event.stopPropagation();
+  if (!window.confirm('Quit Opportunity Pet?')) return;
   bridge.quit();
 });
 
@@ -1669,12 +1733,12 @@ bridge.getCodexStatus().then((status) => {
 });
 bridge.getMahStatus().then((status) => {
   mahStatus = status;
-  approveLead.textContent = status.connected ? 'Accept and start in MAH' : 'Accept and preview handoff';
+  approveLead.textContent = 'Make this happen →';
   document.getElementById('mahConnection').textContent = status.message || status.label || 'MAH status available.';
 }).catch((error) => {
   mahStatus = { connected: false, mode: 'unavailable' };
-  approveLead.textContent = 'MAH unavailable';
-  approveLead.disabled = true;
+  approveLead.textContent = 'Make this happen →';
+  approveLead.disabled = false;
   document.getElementById('mahConnection').textContent = `MAH connection unavailable: ${error.message || error}`;
 });
 bridge.registerMahProjectEntry({

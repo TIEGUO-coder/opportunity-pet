@@ -77,6 +77,7 @@ async function main() {
     document.getElementById('createPet').click();
   `);
   await waitFor(win, `document.body.dataset.view === 'preferences'`);
+  await new Promise((resolve) => setTimeout(resolve, 650));
   await capture(win, path.join(outputRoot, 'scout-preferences.png'));
   await win.webContents.executeJavaScript(`document.querySelector('[data-role-id="creator"]').click();`);
   await waitFor(win, `document.getElementById('preferenceSetup').dataset.step === 'interests'`);
@@ -92,23 +93,12 @@ async function main() {
   await capture(win, path.join(outputRoot, 'scout-feedback.png'));
   await win.webContents.executeJavaScript(`document.querySelector('.action-stack').classList.remove('feedback-open');`);
 
-  await win.webContents.executeJavaScript(`document.getElementById('approveLead').click();`);
-  await waitFor(win, `!document.getElementById('reviewPlan').disabled`);
-  win.setBounds({ width: sizes.brief.width, height: sizes.brief.height }, true);
-  await win.webContents.executeJavaScript(`document.getElementById('reviewPlan').click();`);
-  await waitFor(
-    win,
-    `document.body.classList.contains('brief-open') && document.getElementById('briefPanel').classList.contains('visible') && document.getElementById('briefOpportunity').textContent.includes('Creator Store')`
-  );
-  await new Promise((resolve) => setTimeout(resolve, 250));
-  await capture(win, path.join(outputRoot, 'creator-store-brief.png'));
-
   await win.webContents.executeJavaScript(`document.getElementById('showResult').click();`);
   await waitFor(win, `document.body.dataset.view === 'result' && document.getElementById('resultRevenue').textContent === '$203'`);
   await new Promise((resolve) => setTimeout(resolve, 200));
   await capture(win, path.join(outputRoot, 'creator-store-result.png'));
 
-  console.log('Captured scout-preferences.png, scout-interests.png, scout-feedback.png, creator-store-lead.png, creator-store-brief.png, and creator-store-result.png');
+  console.log('Captured scout-preferences.png, scout-interests.png, scout-feedback.png, creator-store-lead.png, and creator-store-result.png');
   app.exit(0);
 }
 

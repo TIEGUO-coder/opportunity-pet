@@ -2,6 +2,16 @@
 
 Opportunity Pet is the business interaction layer. MAH owns the project entry, routemap, delegated tasks, scheduled operations, approval checkpoints, execution events, retries, agent routing, and long-running state.
 
+## User-facing launch contract
+
+Accept never opens an intermediate plan or workflow document inside Opportunity Pet. The desktop app passes a compact, versioned opportunity payload to MAH and then gets out of the way.
+
+- Installed MAH: open `OPPORTUNITY_PET_MAH_DEEP_LINK` (default protocol shape: `mah://import/opportunity`) with `source` and `handoff` query parameters.
+- MAH not installed: open the HTTPS address in `OPPORTUNITY_PET_MAH_WEB_URL` with the same parameters so the web entry can retain context while prompting installation.
+- `handoff` is base64url-encoded UTF-8 JSON and includes an idempotency key, opportunity identity, summary, evidence, risk, smallest experiment, directions, and checks.
+
+The two final release URLs must come from MAH. Pre-release builds deliberately leave the web URL unset rather than sending users to an invented address.
+
 The repository does not guess unpublished MAH CLI commands. Until the production Skill and CLI are available, the app previews the same resource boundaries locally and labels every resource as non-live.
 
 ## Why the boundary is explicit

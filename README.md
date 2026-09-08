@@ -79,13 +79,9 @@ messy creator asset
 
 The pet does not claim that every lead will make money. Its job is to make plausible opportunities visible at the moment when you can still make a small decision: approve one, reject it, or investigate it properly.
 
-## 3. Accept The Lead Into A Managed Workflow
+## 3. Accept The Lead In MAH
 
-Approving a card is a system handoff, not a clipboard handoff. Opportunity Pet creates a native MAH project and routemap, then renders the tasks, schedules, checkpoints, and events returned by that project.
-
-<p align="center">
-  <img src="docs/screenshots/creator-store-brief.png" width="420" alt="Opportunity Pet showing a managed MAH workflow and its execution phases">
-</p>
+Approving a card does not produce another plan or document to copy. Opportunity Pet packages the useful context and opens [MAH](https://mah.bot/) with the opportunity already attached. If the MAH desktop app is installed, it opens the native import route. Otherwise, the same action opens the official [MAH download page](https://mah.bot/download).
 
 The handoff keeps the useful context instead of forcing another interview loop. It includes:
 
@@ -99,15 +95,15 @@ For a creator-store lead, a practical first experiment is one asset, one storefr
 
 ## 4. Let MAH Run The Work
 
-Opportunity Pet is MAH's playful business interface. It discovers and presents the lead, captures the owner's decision, and turns MAH's execution state into a visible pet reaction.
+Opportunity Pet is MAH's playful business interface. It discovers and presents the lead, captures the owner's decision, and hands execution to MAH.
 
 MAH is the running base underneath it: routemap evolution, task delegation, agent routing, retries, scheduled storefront checks, and long-running state. The pet does not reimplement those mechanisms.
 
 ```text
-lead card -> owner accepts -> MAH project + routemap -> tasks and schedules -> progress returned to the pet
+lead card -> owner accepts -> MAH opens with the opportunity -> MAH takes over
 ```
 
-This repository includes a strict adapter boundary instead of inventing unpublished CLI commands. Without a production adapter, the app runs a clearly labelled local handoff preview. See [the MAH integration contract](docs/mah-integration-contract.md). The preview does not create live tasks, products, listings, orders, or revenue.
+The web fallback uses MAH's official public domain, while the native desktop route remains configurable until its final protocol is published. The pet does not imitate MAH execution inside its own UI. See [the MAH integration contract](docs/mah-integration-contract.md).
 
 ## 5. End With A Result, Not A Bookmark
 
@@ -145,10 +141,9 @@ Gumroad is only one possible destination. The same loop can point to Etsy, Shopi
 - Fall back to a local transparent scout if image generation is unavailable.
 - Run as a small transparent Electron desktop pet on top of ordinary work.
 - Scout curated opportunity cards and let the user approve or reject them.
-- Hand approved leads directly into explicit MAH project, routemap, task, schedule, checkpoint, and event boundaries without clipboard copying.
-- Persist and render workflow phases returned by that adapter.
-- Recover an existing workflow after the desktop app restarts and prevent duplicate submissions.
-- Run a clearly labelled local workflow preview until the production MAH adapter is installed.
+- Hand approved leads directly to MAH without clipboard copying or an intermediate plan document.
+- Open the installed MAH desktop import route with a structured, idempotent opportunity payload.
+- Fall back to the official [MAH download page](https://mah.bot/download) when the desktop app is not installed.
 - Open a result page that explicitly labels the intended business outcome as illustrative.
 - Build packaged desktop downloads for macOS, Windows, and Linux.
 
@@ -223,4 +218,4 @@ Opportunity Pet does not choose what someone should build, promise revenue, publ
 
 ---
 
-Opportunity Pet brings the opportunity home. MAH is the running base that turns an accepted opportunity into managed work.
+Opportunity Pet brings the opportunity home. [MAH](https://mah.bot/) is the running base that turns an accepted opportunity into managed work.

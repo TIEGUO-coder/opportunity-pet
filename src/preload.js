@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('teiguoWindow', {
     return () => ipcRenderer.removeListener('pet:generation-progress', listener);
   },
   getMahStatus: () => ipcRenderer.invoke('mah:get-status'),
+  openMahOpportunity: (payload) => ipcRenderer.invoke('mah:open-opportunity', payload),
   registerMahProjectEntry: (payload) => ipcRenderer.invoke('mah:register-project-entry', payload),
   createOpportunityRoutemap: (payload) => ipcRenderer.invoke('mah:create-opportunity-routemap', payload),
   getMahProjectSnapshot: (projectId) => ipcRenderer.invoke('mah:get-project-snapshot', projectId),

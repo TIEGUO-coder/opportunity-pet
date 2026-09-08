@@ -68,6 +68,11 @@ body[data-view="preferences"] .pet-wrap {
   z-index: 4;
 }
 
+body[data-view="preferences"] .pet-wrap.chasing {
+  width: 148px;
+  height: 116px;
+}
+
 body[data-view="scout"] .pet-wrap {
   left: 50%;
   right: auto;
@@ -376,6 +381,21 @@ body[data-view="setup"] .pet-wrap {
   background: rgba(242, 238, 229, 0.98);
   box-shadow: 0 16px 32px rgba(45, 35, 20, 0.16);
   overflow: visible;
+}
+
+.result-back-button {
+  position: absolute;
+  right: 10px;
+  top: 9px;
+  min-height: 26px;
+  padding: 4px 9px;
+  border: 1px solid #484848;
+  border-radius: 999px;
+  background: #181818;
+  color: #ededed;
+  font-size: 9px;
+  font-weight: 800;
+  cursor: pointer;
 }
 
 .preference-card::after {
@@ -1034,6 +1054,21 @@ dd {
   z-index: 6;
 }
 
+.mah-handoff-action {
+  display: grid;
+  gap: 2px;
+}
+
+.mah-continuation-note {
+  margin: 0;
+  color: #aaa49a;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-align: center;
+}
+
 .action-stack.feedback-open .standard-lead-action {
   display: none;
 }
@@ -1389,6 +1424,10 @@ body[data-view="preferences"] #pin {
 }
 
 body[data-view="scout"] #controls {
+  display: none;
+}
+
+body[data-view="result"] #controls {
   display: none;
 }
 

@@ -19,6 +19,8 @@ assert.doesNotMatch(rendererJs, /setInterval\(showFrame/);
 assert.doesNotMatch(rendererJs, /scoutStepOffsetAtElapsed/);
 const styles = fs.readFileSync(path.join(__dirname, '..', 'src', 'styles.css'), 'utf8');
 assert.doesNotMatch(styles, /animation:\s*paceAround/);
+assert.doesNotMatch(rendererJs, /stopAnimationOnFirstFrame\(['"]happy['"]\)/);
+assert.match(rendererJs, /playActionOnce\(['"]chase['"],[\s\S]*?startAnimation\(['"]idle['"],\s*320\)/);
 assert.doesNotMatch(styles, /--scout-step-x/);
 
 console.log('Verified Canvas rendering, refresh-synchronized timing, looping, and one-shot completion boundaries.');

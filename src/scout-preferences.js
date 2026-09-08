@@ -1,5 +1,5 @@
 const SCOUT_PREFERENCES = {
-  version: 1,
+  version: 2,
   roles: [
     { id: 'developer', label: 'Tech / dev' },
     { id: 'creator', label: 'Content creator' },
@@ -79,6 +79,17 @@ function explainOpportunityFit(opportunity, preferences = {}) {
   return `Matched: ${reasons.join(' · ')}`;
 }
 
-const api = { SCOUT_PREFERENCES, feedbackPenalty, scoreOpportunity, rankOpportunities, explainOpportunityFit };
+function canBeginScouting({ hasPet, hasPreferences, setupVisible, preferencesVisible } = {}) {
+  return Boolean(hasPet && hasPreferences && !setupVisible && !preferencesVisible);
+}
+
+const api = {
+  SCOUT_PREFERENCES,
+  feedbackPenalty,
+  scoreOpportunity,
+  rankOpportunities,
+  explainOpportunityFit,
+  canBeginScouting
+};
 if (typeof module !== 'undefined' && module.exports) module.exports = api;
 if (typeof window !== 'undefined') window.SCOUT_PREFERENCE_API = api;

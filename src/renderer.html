@@ -96,9 +96,12 @@
         </div>
 
         <div class="action-stack">
-          <button type="button" id="approveLead" class="primary-action standard-lead-action">Accept and start in MAH</button>
+          <div class="mah-handoff-action standard-lead-action">
+            <button type="button" id="approveLead" class="primary-action">Make this happen →</button>
+            <p class="mah-continuation-note">Continues in MAH</p>
+          </div>
           <button type="button" id="skipLead" class="secondary-action standard-lead-action">Not this one. Keep scouting.</button>
-          <button type="button" id="reviewPlan" class="review-action standard-lead-action" disabled>View managed workflow</button>
+          <button type="button" id="reviewPlan" class="review-action standard-lead-action" hidden disabled>View managed workflow</button>
           <button type="button" id="showResult" class="result-action standard-lead-action">Preview target outcome</button>
           <section id="skipFeedback" class="skip-feedback" aria-label="Why this opportunity is not a fit">
             <p>What felt off? Optional, but it helps me scout better.</p>
@@ -107,7 +110,7 @@
           </section>
         </div>
 
-        <section id="briefPanel" class="brief-panel">
+        <section id="briefPanel" class="brief-panel" hidden>
           <h2>MAH Managed Workflow</h2>
           <p id="mahConnection" class="integration-note">Checking MAH connection...</p>
           <dl>
@@ -129,7 +132,7 @@
       </section>
 
       <section id="resultCard" class="result-card" aria-live="polite">
-        <button type="button" id="closeResult" class="icon-button close-card" title="Close">×</button>
+        <button type="button" id="closeResult" class="result-back-button" title="Back to opportunity" aria-label="Back to opportunity">← Back</button>
         <p class="gumroad-logo">gumroad</p>
         <p id="resultProvenance" class="result-provenance">ILLUSTRATIVE TARGET</p>
         <h1 id="resultTitle">Weekend store result</h1>

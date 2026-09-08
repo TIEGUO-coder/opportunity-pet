@@ -7,17 +7,18 @@ This is a product demo checklist, not a claim that MAH production execution alre
 1. Run `npm ci` and `npm run check`.
 2. Run `npm run start` on a normal desktop session.
 3. Choose **Use Iron sample** if personalized pet generation would make the demo too long.
-4. Confirm the lead card says **Accept and preview handoff** while the production adapter is absent.
-5. Accept the Creator Store Launch Kit once, then restart the app and confirm the saved workflow is restored rather than duplicated.
-6. Open **View managed workflow** and confirm all stages are visible.
-7. Open **Preview target outcome** and confirm **ILLUSTRATIVE TARGET** is visible above the revenue card.
+4. Confirm the lead card says **Make this happen →** with the quiet **Continues in MAH** disclosure.
+5. Configure the release MAH desktop route and web entry before testing Accept.
+6. With MAH installed, confirm Accept opens MAH with the opportunity attached.
+7. Without MAH installed, confirm Accept opens the MAH web download entry.
+8. Open **Preview target outcome** and confirm **ILLUSTRATIVE TARGET** is visible above the revenue card.
 
 ## Three-minute demo path
 
 1. The pet returns with a concrete creator-store opportunity.
-2. Click **Accept and preview handoff**. No plan is copied and there is no manual paste step.
-3. Open **View managed workflow**. Show the transition from acceptance to routemap, delegated product work, listing preparation, and scheduled sales monitoring.
-4. Restart the app if time allows. The same MAH project and routemap IDs should recover and the accept action should remain locked.
+2. Click **Make this happen →**. No plan or document appears in the pet; **Continues in MAH** makes the destination clear before the jump.
+3. Show MAH opening with the opportunity context already attached.
+4. Repeat without MAH installed and show the web download fallback.
 5. Open the target outcome and point out that it is explicitly illustrative until a connected storefront monitor returns live data.
 
 ## Once MAH production is available
