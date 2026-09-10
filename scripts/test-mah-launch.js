@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const {
   buildMahLaunchTargets,
+  compactHandoff,
   launchMahOpportunity
 } = require('../src/mah-launch');
 
@@ -15,6 +16,11 @@ const payload = {
     summary: 'Package one useful asset and test demand.',
     recommendedDirection: ['Start with one narrow buyer.'],
     checks: ['Confirm evidence before publishing.']
+  },
+  scoutingPreferences: {
+    version: 2,
+    role: 'creator',
+    interests: ['digital-products', 'open']
   }
 };
 
@@ -29,8 +35,17 @@ const targets = buildMahLaunchTargets(payload, {
 });
 assert.equal(new URL(targets.desktopUrl).protocol, 'mah:');
 assert.equal(new URL(targets.webUrl).protocol, 'https:');
+assert.equal(new URL(targets.downloadUrl).hostname, 'mah.bot');
 assert.equal(new URL(targets.desktopUrl).searchParams.get('source'), 'opportunity-pet');
 assert.ok(new URL(targets.desktopUrl).searchParams.get('handoff'));
+assert.equal(new URL(targets.downloadUrl).searchParams.get('handoff'), null);
+
+assert.deepEqual(compactHandoff(payload).scoutingPreferences, {
+  version: 2,
+  role: 'creator',
+  interests: ['digital-products', 'open'],
+  skipped: false
+});
 
 (async () => {
   const opened = [];
@@ -48,13 +63,24 @@ assert.ok(new URL(targets.desktopUrl).searchParams.get('handoff'));
   assert.equal(web.target, 'web');
   assert.equal(new URL(opened.pop()).hostname, 'mah.test');
 
-  const unconfigured = await launchMahOpportunity(payload, {
-    getApplicationInfoForProtocol: async () => { throw new Error('not installed'); },
-    openExternal: async () => { throw new Error('must not open'); }
-  }, { desktopUrl: 'mah://import/opportunity' });
-  assert.equal(unconfigured.target, 'unconfigured');
+  const desktopFailureFallback = await launchMahOpportunity(payload, {
+    getApplicationInfoForProtocol: async () => ({ name: 'MAH' }),
+    openExternal: async (url) => {
+      if (new URL(url).protocol === 'mah:') throw new Error('handler failed');
+      opened.push(url);
+    }
+  }, { desktopUrl: 'mah://import/opportunity', webUrl: 'https://mah.test/import' });
+  assert.equal(desktopFailureFallback.target, 'web');
+  assert.equal(new URL(opened.pop()).pathname, '/import');
 
-  console.log('Verified installed-MAH deep linking, structured opportunity handoff, and web download fallback.');
+  const download = await launchMahOpportunity(payload, {
+    getApplicationInfoForProtocol: async () => { throw new Error('not installed'); },
+    openExternal: async (url) => opened.push(url)
+  }, { desktopUrl: 'mah://import/opportunity' });
+  assert.equal(download.target, 'download');
+  assert.equal(new URL(opened.pop()).hostname, 'mah.bot');
+
+  console.log('Verified installed-MAH deep linking, preference handoff, desktop failure fallback, and web download fallback.');
 })().catch((error) => {
   console.error(error);
   process.exitCode = 1;

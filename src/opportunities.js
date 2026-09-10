@@ -7,14 +7,14 @@ window.OPPORTUNITIES = [
     interests: ['digital-products', 'content-ip'],
     effortLevel: 3,
     riskLevel: 2,
-    summary: 'Turn one useful asset you already own into a focused digital product with a complete download, storefront page, delivery instructions, and a result you can inspect.',
+    summary: 'Spot one useful asset, workflow, or repeatable know-how that fits the owner, then turn it into a focused digital product with a storefront, delivery package, and result that MAH can keep watching.',
     evidence: 'Before acting, collect at least two recent public examples with source links and dates that show similar products sell or that creators struggle to package this kind of asset.',
     risk: 'The first version must package one narrow asset into a sellable product. It should not promise passive income, fake sales, or automate spammy social posting.',
     v1: 'Package one user-owned asset into the Freelance Client Portal Kit: a complete ZIP download, quick-start guide, storefront copy, FAQ, cover brief, and reviewable $29-$79 price range.',
     recommendedDirection: [
-      'Start with the included messy freelance-client sample or one template, prompt pack, checklist, guide, or workflow that the user owns.',
-      'Aim the first product at freelancers and solo service businesses that need repeatable client onboarding and delivery.',
-      'Finish one complete downloadable package, ask the owner to approve the product and listing, then verify the public product URL before monitoring results.'
+      'Use the owner profile to find one template, prompt pack, checklist, guide, workflow, or repeated client process the owner already understands.',
+      'Aim the first product at a narrow buyer, such as freelancers or solo service businesses that need repeatable onboarding and delivery.',
+      'After the owner accepts the opportunity, let MAH turn it into tasks, approvals, publishing, and ongoing result monitoring.'
     ],
     routemapChecks: [
       'The user confirms ownership or permission to sell the source material.',
@@ -65,7 +65,26 @@ window.OPPORTUNITIES = [
       'Codex can generate reply drafts, tone variants, and response policies.',
       'Human approval is required before any reply is posted.',
       'Stop if the workflow encourages fake reviews, spam, or generic apology templates.'
-    ]
+    ],
+    result: {
+      isIllustrative: true,
+      title: 'First client workflow target',
+      customer: 'Local review reply helper',
+      revenue: '$149',
+      subtitle: 'Illustrative first-paid-pilot target for a reputation workflow',
+      stats: [
+        ['Pilot fee', '$149'],
+        ['Drafts prepared', '42'],
+        ['Owner approvals', '18'],
+        ['Unanswered reviews', 'Down 63%']
+      ],
+      ledger: [
+        ['Mon 9:00 AM', 'Dentist niche picked', '$0'],
+        ['Wed 4:10 PM', 'Reply policy approved', '$0'],
+        ['Fri 11:35 AM', 'Pilot workflow delivered', '+$149']
+      ],
+      note: 'Illustrative target only. Real replies must be approved by the business owner and never posted automatically.'
+    }
   },
   {
     id: 'resale-listing-polisher',
@@ -89,6 +108,25 @@ window.OPPORTUNITIES = [
       'Codex can generate titles, descriptions, condition checklists, and photo-shot lists.',
       'Human approval is required for condition, price, authenticity, and defects.',
       'Stop if the workflow invents missing details or implies guaranteed sale prices.'
-    ]
+    ],
+    result: {
+      isIllustrative: true,
+      title: 'Listing quality target',
+      customer: 'Resale listing assistant',
+      revenue: '$59',
+      subtitle: 'Illustrative first-packaged-service target for one resale category',
+      stats: [
+        ['Pilot fee', '$59'],
+        ['Listings polished', '12'],
+        ['Missing details found', '31'],
+        ['Buyer questions reduced', 'Target 40%']
+      ],
+      ledger: [
+        ['Tue 2:20 PM', 'Phone category chosen', '$0'],
+        ['Thu 6:45 PM', 'Listing checklist approved', '$0'],
+        ['Sat 10:05 AM', 'Pilot package delivered', '+$59']
+      ],
+      note: 'Illustrative target only. The workflow improves listing clarity but must not invent condition, authenticity, or sale-price claims.'
+    }
   }
 ];

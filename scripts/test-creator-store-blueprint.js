@@ -4,6 +4,7 @@ const blueprint = require('../src/creator-store-blueprint');
 assert.equal(blueprint.id, 'creator-store-launch-kit-v1');
 assert.equal(blueprint.product.id, 'freelance-client-portal-kit');
 assert.equal(blueprint.inputModes.sample.id, 'freelance-client-portal-source');
+assert.doesNotMatch(blueprint.inputModes.sample.label, /try|included sample/i);
 assert.equal(blueprint.inputModes.ownAsset.id, 'user-owned-digital-asset');
 
 const requiredInputs = blueprint.requiredInputs.filter((input) => input.required);

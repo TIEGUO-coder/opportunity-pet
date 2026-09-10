@@ -6,8 +6,8 @@ const CREATOR_STORE_BLUEPRINT = {
   inputModes: {
     sample: {
       id: 'freelance-client-portal-source',
-      label: 'Try the included sample',
-      description: 'A deliberately messy set of freelance onboarding notes, checklists, and email drafts.'
+      label: 'Reviewer demo source',
+      description: 'A deliberately messy set of freelance onboarding notes, checklists, and email drafts used only to review the end-to-end workflow.'
     },
     ownAsset: {
       id: 'user-owned-digital-asset',

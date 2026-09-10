@@ -887,9 +887,12 @@ async function approveCurrentLead() {
       return;
     }
     leadCard.dataset.approved = 'true';
-    document.getElementById('leadStatus').textContent = launch.target === 'desktop'
-      ? 'Opportunity sent to MAH.'
-      : 'MAH is not installed. Opening the MAH download page...';
+    leadCard.dataset.mahLaunchTarget = launch.target || '';
+    document.getElementById('leadStatus').textContent = {
+      desktop: 'Opening this opportunity in MAH...',
+      web: 'Opening MAH web with this opportunity attached...',
+      download: 'MAH is not installed yet. Opening the official download page...'
+    }[launch.target] || 'Opening MAH...';
     setPetMotion('chasing', 1500);
     playActionOnce('chase', 125, 'idle', () => {
       setPetMotion('found');
@@ -897,12 +900,19 @@ async function approveCurrentLead() {
     });
   } catch (error) {
     leadCard.dataset.approved = 'false';
+    leadCard.dataset.mahLaunchTarget = '';
     document.getElementById('leadStatus').textContent = `Could not open MAH: ${error.message || error}`;
     approveLead.disabled = false;
     approveLead.textContent = 'Make this happen →';
   } finally {
-    if (leadCard.dataset.approved === 'true') approveLead.textContent = 'Opened in MAH';
+    if (leadCard.dataset.approved === 'true') {
+      approveLead.textContent = launchTargetLabel(leadCard.dataset.mahLaunchTarget);
+    }
   }
+}
+
+function launchTargetLabel(target) {
+  return target === 'download' ? 'Download MAH to continue' : 'Opened in MAH';
 }
 
 async function skipCurrentLead() {

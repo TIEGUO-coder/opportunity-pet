@@ -1,7 +1,20 @@
 const DEFAULT_DESKTOP_URL = 'mah://import/opportunity';
+const DEFAULT_DOWNLOAD_URL = 'https://mah.bot/download';
 
 function clean(value, limit = 1600) {
   return typeof value === 'string' ? value.trim().slice(0, limit) : '';
+}
+
+function compactPreferences(preferences = {}) {
+  const interests = Array.isArray(preferences.interests)
+    ? preferences.interests.map((item) => clean(item, 80)).filter(Boolean).slice(0, 8)
+    : [];
+  return {
+    version: Number.isFinite(preferences.version) ? preferences.version : 1,
+    role: clean(preferences.role, 80),
+    interests,
+    skipped: Boolean(preferences.skipped)
+  };
 }
 
 function compactHandoff(payload = {}) {
@@ -24,7 +37,8 @@ function compactHandoff(payload = {}) {
       checks: Array.isArray(opportunity.checks)
         ? opportunity.checks.map((item) => clean(item, 500)).filter(Boolean).slice(0, 8)
         : []
-    }
+    },
+    scoutingPreferences: compactPreferences(payload.scoutingPreferences)
   };
 }
 
@@ -40,14 +54,24 @@ function handoffUrl(base, handoff, expectedProtocol) {
   return url.toString();
 }
 
+function downloadUrl(base) {
+  if (!base) return '';
+  const url = new URL(base);
+  if (url.protocol !== 'https:') throw new Error('Expected a https: MAH download URL.');
+  url.searchParams.set('source', 'opportunity-pet');
+  return url.toString();
+}
+
 function buildMahLaunchTargets(payload, options = {}) {
   const handoff = compactHandoff(payload);
   const desktopBase = options.desktopUrl || process.env.OPPORTUNITY_PET_MAH_DEEP_LINK || DEFAULT_DESKTOP_URL;
   const webBase = options.webUrl || process.env.OPPORTUNITY_PET_MAH_WEB_URL || '';
+  const downloadBase = options.downloadUrl || process.env.OPPORTUNITY_PET_MAH_DOWNLOAD_URL || DEFAULT_DOWNLOAD_URL;
   return {
     handoff,
     desktopUrl: handoffUrl(desktopBase, handoff, 'mah:'),
-    webUrl: handoffUrl(webBase, handoff, webBase ? 'https:' : '')
+    webUrl: handoffUrl(webBase, handoff, webBase ? 'https:' : ''),
+    downloadUrl: downloadUrl(downloadBase)
   };
 }
 
@@ -67,22 +91,24 @@ async function launchMahOpportunity(payload, dependencies = {}, options = {}) {
   }
 
   if (installed) {
-    await openExternal(targets.desktopUrl);
-    return { opened: true, target: 'desktop', url: targets.desktopUrl };
+    try {
+      await openExternal(targets.desktopUrl);
+      return { opened: true, target: 'desktop', url: targets.desktopUrl };
+    } catch (error) {
+      if (!targets.webUrl && !targets.downloadUrl) throw error;
+    }
   }
   if (targets.webUrl) {
     await openExternal(targets.webUrl);
     return { opened: true, target: 'web', url: targets.webUrl };
   }
-  return {
-    opened: false,
-    target: 'unconfigured',
-    message: 'The MAH download URL has not been configured for this pre-release build.'
-  };
+  await openExternal(targets.downloadUrl);
+  return { opened: true, target: 'download', url: targets.downloadUrl };
 }
 
 module.exports = {
   DEFAULT_DESKTOP_URL,
+  DEFAULT_DOWNLOAD_URL,
   buildMahLaunchTargets,
   compactHandoff,
   launchMahOpportunity

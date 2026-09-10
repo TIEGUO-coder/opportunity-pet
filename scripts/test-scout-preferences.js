@@ -1,6 +1,7 @@
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
+const vm = require('vm');
 const {
   SCOUT_PREFERENCES,
   feedbackPenalty,
@@ -43,6 +44,15 @@ assert.deepEqual(
 );
 
 const renderer = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer.js'), 'utf8');
+const opportunityContext = { window: { CREATOR_STORE_BLUEPRINT: { id: 'creator-store-launch-kit-v1' } } };
+vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'src', 'opportunities.js'), 'utf8'), opportunityContext);
+const opportunityCopy = JSON.stringify(opportunityContext.window.OPPORTUNITIES);
+assert.doesNotMatch(opportunityCopy, /included messy freelance-client sample/i);
+assert.equal(
+  opportunityContext.window.OPPORTUNITIES.every((opportunity) => opportunity.result?.isIllustrative === true),
+  true,
+  'Every scout opportunity should have its own illustrative result preview.'
+);
 const preferenceSetupFlow = renderer.match(/async function showPreferenceSetup\(\)[\s\S]*?\n}\n\nasync function finishPreferenceSetup/)?.[0] || '';
 assert.match(preferenceSetupFlow, /playActionOnce\(['"]catch['"],\s*300,\s*['"]idle['"],/);
 assert.doesNotMatch(preferenceSetupFlow, /startAnimation\(['"]catch['"]/, 'Butterfly-catching cue must not loop');
