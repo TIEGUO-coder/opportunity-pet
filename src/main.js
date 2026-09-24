@@ -10,7 +10,7 @@ let managedWorkflowAdapter;
 let currentWindowMode = 'pet';
 
 const windowSizes = {
-  pet: { width: 120, height: 130 },
+  pet: { width: 132, height: 150 },
   scout: { width: 200, height: 140 },
   setup: { width: 280, height: 450 },
   preferences: { width: 300, height: 450 },
@@ -51,7 +51,10 @@ function createWindow() {
     }
   });
 
-  petWindow.loadFile(path.join(__dirname, 'renderer.html'));
+  petWindow.loadFile(path.join(__dirname, 'renderer.html')).then(() => {
+    petWindow.show();
+    petWindow.focus();
+  });
 }
 
 function petActionPackSkillPath() {
@@ -125,7 +128,14 @@ ipcMain.handle('window:minimize', () => {
 });
 
 ipcMain.handle('cursor:get-position', () => {
-  return screen.getCursorScreenPoint();
+  const point = screen.getCursorScreenPoint();
+  const [windowX, windowY] = petWindow ? petWindow.getPosition() : [0, 0];
+  return {
+    x: point.x,
+    y: point.y,
+    clientX: point.x - windowX,
+    clientY: point.y - windowY
+  };
 });
 
 ipcMain.handle('pet:codex-status', () => {

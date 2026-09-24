@@ -24,5 +24,7 @@ assert.match(skipFunction, /await scoutForLead\(\)/);
 
 const main = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
 assert.match(main, /setBounds\([^\n]+, false\)/);
+assert.match(main, /pet:\s*\{\s*width:\s*132,\s*height:\s*150\s*\}/);
+assert.match(renderer, /PET_RENDER_BOTTOM_PADDING\s*=\s*24/);
 
 console.log('Verified skip-to-scout preserves the pet center and disables animated window sliding.');

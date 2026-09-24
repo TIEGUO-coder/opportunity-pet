@@ -40,12 +40,99 @@ body[data-view="preferences"] {
 .pet-wrap {
   position: absolute;
   right: 8px;
-  bottom: 4px;
-  width: 96px;
-  height: 92px;
+  bottom: 10px;
+  width: 104px;
+  height: 112px;
   cursor: grab;
   will-change: transform;
   z-index: 2;
+}
+
+.scout-butterfly {
+  --butterfly-x: 222px;
+  --butterfly-y: 286px;
+  --flutter-x: 0px;
+  --flutter-y: 0px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: none;
+  width: 21px;
+  height: 18px;
+  transform: translate3d(
+    calc(var(--butterfly-x) + var(--flutter-x)),
+    calc(var(--butterfly-y) + var(--flutter-y)),
+    0
+  );
+  pointer-events: none;
+  z-index: 5;
+}
+
+.scout-butterfly.visible {
+  display: block;
+}
+
+.scout-butterfly span,
+.scout-butterfly span::before,
+.scout-butterfly span::after {
+  position: absolute;
+  display: block;
+  content: "";
+}
+
+.scout-butterfly span {
+  left: 9px;
+  top: 4px;
+  width: 3px;
+  height: 11px;
+  border-radius: 999px;
+  background: rgba(67, 54, 38, 0.72);
+  animation: butterflyBob 1.7s ease-in-out infinite;
+}
+
+.scout-butterfly span::before {
+  right: 2px;
+  transform-origin: 100% 70%;
+  animation: butterflyLeftWing 105ms ease-in-out infinite alternate;
+}
+
+.scout-butterfly span::after {
+  left: 2px;
+  transform-origin: 0 70%;
+  animation: butterflyRightWing 118ms ease-in-out infinite alternate;
+}
+
+.scout-butterfly span::before,
+.scout-butterfly span::after {
+  top: -2px;
+  width: 10px;
+  height: 11px;
+  border-radius: 74% 30% 70% 36%;
+  background:
+    radial-gradient(circle at 44% 44%, rgba(251, 239, 170, 0.84) 0 12%, transparent 14%),
+    linear-gradient(135deg, rgba(242, 197, 91, 0.86), rgba(205, 139, 66, 0.72) 58%, rgba(123, 89, 54, 0.64));
+  filter: drop-shadow(0 1px 1px rgba(62, 43, 22, 0.18));
+}
+
+.scout-butterfly::before,
+.scout-butterfly::after {
+  position: absolute;
+  top: 3px;
+  width: 7px;
+  height: 1px;
+  content: "";
+  background: rgba(67, 54, 38, 0.45);
+  transform-origin: 100% 50%;
+}
+
+.scout-butterfly::before {
+  left: 5px;
+  rotate: 29deg;
+}
+
+.scout-butterfly::after {
+  left: 10px;
+  rotate: -26deg;
 }
 
 body[data-view="lead"] .pet-wrap {
@@ -73,6 +160,7 @@ body[data-view="preferences"] .pet-wrap.chasing {
   height: 116px;
 }
 
+
 body[data-view="scout"] .pet-wrap {
   left: 50%;
   right: auto;
@@ -99,13 +187,15 @@ body[data-view="result"] .pet-wrap {
   cursor: grabbing;
 }
 
-.pet-wrap.found #pet {
-  animation: faceOwner 420ms ease-out both;
-}
-
 body[data-view="lead"] .pet-wrap.chasing {
   width: 164px;
   height: 126px;
+}
+
+body[data-view="lead"] .pet-wrap.resting {
+  width: 155px;
+  height: 142px;
+  bottom: 0;
 }
 
 .pet-wrap.chasing #pet {
@@ -1474,15 +1564,6 @@ body[data-view="lead"] #resetPet {
   }
 }
 
-@keyframes faceOwner {
-  0% {
-    transform: translateX(-50%) scale(0.94) rotate(-4deg);
-  }
-  100% {
-    transform: translateX(-50%) scale(1) rotate(0);
-  }
-}
-
 @keyframes chaseLift {
   0% {
     transform: translateX(-50%) translateY(2px);
@@ -1492,6 +1573,34 @@ body[data-view="lead"] #resetPet {
   }
   100% {
     transform: translateX(-50%) translateY(0);
+  }
+}
+
+@keyframes butterflyBob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -3px;
+  }
+}
+
+@keyframes butterflyLeftWing {
+  from {
+    transform: rotate(-34deg) scaleX(1);
+  }
+  to {
+    transform: rotate(18deg) scaleX(0.72);
+  }
+}
+
+@keyframes butterflyRightWing {
+  from {
+    transform: rotate(34deg) scaleX(1);
+  }
+  to {
+    transform: rotate(-18deg) scaleX(0.72);
   }
 }
 

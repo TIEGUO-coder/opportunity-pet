@@ -1,7 +1,9 @@
 const pet = document.getElementById('pet');
 const petContext = pet.getContext('2d', { alpha: true, desynchronized: true });
 const animationTiming = window.PET_ANIMATION_TIMING;
+const stage = document.getElementById('stage');
 const petWrap = document.getElementById('petWrap');
+const scoutButterfly = document.getElementById('scoutButterfly');
 const fallbackPet = document.getElementById('fallbackPet');
 const leadCard = document.getElementById('leadCard');
 const resultCard = document.getElementById('resultCard');
@@ -18,7 +20,6 @@ const photoPrompt = document.getElementById('photoPrompt');
 const petNameInput = document.getElementById('petNameInput');
 const assetNote = document.getElementById('assetNote');
 const generatePet = document.getElementById('generatePet');
-const generateLocalPet = document.getElementById('generateLocalPet');
 const spriteSheetInput = document.getElementById('spriteSheetInput');
 const spritePreview = document.getElementById('spritePreview');
 const startScouting = document.getElementById('startScouting');
@@ -70,7 +71,8 @@ let pendingRole = scoutPreferences?.role || '';
 let pendingInterests = new Set(scoutPreferences?.interests || []);
 let opportunities = preferenceApi.rankOpportunities(sourceOpportunities, scoutPreferences || {}, scoutFeedback);
 const defaultActions = {
-  idle: ['../assets/teiguo/idle/idle_001.png', '../assets/teiguo/idle/idle_002.png', '../assets/teiguo/idle/idle_003.png', '../assets/teiguo/idle/idle_004.png'],
+  // Keep the resting camera angle consistent with the side-view scout walk.
+  idle: ['../assets/teiguo/settle/settle_003.png'],
   walk: [
     '../assets/teiguo/walk-v2/walk_001.png',
     '../assets/teiguo/walk-v2/walk_002.png',
@@ -81,32 +83,88 @@ const defaultActions = {
     '../assets/teiguo/walk-v2/walk_007.png',
     '../assets/teiguo/walk-v2/walk_008.png'
   ],
-  sleep: ['../assets/teiguo/sleep/sleep_001.png', '../assets/teiguo/sleep/sleep_002.png', '../assets/teiguo/sleep/sleep_003.png', '../assets/teiguo/sleep/sleep_004.png'],
+  settle: [
+    '../assets/teiguo/walk-v2/walk_008.png',
+    '../assets/teiguo/settle/settle_002.png',
+    '../assets/teiguo/settle/settle_003.png'
+  ],
+  // The approved seated gaze set: each frame changes only Iron's attention,
+  // so pointer tracking never rotates or crops the pet layer.
+  gaze: [
+    '../assets/animations/gaze-up-left-v1.png',
+    '../assets/animations/gaze-intermediate-v1/frame-00.png',
+    '../assets/animations/gaze-up-v1.png',
+    '../assets/animations/gaze-intermediate-v1/frame-01.png',
+    '../assets/animations/gaze-up-right-v1.png',
+    '../assets/animations/gaze-intermediate-v1/frame-02.png',
+    '../assets/animations/gaze-right-v1.png',
+    '../assets/animations/gaze-intermediate-v1/frame-03.png',
+    '../assets/animations/gaze-down-right-v2.png',
+    '../assets/animations/gaze-intermediate-v1/frame-04.png',
+    '../assets/animations/gaze-down-v2.png',
+    '../assets/animations/gaze-intermediate-v1/frame-05.png',
+    '../assets/animations/gaze-down-left-v2.png',
+    '../assets/animations/gaze-intermediate-v1/frame-06.png',
+    '../assets/animations/gaze-left-v2.png',
+    '../assets/animations/gaze-intermediate-v1/frame-07.png'
+  ],
+  sleep: ['../assets/teiguo/sleep/side-curl.png'],
   happy: ['../assets/teiguo/happy/happy_001.png', '../assets/teiguo/happy/happy_002.png', '../assets/teiguo/happy/happy_003.png', '../assets/teiguo/happy/happy_004.png'],
   chase: ['../assets/teiguo/chase/chase_001.png', '../assets/teiguo/chase/chase_002.png', '../assets/teiguo/chase/chase_003.png', '../assets/teiguo/chase/chase_004.png'],
-  catch: ['../assets/teiguo/chase/chase_002.png', '../assets/teiguo/chase/chase_003.png', '../assets/teiguo/chase/chase_004.png'],
+  catch: ['../assets/teiguo/catch/catch_001.png', '../assets/teiguo/catch/catch_002.png', '../assets/teiguo/catch/catch_003.png', '../assets/teiguo/catch/catch_004.png', '../assets/teiguo/catch/catch_005.png'],
   yawn: ['../assets/teiguo/yawn/yawn_001.png', '../assets/teiguo/yawn/yawn_002.png', '../assets/teiguo/yawn/yawn_003.png', '../assets/teiguo/yawn/yawn_004.png']
 };
-const ACTION_PACK_POLICY_VERSION = 2;
+const ACTION_PACK_POLICY_VERSION = 6;
+const DEFAULT_IRON_ASSET_VERSION = 2;
 
-function withActionFallbacks(imported) {
-  if (!imported) return defaultActions;
-  const chaseFrames = imported.chase || imported.happy || defaultActions.chase;
+function defaultIronProfile(name = 'Iron') {
   return {
-    ...defaultActions,
-    ...imported,
-    chase: chaseFrames,
-    catch: chaseFrames.length > 1 ? chaseFrames.slice(1) : chaseFrames,
-    yawn: imported.yawn || imported.idle || defaultActions.yawn
+    name: name && name !== 'Your pet' ? name : 'Iron',
+    photoDataUrl: '',
+    assetMode: 'generated',
+    sourcePhotoCount: 0,
+    generatedFrom: 'default-iron',
+    defaultAssetVersion: DEFAULT_IRON_ASSET_VERSION,
+    createdAt: new Date().toISOString()
   };
 }
 
-let actions = withActionFallbacks(loadImportedActions());
+function withActionFallbacks(imported) {
+  if (!imported) return defaultActions;
+  const samePetIdle = imported.idle?.length
+    ? imported.idle
+    : imported.walk?.length
+      ? [imported.walk[0]]
+      : imported.sleep?.length
+        ? [imported.sleep[0]]
+        : null;
+  if (!samePetIdle) return defaultActions;
+  return {
+    idle: samePetIdle,
+    walk: imported.walk || samePetIdle,
+    settle: imported.settle || samePetIdle,
+    gaze: imported.gaze || samePetIdle,
+    sleep: imported.sleep || samePetIdle,
+    happy: imported.happy || samePetIdle,
+    chase: imported.chase || imported.walk || samePetIdle,
+    catch: imported.catch || imported.happy || samePetIdle,
+    yawn: imported.yawn || samePetIdle
+  };
+}
 
 let currentAction = 'idle';
 let frameIndex = 0;
 let animationFrameRequest = null;
-let animationState = { running: false, loop: false, frameDuration: 260, startedAt: null, onComplete: null };
+let animationState = { running: false, loop: false, frameDuration: 260, startedAt: null, onComplete: null, onCancel: null };
+const PET_RENDER_BOTTOM_PADDING = 24;
+// Keep active motions above the stutter threshold while leaving quiet states gentle.
+const actionFrameDurations = Object.freeze({
+  walk: 130,
+  settle: 260,
+  sleep: 300,
+  chase: 100,
+  yawn: 150
+});
 let renderedActionFrames = {};
 let actionPackLoadToken = 0;
 let settleTimer = null;
@@ -119,7 +177,13 @@ let dragging = null;
 let lastCursor = null;
 let manualModeUntil = 0;
 let petProfile = loadPetProfile();
+// Iron is the built-in sample: never let an old imported sheet override its shipped actions.
+let actions = petProfile?.generatedFrom === 'default-iron'
+  ? defaultActions
+  : withActionFallbacks(loadImportedActions());
+let actionMetadata = petProfile?.generatedFrom === 'default-iron' ? {} : loadImportedActionMetadata();
 let selectedPhotoDataUrls = [];
+let photoValidationIssue = '';
 let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || '';
 let petMotionTimer = null;
 let isScouting = false;
@@ -128,6 +192,10 @@ let codexAvailable = false;
 let generationBusy = false;
 let generationStatusTimer = null;
 let preferenceCueTimer = null;
+let lastButterflyPoint = null;
+let preferenceButterflyTarget = null;
+let preferenceButterflyFrame = null;
+let preferenceGazeFrame = 6;
 let mahStatus = null;
 let currentMahSnapshot = null;
 let workflowPollingTimer = null;
@@ -154,6 +222,7 @@ function canBeginScouting() {
 function cancelAutonomousPetActivity() {
   scoutingRunToken += 1;
   isScouting = false;
+  manualModeUntil = 0;
   clearTimeout(scoutingTimer);
   clearTimeout(ambientTimer);
   clearTimeout(settleTimer);
@@ -179,13 +248,18 @@ function updateGeneratePetButton() {
       : 'Add 3-5 photos first';
     return;
   }
+  if (photoValidationIssue) {
+    generatePet.disabled = true;
+    generatePet.textContent = 'Replace unusable photos';
+    return;
+  }
   generatePet.disabled = false;
   generatePet.textContent = 'Generate with Codex';
 }
 
 function setPetMotion(motion, duration = 0) {
   clearTimeout(petMotionTimer);
-  petWrap.classList.remove('pacing', 'found', 'chasing', 'resting');
+  petWrap.classList.remove('pacing', 'found', 'chasing', 'resting', 'settling', 'pouncing');
   if (motion) petWrap.classList.add(motion);
   if (motion && duration > 0) {
     petMotionTimer = setTimeout(() => {
@@ -193,6 +267,104 @@ function setPetMotion(motion, duration = 0) {
       if (motion === 'chasing') petWrap.classList.add('found');
     }, duration);
   }
+}
+
+function settleToIdle(onComplete) {
+  clearTimeout(settleTimer);
+  setPetMotion('');
+  playActionOnce('settle', undefined, 'idle', onComplete, false, onComplete);
+}
+
+function clamp(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function renderPreferenceButterfly(timestamp) {
+  if (!preferenceButterflyTarget || !scoutButterfly.classList.contains('visible')) {
+    preferenceButterflyFrame = null;
+    return;
+  }
+  if (!lastButterflyPoint) lastButterflyPoint = { ...preferenceButterflyTarget };
+  lastButterflyPoint.x += (preferenceButterflyTarget.x - lastButterflyPoint.x) * 0.24;
+  lastButterflyPoint.y += (preferenceButterflyTarget.y - lastButterflyPoint.y) * 0.24;
+  scoutButterfly.style.setProperty('--butterfly-x', `${(lastButterflyPoint.x - 13).toFixed(2)}px`);
+  scoutButterfly.style.setProperty('--butterfly-y', `${(lastButterflyPoint.y - 11).toFixed(2)}px`);
+  scoutButterfly.style.setProperty('--flutter-x', `${(Math.sin(timestamp / 360) * 4).toFixed(2)}px`);
+  scoutButterfly.style.setProperty('--flutter-y', `${(Math.cos(timestamp / 420) * 5).toFixed(2)}px`);
+  updatePreferenceGaze(lastButterflyPoint);
+  preferenceButterflyFrame = requestAnimationFrame(renderPreferenceButterfly);
+}
+
+function setPreferenceButterflyPoint(x, y, immediate = false) {
+  const stageRect = stage.getBoundingClientRect();
+  const targetX = clamp(x - stageRect.left, 18, Math.max(18, stageRect.width - 32));
+  const targetY = clamp(y - stageRect.top, 60, Math.max(60, stageRect.height - 28));
+  preferenceButterflyTarget = { x: targetX, y: targetY };
+  if (immediate || !lastButterflyPoint) lastButterflyPoint = { ...preferenceButterflyTarget };
+  if (preferenceButterflyFrame === null) preferenceButterflyFrame = requestAnimationFrame(renderPreferenceButterfly);
+}
+
+function placeDefaultPreferenceButterfly() {
+  const stageRect = stage.getBoundingClientRect();
+  const petRect = petWrap.getBoundingClientRect();
+  setPreferenceButterflyPoint(
+    petRect.left + petRect.width * 0.76,
+    Math.min(stageRect.bottom - 160, petRect.top + petRect.height * 0.18),
+    true
+  );
+}
+
+function hidePreferenceButterfly() {
+  clearTimeout(preferenceCueTimer);
+  if (preferenceButterflyFrame !== null) cancelAnimationFrame(preferenceButterflyFrame);
+  preferenceCueTimer = null;
+  preferenceButterflyFrame = null;
+  preferenceButterflyTarget = null;
+  lastButterflyPoint = null;
+  scoutButterfly.classList.remove('visible');
+  drawCurrentFrame();
+}
+
+function startPreferenceButterflyCue() {
+  hidePreferenceButterfly();
+  if (document.body.dataset.view !== 'preferences' || preferenceSetup.dataset.step !== 'role') return;
+  setPreferenceGazeFrame(6);
+  scoutButterfly.classList.add('visible');
+  placeDefaultPreferenceButterfly();
+}
+
+function setPreferenceGazeFrame(index) {
+  cancelCurrentAnimation();
+  currentAction = 'gaze';
+  const frameCount = Math.max(1, renderedActionFrames.gaze?.length || actions.gaze.length);
+  frameIndex = ((index % frameCount) + frameCount) % frameCount;
+  drawCurrentFrame();
+  setVisualClass('gaze', false);
+}
+
+function updatePreferenceGaze(point) {
+  if (!point) return;
+  const petRect = petWrap.getBoundingClientRect();
+  const x = clamp((point.x - (petRect.left + petRect.width / 2)) / Math.max(1, petRect.width), -1, 1);
+  const y = clamp((point.y - (petRect.top + petRect.height / 2)) / Math.max(1, petRect.height), -1, 1);
+  const frameCount = Math.max(1, renderedActionFrames.gaze?.length || actions.gaze.length);
+  const rightFrame = Math.round(frameCount * 3 / 8);
+  const framePosition = ((Math.atan2(y, x) / (Math.PI * 2 / frameCount) + rightFrame) % frameCount + frameCount) % frameCount;
+  const nextFrame = Math.round(framePosition) % frameCount;
+  if (nextFrame === preferenceGazeFrame) return;
+  preferenceGazeFrame = nextFrame;
+  setPreferenceGazeFrame(preferenceGazeFrame);
+}
+
+function followPreferenceButterfly(event) {
+  if (
+    document.body.dataset.view !== 'preferences' ||
+    preferenceSetup.dataset.step !== 'role' ||
+    !scoutButterfly.classList.contains('visible')
+  ) {
+    return;
+  }
+  setPreferenceButterflyPoint(event.clientX, event.clientY);
 }
 
 function setVisualClass(action, moving = false) {
@@ -226,6 +398,20 @@ async function preloadActionFrames(nextActions) {
   return true;
 }
 
+function drawCanvasFrame(image) {
+  const scale = Math.min(pet.width / image.naturalWidth, (pet.height - PET_RENDER_BOTTOM_PADDING) / image.naturalHeight);
+  const width = image.naturalWidth * scale;
+  const height = image.naturalHeight * scale;
+  petContext.imageSmoothingEnabled = true;
+  petContext.imageSmoothingQuality = 'high';
+  petContext.drawImage(image, (pet.width - width) / 2, pet.height - height - PET_RENDER_BOTTOM_PADDING / 2, width, height);
+}
+
+function showCanvasPet() {
+  pet.style.display = '';
+  fallbackPet.classList.remove('visible');
+}
+
 function drawCurrentFrame() {
   const frames = renderedActionFrames[currentAction] || [];
   const image = frames[frameIndex % Math.max(1, frames.length)];
@@ -235,14 +421,8 @@ function drawCurrentFrame() {
     fallbackPet.classList.add('visible');
     return;
   }
-  const scale = Math.min(pet.width / image.naturalWidth, pet.height / image.naturalHeight);
-  const width = image.naturalWidth * scale;
-  const height = image.naturalHeight * scale;
-  petContext.imageSmoothingEnabled = true;
-  petContext.imageSmoothingQuality = 'high';
-  petContext.drawImage(image, (pet.width - width) / 2, pet.height - height, width, height);
-  pet.style.display = '';
-  fallbackPet.classList.remove('visible');
+  drawCanvasFrame(image);
+  showCanvasPet();
 }
 
 function isAnimationRunning() {
@@ -251,6 +431,14 @@ function isAnimationRunning() {
 
 function requestNextAnimationFrame() {
   if (animationFrameRequest === null) animationFrameRequest = requestAnimationFrame(runAnimationFrame);
+}
+
+function cancelCurrentAnimation() {
+  if (animationFrameRequest !== null) cancelAnimationFrame(animationFrameRequest);
+  animationFrameRequest = null;
+  const onCancel = animationState.onCancel;
+  animationState = { running: false, loop: false, frameDuration: 260, startedAt: null, onComplete: null, onCancel: null };
+  if (onCancel) onCancel();
 }
 
 function runAnimationFrame(timestamp) {
@@ -264,7 +452,9 @@ function runAnimationFrame(timestamp) {
   if (!animationState.loop && elapsed >= duration) {
     const onComplete = animationState.onComplete;
     const nextAction = animationState.nextAction || 'idle';
-    stopAnimationOnFirstFrame(nextAction);
+    animationState.onCancel = null;
+    if (animationState.holdLast) stopAnimationOnFrame(currentAction, frameCount - 1);
+    else stopAnimationOnFirstFrame(nextAction);
     if (onComplete) onComplete();
     return;
   }
@@ -290,18 +480,43 @@ function loadImportedActions() {
   }
 }
 
-function startAnimation(action, speed = 260, moving = false) {
+function loadImportedActionMetadata() {
+  try {
+    return JSON.parse(localStorage.getItem('opportunityPet.actionMetadata')) || {};
+  } catch {
+    return {};
+  }
+}
+
+function frameDurationFor(action, fallback) {
+  const fps = Number(actionMetadata[action]?.fps);
+  return fps >= 1 && fps <= 30 ? 1000 / fps : actionFrameDurations[action] || fallback;
+}
+
+function startAnimation(action, speed, moving = false) {
+  // The generated idle stills are separate poses, not a seamless loop.
+  // Keep one calm pose on screen instead of looping between separate idle stills.
+  if (action === 'idle') {
+    stopAnimationOnFirstFrame('idle');
+    return;
+  }
+  cancelCurrentAnimation();
   currentAction = action;
   frameIndex = 0;
-  if (animationFrameRequest !== null) cancelAnimationFrame(animationFrameRequest);
-  animationFrameRequest = null;
-  animationState = { running: true, loop: true, frameDuration: speed, startedAt: null, onComplete: null };
+  animationState = {
+    running: true,
+    loop: actionMetadata[action]?.loop !== false,
+    frameDuration: speed ?? frameDurationFor(action, 220),
+    startedAt: null,
+    onComplete: null,
+    onCancel: null
+  };
   drawCurrentFrame();
   setVisualClass(action, moving);
   requestNextAnimationFrame();
 }
 
-function playActionOnce(action, speed = 240, nextAction = 'idle', onComplete) {
+function playActionOnce(action, speed, nextAction = 'idle', onComplete, holdLast = false, onCancel = null) {
   const frames = actions[action];
   if (!frames || !frames.length) {
     stopAnimationOnFirstFrame(nextAction);
@@ -309,17 +524,18 @@ function playActionOnce(action, speed = 240, nextAction = 'idle', onComplete) {
     return;
   }
 
+  cancelCurrentAnimation();
   currentAction = action;
   frameIndex = 0;
-  if (animationFrameRequest !== null) cancelAnimationFrame(animationFrameRequest);
-  animationFrameRequest = null;
   animationState = {
     running: true,
     loop: false,
-    frameDuration: speed,
+    frameDuration: speed ?? frameDurationFor(action, 180),
     startedAt: null,
     nextAction,
-    onComplete
+    onComplete,
+    onCancel,
+    holdLast
   };
   drawCurrentFrame();
   setVisualClass(action, true);
@@ -327,24 +543,28 @@ function playActionOnce(action, speed = 240, nextAction = 'idle', onComplete) {
 }
 
 function stopAnimationOnFirstFrame(action = 'idle') {
-  if (animationFrameRequest !== null) cancelAnimationFrame(animationFrameRequest);
-  animationFrameRequest = null;
-  animationState = { running: false, loop: false, frameDuration: 260, startedAt: null, onComplete: null };
+  stopAnimationOnFrame(action, 0);
+}
+
+function stopAnimationOnFrame(action, index) {
+  cancelCurrentAnimation();
   currentAction = action;
-  frameIndex = 0;
+  const frameCount = Math.max(1, (actions[action] || []).length);
+  frameIndex = Math.min(Math.max(0, index), frameCount - 1);
   drawCurrentFrame();
   setVisualClass(action, false);
 }
 
 function animateWhileCursorMoves() {
-  if (Date.now() < manualModeUntil || preferenceSetup.classList.contains('visible') || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || isScouting) return;
+  // Cursor movement must never interrupt a guided scout sequence or the lead card.
+  if (document.body.dataset.view !== 'pet' || Date.now() < manualModeUntil || isScouting) return;
   clearTimeout(ambientTimer);
-  if (currentAction !== 'walk' || !isAnimationRunning()) startAnimation('walk', 140, true);
+  petWrap.classList.remove('settling');
+  if (currentAction !== 'walk' || !isAnimationRunning()) startAnimation('walk', undefined, true);
   clearTimeout(settleTimer);
   settleTimer = setTimeout(() => {
     if (Date.now() >= manualModeUntil) {
-      stopAnimationOnFirstFrame('idle');
-      scheduleAmbient();
+      settleToIdle(scheduleAmbient);
     }
   }, 850);
 }
@@ -391,13 +611,25 @@ function setResultText(result = {}) {
 function loadPetProfile() {
   try {
     const profile = JSON.parse(localStorage.getItem('opportunityPet.profile')) || null;
-    if (
-      profile &&
+    const staleGeneratedPack = profile &&
       profile.generatedFrom === 'codex-action-pack' &&
-      profile.actionPackPolicyVersion !== ACTION_PACK_POLICY_VERSION
-    ) {
+      profile.actionPackPolicyVersion !== ACTION_PACK_POLICY_VERSION;
+    const staleIronSample = profile &&
+      profile.generatedFrom === 'default-iron' &&
+      profile.defaultAssetVersion !== DEFAULT_IRON_ASSET_VERSION;
+    const stalePhotoProfile = profile && profile.photoDataUrl;
+    if (stalePhotoProfile) {
+      const migratedProfile = defaultIronProfile(profile.name);
+      localStorage.setItem('opportunityPet.profile', JSON.stringify(migratedProfile));
+      localStorage.removeItem('opportunityPet.spriteSheet');
+      localStorage.removeItem('opportunityPet.importedActions');
+      localStorage.removeItem('opportunityPet.actionMetadata');
+      return migratedProfile;
+    }
+    if (staleGeneratedPack || staleIronSample) {
       localStorage.removeItem('opportunityPet.profile');
       localStorage.removeItem('opportunityPet.importedActions');
+      localStorage.removeItem('opportunityPet.actionMetadata');
       return null;
     }
     return profile;
@@ -471,8 +703,7 @@ function renderFeedbackChoices() {
 }
 
 function hidePreferencePanel() {
-  clearTimeout(preferenceCueTimer);
-  preferenceCueTimer = null;
+  hidePreferenceButterfly();
   preferenceSetup.classList.remove('visible');
   preferenceSetup.setAttribute('aria-hidden', 'true');
   preferenceSetup.inert = true;
@@ -521,6 +752,7 @@ function renderPreferenceChoices() {
       clearTimeout(preferenceCueTimer);
       preferenceCueTimer = null;
       setPreferenceStep('interests');
+      hidePreferenceButterfly();
       stopAnimationOnFirstFrame('idle');
     });
     roleChoices.appendChild(button);
@@ -564,16 +796,7 @@ async function showPreferenceSetup() {
   stopAnimationOnFirstFrame('idle');
   await bridge.setMode('preferences');
   if (document.body.dataset.view !== 'preferences' || preferenceSetup.dataset.step !== 'role') return;
-  clearTimeout(preferenceCueTimer);
-  preferenceCueTimer = setTimeout(() => {
-    preferenceCueTimer = null;
-    if (document.body.dataset.view !== 'preferences' || preferenceSetup.dataset.step !== 'role') return;
-    setPetMotion('chasing', 1050);
-    playActionOnce('catch', 300, 'idle', () => {
-      setPetMotion('');
-      if (document.body.dataset.view === 'preferences') startAnimation('idle', 360);
-    });
-  }, 450);
+  startPreferenceButterflyCue();
 }
 
 async function finishPreferenceSetup(preferences) {
@@ -695,10 +918,17 @@ async function showLeadCard() {
   setBriefOpen(false);
   briefPanel.classList.remove('visible');
   document.getElementById('leadStatus').textContent = 'Waiting for owner approval';
-  stopAnimationOnFirstFrame('idle');
-  setPetMotion('found');
-  manualModeUntil = Date.now() + 1600;
-  clearTimeout(ambientTimer);
+  // Finish curling down before the one-minute resting hold begins.
+  playActionOnce('sleep', undefined, 'sleep', () => {
+    if (document.body.dataset.view !== 'lead') return;
+    clearTimeout(ambientTimer);
+    ambientTimer = setTimeout(() => {
+      if (document.body.dataset.view !== 'lead') return;
+      setPetMotion('found');
+      stopAnimationOnFirstFrame('idle');
+    }, 60000);
+  }, true);
+  setPetMotion('resting');
   await bridge.setMode('lead');
 }
 
@@ -708,17 +938,19 @@ async function scoutForLead() {
   isScouting = true;
   clearTimeout(scoutingTimer);
   clearTimeout(ambientTimer);
+  clearTimeout(settleTimer);
   try {
     hideSetupPanel();
     hidePreferencePanel();
     document.body.dataset.view = 'scout';
     setPetMotion('pacing');
-    startAnimation('walk', 140, true);
-    manualModeUntil = Date.now() + 2800;
+    startAnimation('walk', undefined, true);
     await bridge.setMode('scout');
+    // Walking is a loop, so this is an intentional scouting dwell—not a guessed action duration.
     await wait(2500);
     if (runToken !== scoutingRunToken || !canBeginScouting()) return false;
-    setPetMotion('');
+    await new Promise((resolve) => settleToIdle(resolve));
+    if (runToken !== scoutingRunToken || !canBeginScouting()) return false;
     await showLeadCard();
     return true;
   } finally {
@@ -744,27 +976,33 @@ async function closeLeadCardView() {
 
 function scheduleScouting() {
   clearTimeout(scoutingTimer);
-  if (!canBeginScouting()) return;
+  if (!canBeginScouting() || document.body.dataset.view !== 'pet') return;
   scoutingTimer = setTimeout(scoutForLead, 18000);
 }
 
 function scheduleAmbient() {
   clearTimeout(ambientTimer);
-  if (!canBeginScouting() || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible')) return;
-  const delay = 8500 + Math.round(Math.random() * 5000);
+  const view = document.body.dataset.view;
+  if (!canBeginScouting() || isScouting || resultCard.classList.contains('visible') || (view !== 'pet' && view !== 'lead')) return;
+  // A lead stays quiet long enough to read; it may only rest, never resume scouting.
+  const delay = view === 'lead' ? 6000 : 8500 + Math.round(Math.random() * 5000);
   ambientTimer = setTimeout(runAmbientAction, delay);
 }
 
 function runAmbientAction() {
-  if (!canBeginScouting() || isScouting || leadCard.classList.contains('visible') || resultCard.classList.contains('visible') || Date.now() < manualModeUntil) {
+  const view = document.body.dataset.view;
+  if (!canBeginScouting() || isScouting || resultCard.classList.contains('visible') || (view !== 'pet' && view !== 'lead') || Date.now() < manualModeUntil) {
     scheduleAmbient();
     return;
   }
 
-  manualModeUntil = Date.now() + 5200;
+  if (view === 'lead') return;
+
+  manualModeUntil = Number.POSITIVE_INFINITY;
   if (Math.random() < 0.52) {
     setPetMotion('resting');
-    playActionOnce('yawn', 180, 'idle', () => {
+    playActionOnce('yawn', undefined, 'idle', () => {
+      manualModeUntil = 0;
       setPetMotion('');
       scheduleAmbient();
     });
@@ -772,12 +1010,14 @@ function runAmbientAction() {
   }
 
   setPetMotion('resting');
-  startAnimation('sleep', 420, false);
-  ambientTimer = setTimeout(() => {
-    setPetMotion('');
-    stopAnimationOnFirstFrame('idle');
-    scheduleAmbient();
-  }, 4600);
+  playActionOnce('sleep', undefined, 'sleep', () => {
+    ambientTimer = setTimeout(() => {
+      manualModeUntil = 0;
+      setPetMotion('');
+      stopAnimationOnFirstFrame('idle');
+      scheduleAmbient();
+    }, 4600);
+  }, true);
 }
 
 function opportunityRoutemapPayload() {
@@ -849,7 +1089,7 @@ function renderMahSnapshot(snapshot) {
   }
   if (routemap.status === 'route_running') {
     setPetMotion('found');
-    if (currentAction !== 'chase' && currentAction !== 'idle') startAnimation('idle', 320);
+    if (currentAction !== 'chase' && currentAction !== 'idle') startAnimation('idle');
   }
 }
 
@@ -893,10 +1133,10 @@ async function approveCurrentLead() {
       web: 'Opening MAH web with this opportunity attached...',
       download: 'MAH is not installed yet. Opening the official download page...'
     }[launch.target] || 'Opening MAH...';
-    setPetMotion('chasing', 1500);
-    playActionOnce('chase', 125, 'idle', () => {
+    setPetMotion('chasing');
+    playActionOnce('chase', undefined, 'idle', () => {
       setPetMotion('found');
-      startAnimation('idle', 320);
+      startAnimation('idle');
     });
   } catch (error) {
     leadCard.dataset.approved = 'false';
@@ -985,6 +1225,7 @@ async function resetPetProfile() {
   clearTimeout(petMotionTimer);
   localStorage.removeItem('opportunityPet.profile');
   localStorage.removeItem('opportunityPet.importedActions');
+  localStorage.removeItem('opportunityPet.actionMetadata');
   localStorage.removeItem('opportunityPet.spriteSheet');
   localStorage.removeItem(SCOUT_PREFERENCES_KEY);
   scoutPreferences = null;
@@ -993,9 +1234,11 @@ async function resetPetProfile() {
   opportunities = preferenceApi.rankOpportunities(sourceOpportunities, {}, scoutFeedback);
   renderPreferenceChoices();
   selectedPhotoDataUrls = [];
+  photoValidationIssue = '';
   importedSpriteSheet = '';
   petProfile = null;
   actions = defaultActions;
+  actionMetadata = {};
   await preloadActionFrames(actions);
   petPhotoInput.value = '';
   spriteSheetInput.value = '';
@@ -1016,13 +1259,14 @@ petPhotoInput.addEventListener('change', () => {
   const files = Array.from(petPhotoInput.files || []).slice(0, 5);
   if (!files.length) return;
   selectedPhotoDataUrls = [];
+  photoValidationIssue = '';
   petPhotoPreview.innerHTML = '';
 
   Promise.all(files.map((file) => new Promise((resolve) => {
     const reader = new FileReader();
     reader.addEventListener('load', () => resolve(reader.result));
     reader.readAsDataURL(file);
-  }))).then((images) => {
+  }))).then(async (images) => {
     selectedPhotoDataUrls = images;
     petPhotoPreview.classList.add('visible');
     images.forEach((src, index) => {
@@ -1031,11 +1275,24 @@ petPhotoInput.addEventListener('change', () => {
       img.alt = `Pet source ${index + 1}`;
       petPhotoPreview.appendChild(img);
     });
-    photoPrompt.textContent = `${images.length} photo${images.length > 1 ? 's' : ''} selected`;
+    const loadedImages = await Promise.all(images.map(loadImage));
+    const duplicateCount = images.length - new Set(images).size;
+    const smallPhoto = loadedImages.findIndex((image) => Math.min(image.naturalWidth, image.naturalHeight) < 480);
+    if (duplicateCount) {
+      photoValidationIssue = `Replace ${duplicateCount} duplicate photo${duplicateCount > 1 ? 's' : ''}. Three copies of one view still count as one useful view.`;
+    } else if (smallPhoto >= 0) {
+      const image = loadedImages[smallPhoto];
+      photoValidationIssue = `Photo ${smallPhoto + 1} is only ${image.naturalWidth}×${image.naturalHeight}. Use at least 480 px on the shortest side.`;
+    }
+    photoPrompt.textContent = `${images.length} photo${images.length > 1 ? 's' : ''} selected${photoValidationIssue ? ' · needs attention' : ''}`;
     const enough = images.length >= 3;
-    assetNote.textContent = enough
-      ? 'Photo set received. Front, side, and resting views will drive different task actions.'
-      : 'Add at least 3 photos so the generator can infer the whole pet instead of guessing from one angle.';
+    assetNote.textContent = photoValidationIssue || (enough
+      ? 'Basic checks passed. Use different front, side full-body, standing, and resting views so the identity step can verify the whole pet.'
+      : 'Add at least 3 photos so the generator can infer the whole pet instead of guessing from one angle.');
+    updateGeneratePetButton();
+  }).catch(() => {
+    photoValidationIssue = 'One selected file could not be read as an image. Replace it with a PNG, JPEG, or WebP file.';
+    assetNote.textContent = photoValidationIssue;
     updateGeneratePetButton();
   });
 });
@@ -1050,347 +1307,6 @@ function readFileAsDataUrl(file) {
     reader.addEventListener('load', () => resolve(reader.result));
     reader.readAsDataURL(file);
   });
-}
-
-function drawImageCover(context, img, x, y, width, height) {
-  const sourceRatio = img.naturalWidth / img.naturalHeight;
-  const targetRatio = width / height;
-  let sourceWidth = img.naturalWidth;
-  let sourceHeight = img.naturalHeight;
-  let sourceX = 0;
-  let sourceY = 0;
-
-  if (sourceRatio > targetRatio) {
-    sourceWidth = img.naturalHeight * targetRatio;
-    sourceX = (img.naturalWidth - sourceWidth) / 2;
-  } else {
-    sourceHeight = img.naturalWidth / targetRatio;
-    sourceY = (img.naturalHeight - sourceHeight) / 2;
-  }
-
-  context.drawImage(img, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height);
-}
-
-function drawButterfly(context, x, y, flap) {
-  context.save();
-  context.translate(x, y);
-  context.rotate(-0.16);
-  context.fillStyle = '#f2bd35';
-  context.strokeStyle = '#6e4a16';
-  context.lineWidth = 2;
-  context.beginPath();
-  context.ellipse(-6, 0, 7, 11 - flap, -0.45, 0, Math.PI * 2);
-  context.ellipse(6, 0, 7, 11 + flap, 0.45, 0, Math.PI * 2);
-  context.fill();
-  context.stroke();
-  context.fillStyle = '#4f3515';
-  context.fillRect(-1, -5, 2, 12);
-  context.restore();
-}
-
-function rgbToCss(rgb) {
-  return `rgb(${rgb.map((value) => Math.round(value)).join(', ')})`;
-}
-
-function averageSamples(samples, fallback) {
-  if (!samples.length) return fallback;
-  return samples.reduce((sum, color) => [
-    sum[0] + color[0],
-    sum[1] + color[1],
-    sum[2] + color[2]
-  ], [0, 0, 0]).map((value) => value / samples.length);
-}
-
-function extractPaletteFromImages(images) {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d', { willReadFrequently: true });
-  canvas.width = 64;
-  canvas.height = 64;
-
-  const orange = [];
-  const dark = [];
-  const light = [];
-
-  images.forEach((img) => {
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    drawImageCover(context, img, 0, 0, canvas.width, canvas.height);
-    const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
-    for (let i = 0; i < data.length; i += 16) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      const average = (r + g + b) / 3;
-      if (r > 110 && r > g * 1.06 && r > b * 1.18 && g > 45) orange.push([r, g, b]);
-      if (average < 92 && Math.max(r, g, b) - Math.min(r, g, b) < 90) dark.push([r, g, b]);
-      if (r > 165 && g > 150 && b > 130) light.push([r, g, b]);
-    }
-  });
-
-  return {
-    creamRgb: averageSamples(light, [248, 237, 218]),
-    orangeRgb: averageSamples(orange, [181, 102, 43]),
-    darkRgb: averageSamples(dark, [48, 39, 31]),
-    cream: rgbToCss(averageSamples(light, [248, 237, 218])),
-    orange: rgbToCss(averageSamples(orange, [181, 102, 43])),
-    dark: rgbToCss(averageSamples(dark, [48, 39, 31])),
-    outline: '#2f2822',
-    eye: '#b88d39',
-    nose: '#d28c7d'
-  };
-}
-
-function drawEllipse(context, x, y, rx, ry, rotation, fill, stroke = null, lineWidth = 4) {
-  context.beginPath();
-  context.ellipse(x, y, rx, ry, rotation, 0, Math.PI * 2);
-  context.fillStyle = fill;
-  context.fill();
-  if (stroke) {
-    context.strokeStyle = stroke;
-    context.lineWidth = lineWidth;
-    context.stroke();
-  }
-}
-
-function drawEar(context, x, y, side, palette) {
-  context.beginPath();
-  context.moveTo(x, y);
-  context.lineTo(x + side * 22, y - 46);
-  context.lineTo(x + side * 42, y + 4);
-  context.closePath();
-  context.fillStyle = palette.cream;
-  context.fill();
-  context.strokeStyle = palette.outline;
-  context.lineWidth = 4;
-  context.stroke();
-  context.beginPath();
-  context.moveTo(x + side * 10, y - 4);
-  context.lineTo(x + side * 22, y - 28);
-  context.lineTo(x + side * 31, y + 2);
-  context.closePath();
-  context.fillStyle = '#e8b4a4';
-  context.fill();
-}
-
-function drawFace(context, x, y, scale, palette, mood = 'idle') {
-  context.save();
-  context.translate(x, y);
-  context.scale(scale, scale);
-  drawEar(context, -38, -30, -1, palette);
-  drawEar(context, 38, -30, 1, palette);
-  drawEllipse(context, 0, 2, 58, 52, 0, palette.cream, palette.outline);
-  drawEllipse(context, -22, 0, 23, 40, -0.28, palette.orange);
-  drawEllipse(context, 24, -6, 20, 34, 0.34, palette.dark);
-  drawEllipse(context, -18, 6, 7, 10, 0, palette.eye, palette.outline, 2);
-  drawEllipse(context, 18, 6, 7, 10, 0, palette.eye, palette.outline, 2);
-  context.fillStyle = '#211b18';
-  context.beginPath();
-  context.arc(-18, 7, 3, 0, Math.PI * 2);
-  context.arc(18, 7, 3, 0, Math.PI * 2);
-  context.fill();
-  context.beginPath();
-  context.moveTo(-5, 22);
-  context.quadraticCurveTo(0, 27, 5, 22);
-  context.quadraticCurveTo(0, 18, -5, 22);
-  context.fillStyle = palette.nose;
-  context.fill();
-  context.strokeStyle = palette.outline;
-  context.lineWidth = 2;
-  [-1, 1].forEach((side) => {
-    context.beginPath();
-    context.moveTo(side * 8, 26);
-    context.lineTo(side * 42, 19);
-    context.moveTo(side * 7, 31);
-    context.lineTo(side * 43, 33);
-    context.stroke();
-  });
-  if (mood === 'yawn') {
-    drawEllipse(context, 0, 37, 14, 18, 0, '#3a2420');
-  } else {
-    context.beginPath();
-    context.arc(-6, 29, 7, 0, Math.PI * 0.9);
-    context.arc(6, 29, 7, Math.PI * 0.1, Math.PI);
-    context.stroke();
-  }
-  context.restore();
-}
-
-function drawFrontCat(context, action, frame, palette) {
-  const bob = Math.sin((frame / 4) * Math.PI * 2);
-  const yawnScale = action === 'yawn' ? 1 + Math.sin((frame / 3) * Math.PI) * 0.05 : 1;
-  context.save();
-  context.translate(140, 132 + (action === 'idle' ? bob * 2 : 0));
-  context.rotate(action === 'happy' ? (frame % 2 ? 0.05 : -0.05) : 0);
-  drawEllipse(context, 0, 45, 46, 68 * yawnScale, 0, palette.cream, palette.outline);
-  drawEllipse(context, -23, 28, 20, 46, -0.35, palette.orange);
-  drawEllipse(context, 26, 38, 18, 44, 0.25, palette.dark);
-  drawEllipse(context, 42, 64, 13, 58, -0.45, palette.dark, palette.outline, 3);
-  drawEllipse(context, -20, 104, 12, 28, -0.05, palette.cream, palette.outline, 3);
-  drawEllipse(context, 20, 104, 12, 28, 0.05, palette.cream, palette.outline, 3);
-  drawFace(context, 0, -40, 1, palette, action);
-  if (action === 'happy') {
-    drawButterfly(context, -62 + frame * 8, -84 + bob * 6, frame % 2 ? 2 : -2);
-  }
-  context.restore();
-}
-
-function drawSideCat(context, action, frame, palette) {
-  const step = frame % 2 === 0 ? -1 : 1;
-  const chase = action === 'chase';
-  context.save();
-  context.translate(chase ? 132 + frame * 8 : 145 + step * 5, chase ? 146 - Math.sin((frame / 3) * Math.PI) * 18 : 145);
-  drawEllipse(context, 0, 28, 78, 43, -0.04, palette.cream, palette.outline);
-  drawEllipse(context, -26, 18, 35, 35, -0.2, palette.orange);
-  drawEllipse(context, 20, 28, 30, 38, 0.18, palette.dark);
-  for (let i = 0; i < 4; i += 1) {
-    context.strokeStyle = i % 2 ? palette.orange : palette.dark;
-    context.lineWidth = 5;
-    context.beginPath();
-    context.moveTo(22 + i * 9, -1);
-    context.lineTo(10 + i * 8, 28);
-    context.stroke();
-  }
-  drawEllipse(context, -44 + step * 4, 72, 10, 31, 0.08, palette.cream, palette.outline, 3);
-  drawEllipse(context, -4 - step * 3, 73, 10, 31, -0.08, palette.cream, palette.outline, 3);
-  drawEllipse(context, 34 + step * 3, 72, 10, 29, 0.08, palette.dark, palette.outline, 3);
-  context.save();
-  context.translate(63, 8);
-  context.rotate(-0.9 + step * 0.08);
-  drawEllipse(context, 0, 0, 13, 76, 0, palette.dark, palette.outline, 3);
-  context.strokeStyle = palette.orange;
-  context.lineWidth = 5;
-  [ -32, -12, 8, 28 ].forEach((y) => {
-    context.beginPath();
-    context.moveTo(-9, y);
-    context.lineTo(9, y + 2);
-    context.stroke();
-  });
-  context.restore();
-  context.save();
-  context.translate(-58, -6);
-  context.scale(0.8, 0.8);
-  drawFace(context, 0, 0, 1, palette, 'idle');
-  context.restore();
-  context.restore();
-  if (chase) drawButterfly(context, 202 - frame * 5, 72 + Math.sin(frame) * 12, frame % 2 ? 3 : -2);
-}
-
-function drawSleepCat(context, frame, palette) {
-  const breath = Math.sin((frame / 4) * Math.PI * 2) * 2;
-  context.save();
-  context.translate(140, 142 + breath);
-  drawEllipse(context, 0, 22, 76, 56, -0.12, palette.cream, palette.outline);
-  drawEllipse(context, -28, 15, 35, 45, -0.4, palette.orange);
-  drawEllipse(context, 22, 20, 32, 43, 0.4, palette.dark);
-  context.save();
-  context.translate(35, 30);
-  context.rotate(1.15);
-  drawEllipse(context, 0, 0, 13, 76, 0, palette.dark, palette.outline, 3);
-  context.restore();
-  context.save();
-  context.translate(-46, -12);
-  context.scale(0.76, 0.76);
-  drawFace(context, 0, 0, 1, palette, 'sleep');
-  context.strokeStyle = palette.outline;
-  context.lineWidth = 4;
-  context.beginPath();
-  context.moveTo(-25, 6);
-  context.quadraticCurveTo(-18, 12, -11, 6);
-  context.moveTo(12, 6);
-  context.quadraticCurveTo(19, 12, 26, 6);
-  context.stroke();
-  context.restore();
-  context.restore();
-}
-
-function makePetFrame(palette, action, frame) {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = 280;
-  canvas.height = 280;
-
-  if (action === 'sleep') {
-    drawSleepCat(context, frame, palette);
-  } else if (action === 'walk') {
-    drawSideCat(context, action, frame, palette);
-  } else if (action === 'chase') {
-    drawSideCat(context, action, frame, palette);
-  } else {
-    drawFrontCat(context, action, frame, palette);
-  }
-
-  return canvas.toDataURL('image/png');
-}
-
-function blendChannel(source, target, amount) {
-  return source + (target - source) * amount;
-}
-
-function tintPixel(data, index, target, amount) {
-  data[index] = blendChannel(data[index], target[0], amount);
-  data[index + 1] = blendChannel(data[index + 1], target[1], amount);
-  data[index + 2] = blendChannel(data[index + 2], target[2], amount);
-}
-
-function recolorTemplateImageData(imageData, palette) {
-  const { data } = imageData;
-  for (let i = 0; i < data.length; i += 4) {
-    const alpha = data[i + 3];
-    if (alpha < 24) continue;
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    const brightness = (r + g + b) / 3;
-    const spread = Math.max(r, g, b) - Math.min(r, g, b);
-
-    if (brightness > 170 && spread < 65) {
-      tintPixel(data, i, palette.creamRgb, 0.18);
-    } else if (r > 112 && g > 55 && r > b * 1.08 && brightness > 82) {
-      tintPixel(data, i, palette.orangeRgb, 0.22);
-    } else if (brightness < 116) {
-      tintPixel(data, i, palette.darkRgb, 0.16);
-    }
-  }
-  return imageData;
-}
-
-function makeTemplatePetFrame(template, palette) {
-  const source = document.createElement('canvas');
-  const sourceContext = source.getContext('2d', { willReadFrequently: true });
-  source.width = template.naturalWidth;
-  source.height = template.naturalHeight;
-  sourceContext.drawImage(template, 0, 0);
-  const imageData = sourceContext.getImageData(0, 0, source.width, source.height);
-  sourceContext.putImageData(recolorTemplateImageData(imageData, palette), 0, 0);
-
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  canvas.width = 280;
-  canvas.height = 280;
-  const maxWidth = 258;
-  const maxHeight = 258;
-  const scale = Math.min(maxWidth / source.width, maxHeight / source.height, 1);
-  const width = Math.round(source.width * scale);
-  const height = Math.round(source.height * scale);
-  const x = Math.round((canvas.width - width) / 2);
-  const y = Math.round(canvas.height - height - 10);
-  context.drawImage(source, x, y, width, height);
-  return canvas.toDataURL('image/png');
-}
-
-async function generateActionsFromPhotos(images) {
-  const loaded = await Promise.all(images.map(loadImage));
-  const palette = extractPaletteFromImages(loaded);
-  const sources = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
-
-  const generated = {};
-  for (const action of sources) {
-    generated[action] = [];
-    for (let frame = 0; frame < 4; frame += 1) {
-      const template = await loadImage(defaultActions[action][frame]);
-      generated[action].push(makeTemplatePetFrame(template, palette));
-    }
-  }
-  return generated;
 }
 
 function updatePipeline(step) {
@@ -1460,7 +1376,6 @@ async function extractSpriteSheet(src) {
 function setGenerationBusy(busy) {
   generationBusy = busy;
   updateGeneratePetButton();
-  generateLocalPet.disabled = busy;
   petPhotoInput.disabled = busy;
   if (busy) {
     createPet.textContent = 'Use Iron while Codex works';
@@ -1482,9 +1397,11 @@ function startGenerationStatusTimer(logPath = '') {
   }, 30000);
 }
 
-async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {}) {
+async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {}, nextActionMetadata = {}) {
   actions = withActionFallbacks(nextActions);
+  actionMetadata = nextActionMetadata;
   localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
+  localStorage.setItem('opportunityPet.actionMetadata', JSON.stringify(actionMetadata));
   await preloadActionFrames(actions);
   updatePipeline('ready');
   const name = petName();
@@ -1502,29 +1419,14 @@ async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {
   if (scoutPreferences) await scoutForLead();
 }
 
-function shouldUseLocalStylizedFallback(error) {
-  return Boolean(String(error || '').trim());
-}
-
-async function activateLocalStylizedFallback(reason = '', extraProfile = {}) {
-  updatePipeline('sprite');
-  assetNote.textContent = 'Codex could not finish a full action pack, so I am building a transparent animated scout from your pet photos now.';
-  const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
-  const generatedFrom = extraProfile.generationJobId ? 'codex-assisted-local-render' : 'local-stylized-fallback';
-  await activateGeneratedPet(localActions, generatedFrom, { codexError: reason, ...extraProfile });
-  assetNote.textContent = extraProfile.generationJobId
-    ? 'Codex handed off to the local action renderer. Your animated scout is ready.'
-    : 'Local animated scout ready. It uses colors inferred from your photos and includes every action state.';
-}
-
 generatePet.addEventListener('click', async () => {
-  if (selectedPhotoDataUrls.length < 3) {
-    assetNote.textContent = 'Choose 3-5 pet photos first. This helps the pet feel like your actual pet, not a one-photo sticker.';
+  if (selectedPhotoDataUrls.length < 3 || photoValidationIssue) {
+    assetNote.textContent = photoValidationIssue || 'Choose 3-5 pet photos first. This helps the pet feel like your actual pet, not a one-photo sticker.';
     return;
   }
   setGenerationBusy(true);
   updatePipeline('identity');
-  assetNote.textContent = 'Starting Codex. It will infer the pet identity, generate a character sheet, then six action strips. This can take several minutes.';
+  assetNote.textContent = 'Starting Codex. It will build one locked pet identity, then generate the complete standardized action pack. This can take 10-15 minutes.';
   startGenerationStatusTimer();
   try {
     const result = await bridge.generatePetWithCodex({
@@ -1533,45 +1435,15 @@ generatePet.addEventListener('click', async () => {
     });
     if (!result.ok) {
       const detail = result.logPath ? ` Log: ${result.logPath}` : '';
-      if (shouldUseLocalStylizedFallback(result.error)) {
-        await activateLocalStylizedFallback(`${result.error || 'Codex image generation failed.'}${detail}`, {
-          generationJobId: result.jobId || '',
-          codexLogPath: result.logPath || '',
-          codexModel: result.codexModel || ''
-        });
-        return;
-      }
-      assetNote.textContent = `${result.error || 'Codex could not generate the cartoon action pack.'}${detail} You can use the Iron sample now, or regenerate after Codex is ready.`;
+      assetNote.textContent = `${result.error || 'Codex could not generate a complete pet action pack.'}${detail} Nothing partial was imported. Improve the photo set or try again; Iron remains available only as a separate sample.`;
       updatePipeline('photos');
       return;
     }
-    await activateGeneratedPet(result.actions, 'codex-action-pack', { generationJobId: result.jobId });
-    assetNote.textContent = 'Codex action pack ready: six identity-consistent actions were generated and imported.';
+    await activateGeneratedPet(result.actions, 'codex-action-pack', { generationJobId: result.jobId }, result.actionMetadata);
+    assetNote.textContent = 'Standard pet action pack ready: the locked identity, transitions, 16-direction gaze, and complete behavior set were generated and imported.';
   } catch (error) {
-    if (shouldUseLocalStylizedFallback(error.message || String(error))) {
-      await activateLocalStylizedFallback(error.message || String(error));
-      return;
-    }
-    assetNote.textContent = `Codex generation failed: ${error.message || error}`;
+    assetNote.textContent = `Codex generation failed, so no partial or recolored substitute was imported: ${error.message || error}`;
     updatePipeline('photos');
-  } finally {
-    setGenerationBusy(false);
-  }
-});
-
-generateLocalPet.addEventListener('click', async () => {
-  if (selectedPhotoDataUrls.length < 3) {
-    assetNote.textContent = 'Choose 3-5 pet photos first.';
-    return;
-  }
-  const confirmed = window.confirm('Generate a local transparent cartoon scout from your uploaded photo colors. It is less faithful than AI image generation, but it creates the full action pack now. Continue?');
-  if (!confirmed) return;
-  setGenerationBusy(true);
-  assetNote.textContent = 'Building a local stylized cartoon action pack from the supplied views.';
-  try {
-    const localActions = await generateActionsFromPhotos(selectedPhotoDataUrls);
-    await activateGeneratedPet(localActions, 'local-stylized-fallback');
-    assetNote.textContent = 'Local cartoon action pack ready. Use Generate with Codex later for a more identity-faithful version.';
   } finally {
     setGenerationBusy(false);
   }
@@ -1585,7 +1457,9 @@ spriteSheetInput.addEventListener('change', async () => {
   spritePreview.src = importedSpriteSheet;
   spritePreview.classList.add('visible');
   actions = withActionFallbacks(await extractSpriteSheet(importedSpriteSheet));
+  actionMetadata = {};
   localStorage.setItem('opportunityPet.importedActions', JSON.stringify(actions));
+  localStorage.removeItem('opportunityPet.actionMetadata');
   await preloadActionFrames(actions);
   updatePipeline('ready');
   stopAnimationOnFirstFrame('idle');
@@ -1612,16 +1486,11 @@ startScouting.addEventListener('click', async () => {
 
 createPet.addEventListener('click', async () => {
   actions = defaultActions;
+  actionMetadata = {};
+  localStorage.removeItem('opportunityPet.actionMetadata');
   await preloadActionFrames(actions);
   const name = petNameInput.value.trim() || 'Iron';
-  savePetProfile({
-    name,
-    photoDataUrl: '',
-    assetMode: 'generated',
-    sourcePhotoCount: selectedPhotoDataUrls.length,
-    generatedFrom: 'default-iron',
-    createdAt: new Date().toISOString()
-  });
+  savePetProfile({ ...defaultIronProfile(name), sourcePhotoCount: selectedPhotoDataUrls.length });
   applyPetProfile();
   if (scoutPreferences) await scoutForLead();
 });
@@ -1680,7 +1549,10 @@ petWrap.addEventListener('pointerup', (event) => {
   dragging = null;
 });
 
-window.addEventListener('pointermove', animateWhileCursorMoves);
+window.addEventListener('pointermove', (event) => {
+  followPreferenceButterfly(event);
+  animateWhileCursorMoves();
+});
 
 pin.addEventListener('click', async (event) => {
   event.stopPropagation();
@@ -1711,6 +1583,16 @@ quit.addEventListener('click', (event) => {
 
 async function watchGlobalCursor() {
   const point = await bridge.getCursorPosition();
+  if (
+    point &&
+    Number.isFinite(point.clientX) &&
+    Number.isFinite(point.clientY) &&
+    document.body.dataset.view === 'preferences' &&
+    preferenceSetup.dataset.step === 'role' &&
+    scoutButterfly.classList.contains('visible')
+  ) {
+    setPreferenceButterflyPoint(point.clientX, point.clientY);
+  }
   if (point && lastCursor && (Math.abs(point.x - lastCursor.x) > 1 || Math.abs(point.y - lastCursor.y) > 1)) {
     animateWhileCursorMoves();
   }
@@ -1724,9 +1606,9 @@ bridge.onGenerationProgress((message) => {
   const logMatch = /Log: (.+)$/.exec(message);
   if (logMatch) startGenerationStatusTimer(logMatch[1]);
   assetNote.textContent = /generating|started|still running|studying/i.test(message)
-    ? `${message} This can take several minutes because Codex is creating 7 images and 24 animation frames.`
+    ? `${message} This can take 10-15 minutes because Codex is creating one locked identity and 80 standardized animation frames.`
     : message;
-  if (/six action|generating|checking/i.test(message)) updatePipeline('sprite');
+  if (/action sheet|generating|checking/i.test(message)) updatePipeline('sprite');
 });
 bridge.getCodexStatus().then((status) => {
   codexAvailable = Boolean(status && status.available);
@@ -1734,7 +1616,7 @@ bridge.getCodexStatus().then((status) => {
   if (codexAvailable && !petProfile) {
     assetNote.textContent = `Codex detected at ${status.path}. Model: ${status.model || 'default'}. Choose 3-5 photos, then click Generate with Codex.`;
   } else if (!codexAvailable && !petProfile) {
-    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex for AI character generation, or use the local cartoon fallback under Advanced.';
+    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex to reconstruct your own pet, or use Iron as the clearly separate sample.';
   }
   updateGeneratePetButton();
 }).catch(() => {
@@ -1765,8 +1647,10 @@ if (importedSpriteSheet) {
 }
 preloadActionFrames(actions).then((loaded) => {
   if (!loaded) return;
-  stopAnimationOnFirstFrame('idle');
+  const watchingButterfly = document.body.dataset.view === 'preferences' && scoutButterfly.classList.contains('visible');
+  if (watchingButterfly) setPreferenceGazeFrame(preferenceGazeFrame);
+  else stopAnimationOnFirstFrame('idle');
   scheduleAmbient();
   scheduleScouting();
 });
-setInterval(watchGlobalCursor, 180);
+setInterval(watchGlobalCursor, 33);

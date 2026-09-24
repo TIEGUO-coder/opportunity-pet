@@ -44,6 +44,8 @@ assert.deepEqual(
 );
 
 const renderer = fs.readFileSync(path.join(__dirname, '..', 'src', 'renderer.js'), 'utf8');
+const styles = fs.readFileSync(path.join(__dirname, '..', 'src', 'styles.css'), 'utf8');
+const main = fs.readFileSync(path.join(__dirname, '..', 'src', 'main.js'), 'utf8');
 const opportunityContext = { window: { CREATOR_STORE_BLUEPRINT: { id: 'creator-store-launch-kit-v1' } } };
 vm.runInNewContext(fs.readFileSync(path.join(__dirname, '..', 'src', 'opportunities.js'), 'utf8'), opportunityContext);
 const opportunityCopy = JSON.stringify(opportunityContext.window.OPPORTUNITIES);
@@ -54,15 +56,56 @@ assert.equal(
   'Every scout opportunity should have its own illustrative result preview.'
 );
 const preferenceSetupFlow = renderer.match(/async function showPreferenceSetup\(\)[\s\S]*?\n}\n\nasync function finishPreferenceSetup/)?.[0] || '';
-assert.match(preferenceSetupFlow, /playActionOnce\(['"]catch['"],\s*300,\s*['"]idle['"],/);
+assert.match(preferenceSetupFlow, /startPreferenceButterflyCue\(\)/);
+assert.doesNotMatch(preferenceSetupFlow, /playActionOnce\(['"]catch['"]/, 'The preference butterfly cue should not reuse cropped chase/catch frames.');
 assert.doesNotMatch(preferenceSetupFlow, /startAnimation\(['"]catch['"]/, 'Butterfly-catching cue must not loop');
-assert.match(preferenceSetupFlow, /},\s*450\);/, 'Butterfly-catching cue should wait until the page is visible');
-assert.match(renderer, /catch:\s*chaseFrames\.length > 1 \? chaseFrames\.slice\(1\) : chaseFrames/);
-assert.match(renderer, /setPreferenceStep\(['"]interests['"]\);\s*stopAnimationOnFirstFrame\(['"]idle['"]\)/);
-assert.match(renderer, /function animateWhileCursorMoves\(\)[\s\S]*?preferenceSetup\.classList\.contains\(['"]visible['"]\)/);
+assert.doesNotMatch(preferenceSetupFlow, /setPetMotion\(['"]chasing['"]/, 'The preference cue must not reuse the MAH launch movement.');
+assert.match(renderer, /const scoutButterfly = document\.getElementById\(['"]scoutButterfly['"]\)/);
+assert.match(renderer, /function followPreferenceButterfly\(event\)/);
+assert.match(renderer, /setPreferenceButterflyPoint\(event\.clientX,\s*event\.clientY\)/, 'Butterfly should follow pointer movement.');
+assert.match(renderer, /requestAnimationFrame\(renderPreferenceButterfly\)/, 'Butterfly tracking should render on animation frames.');
+assert.match(renderer, /lastButterflyPoint\.x \+= \(preferenceButterflyTarget\.x - lastButterflyPoint\.x\) \* 0\.24/);
+assert.doesNotMatch(styles, /\.scout-butterfly\s*\{[\s\S]*?transition:\s*transform/, 'Do not stack CSS transition lag on top of pointer interpolation.');
+assert.match(main, /clientX:\s*point\.x - windowX/);
+assert.match(main, /clientY:\s*point\.y - windowY/);
+assert.match(renderer, /setPreferenceButterflyPoint\(point\.clientX,\s*point\.clientY\)/, 'Global cursor sampling must drive the butterfly even outside the window.');
+assert.match(renderer, /setInterval\(watchGlobalCursor,\s*33\)/);
+assert.match(renderer, /const targetY = clamp\(y - stageRect\.top, 60, Math\.max\(60, stageRect\.height - 28\)\)/);
+assert.match(renderer, /gaze:\s*\[[\s\S]*?gaze-up-left-v1\.png[\s\S]*?gaze-intermediate-v1\/frame-00\.png[\s\S]*?gaze-up-v1\.png[\s\S]*?gaze-intermediate-v1\/frame-01\.png[\s\S]*?gaze-up-right-v1\.png[\s\S]*?gaze-intermediate-v1\/frame-02\.png[\s\S]*?gaze-right-v1\.png[\s\S]*?gaze-intermediate-v1\/frame-03\.png[\s\S]*?gaze-down-right-v2\.png[\s\S]*?gaze-intermediate-v1\/frame-04\.png[\s\S]*?gaze-down-v2\.png[\s\S]*?gaze-intermediate-v1\/frame-05\.png[\s\S]*?gaze-down-left-v2\.png[\s\S]*?gaze-intermediate-v1\/frame-06\.png[\s\S]*?gaze-left-v2\.png[\s\S]*?gaze-intermediate-v1\/frame-07\.png[\s\S]*?\]/);
+assert.match(renderer, /function updatePreferenceGaze\(point\)/);
+assert.match(renderer, /updatePreferenceGaze\(lastButterflyPoint\)/);
+assert.match(renderer, /Math\.atan2\(y, x\)/);
+assert.match(renderer, /const frameCount = Math\.max\(1, renderedActionFrames\.gaze\?\.length \|\| actions\.gaze\.length\)/);
+assert.match(renderer, /const nextFrame = Math\.round\(framePosition\) % frameCount/);
+assert.match(renderer, /setPreferenceGazeFrame\(preferenceGazeFrame\)/);
+assert.doesNotMatch(renderer, /drawPreferenceGazeBlend/, 'Gaze frames must stay crisp instead of being alpha-blended.');
+assert.doesNotMatch(renderer, /setTimeout\(step, 70\)/, 'Pointer gaze should render continuously instead of stepping through eight stills.');
+assert.match(renderer, /const watchingButterfly = document\.body\.dataset\.view === 'preferences' && scoutButterfly\.classList\.contains\('visible'\);\s*if \(watchingButterfly\) setPreferenceGazeFrame\(preferenceGazeFrame\)/);
+const butterflyCue = renderer.match(/function startPreferenceButterflyCue\(\)[\s\S]*?\n}\n\nfunction followPreferenceButterfly/)?.[0] || '';
+assert.doesNotMatch(butterflyCue, /catch/, 'The preference cue must not reuse the old cropped catch frames.');
+assert.doesNotMatch(butterflyCue, /schedulePreferencePounce/, 'Do not use unapproved pounce frames that distort Iron’s body.');
+assert.doesNotMatch(renderer, /function drawPreferenceHeadFocus/, 'Do not simulate gaze by cutting and shaking part of the sprite.');
+assert.doesNotMatch(renderer + styles, /pet-watch|watching-butterfly|butterfly-ready|butterfly-pouncing/, 'Remove unused CSS-driven pounce state.');
+assert.match(renderer, /sleep:\s*\['\.\.\/assets\/teiguo\/sleep\/side-curl\.png'\]/);
+assert.match(renderer, /async function showLeadCard\(\)[\s\S]*?playActionOnce\('sleep', undefined, 'sleep', \(\) => \{[\s\S]*?ambientTimer = setTimeout\([\s\S]*?60000[\s\S]*?\}, true\);\s*setPetMotion\('resting'\)/);
+assert.match(renderer, /if \(view === 'lead'\) return;/);
+const actionFallbacks = renderer.match(/function withActionFallbacks\(imported\)[\s\S]*?\n}/)?.[0] || '';
+assert.match(actionFallbacks, /gaze:\s*imported\.gaze \|\| samePetIdle/);
+assert.match(actionFallbacks, /catch:\s*imported\.catch \|\| imported\.happy \|\| samePetIdle/);
+assert.doesNotMatch(actionFallbacks, /imported\.gaze \|\| defaultActions/, 'A personalized pet must never turn into Iron during gaze tracking.');
+assert.match(renderer, /setPreferenceStep\(['"]interests['"]\);\s*hidePreferenceButterfly\(\);\s*stopAnimationOnFirstFrame\(['"]idle['"]\)/);
+assert.match(renderer, /const stalePhotoProfile = profile && profile\.photoDataUrl/);
+assert.match(renderer, /defaultIronProfile\(profile\.name\)/);
+assert.match(
+  renderer,
+  /let petProfile = loadPetProfile\(\);\s*\/\/ Iron is the built-in sample:[\s\S]*?petProfile\?\.generatedFrom === 'default-iron'[\s\S]*?withActionFallbacks\(loadImportedActions\(\)\)/,
+  'Iron must load shipped actions after profile migration instead of a stale imported sheet.'
+);
+assert.match(renderer, /localStorage\.removeItem\(['"]opportunityPet\.spriteSheet['"]\);/);
+assert.match(renderer, /function animateWhileCursorMoves\(\) \{\s*\/\/ Cursor movement must never interrupt a guided scout sequence or the lead card\.\s*if \(document\.body\.dataset\.view !== 'pet'/);
 assert.match(renderer, /async function scoutForLead\(\) \{\s*if \(!canBeginScouting\(\)/);
-assert.match(renderer, /function scheduleScouting\(\)[\s\S]*?if \(!canBeginScouting\(\)\) return;/);
-assert.match(renderer, /function scheduleAmbient\(\)[\s\S]*?if \(!canBeginScouting\(\)/);
+assert.match(renderer, /function scheduleScouting\(\)[\s\S]*?if \(!canBeginScouting\(\) \|\| document\.body\.dataset\.view !== 'pet'\) return;/);
+assert.match(renderer, /function scheduleAmbient\(\)[\s\S]*?const view = document\.body\.dataset\.view/);
 assert.match(renderer, /async function showPreferenceSetup\(\) \{\s*cancelAutonomousPetActivity\(\);/);
 assert.match(renderer, /runToken !== scoutingRunToken \|\| !canBeginScouting\(\)/);
 assert.match(renderer, /preferences\?\.version === preferenceApi\.SCOUT_PREFERENCES\.version/);

@@ -1,0 +1,190 @@
+{
+  "version": 2,
+  "bodyPlan": "quadruped",
+  "frameSize": 512,
+  "grid": {
+    "columns": 4,
+    "rows": 2
+  },
+  "animations": [
+    {
+      "name": "idle",
+      "fps": 6,
+      "frameDurationMs": 167,
+      "loop": true,
+      "airborne": false,
+      "frameCount": 8,
+      "frames": [
+        "idle/frame-00.png",
+        "idle/frame-01.png",
+        "idle/frame-02.png",
+        "idle/frame-03.png",
+        "idle/frame-04.png",
+        "idle/frame-05.png",
+        "idle/frame-06.png",
+        "idle/frame-07.png"
+      ],
+      "frameMeta": [
+        {
+          "index": 0,
+          "sourceIndex": 0,
+          "file": "idle/frame-00.png"
+        },
+        {
+          "index": 1,
+          "sourceIndex": 1,
+          "file": "idle/frame-01.png"
+        },
+        {
+          "index": 2,
+          "sourceIndex": 2,
+          "file": "idle/frame-02.png"
+        },
+        {
+          "index": 3,
+          "sourceIndex": 3,
+          "file": "idle/frame-03.png"
+        },
+        {
+          "index": 4,
+          "sourceIndex": 4,
+          "file": "idle/frame-04.png"
+        },
+        {
+          "index": 5,
+          "sourceIndex": 5,
+          "file": "idle/frame-05.png"
+        },
+        {
+          "index": 6,
+          "sourceIndex": 6,
+          "file": "idle/frame-06.png"
+        },
+        {
+          "index": 7,
+          "sourceIndex": 7,
+          "file": "idle/frame-07.png"
+        }
+      ],
+      "exports": {
+        "grid": "idle/sheet.png",
+        "strip": "idle/strip.png"
+      },
+      "processing": {
+        "components": [
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          },
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          },
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          },
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          },
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          },
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          },
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          },
+          {
+            "componentCount": 1,
+            "removedPixels": 0,
+            "removedComponents": []
+          }
+        ],
+        "scale": {
+          "targetSize": 604.6097915184636,
+          "sizes": [
+            606.5772827925556,
+            591.5310642730439,
+            588.4895920914829,
+            587.2273835576812,
+            608.839059193807,
+            604.6097915184636,
+            603.1956564830353,
+            626.8556452645219
+          ],
+          "scales": [
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1,
+            1
+          ]
+        },
+        "baseline": {
+          "targetBaseline": 461,
+          "detected": [
+            481,
+            481,
+            482,
+            482,
+            479,
+            479,
+            479,
+            479
+          ],
+          "shifted": [
+            -20,
+            -20,
+            -21,
+            -21,
+            -18,
+            -18,
+            -18,
+            -18
+          ]
+        },
+        "center": {
+          "targetCenterX": 256.0,
+          "detected": [
+            293.8574409474041,
+            292.0425473460566,
+            298.10295003010236,
+            297.8352498976592,
+            289.5738145482748,
+            290.57290619958513,
+            289.4286141277274,
+            285.03887205402344
+          ],
+          "shifted": [
+            -38,
+            -36,
+            -42,
+            -42,
+            -34,
+            -35,
+            -33,
+            -29
+          ]
+        }
+      },
+      "source": "assets/animation-source/idle.png"
+    }
+  ],
+  "provenance": "promptwhisper/sprite-generator@12a5c31"
+}

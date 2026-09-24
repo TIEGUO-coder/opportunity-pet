@@ -81,4 +81,25 @@ for (let i = 1; i <= 8; i += 1) {
   checked += 1;
 }
 
+for (let i = 0; i < 8; i += 1) {
+  const file = path.join(root, 'assets', 'animations', 'gaze-intermediate-v1', `frame-${String(i).padStart(2, '0')}.png`);
+  if (!fs.existsSync(file)) throw new Error(`Missing gaze intermediate frame: ${file}`);
+  const image = PNG.sync.read(fs.readFileSync(file));
+  if (image.width !== 512 || image.height !== 512) throw new Error(`Gaze frame must stay 512x512: ${file}`);
+  let top = image.height;
+  let bottom = -1;
+  for (let y = 0; y < image.height; y += 1) {
+    for (let x = 0; x < image.width; x += 1) {
+      if (image.data[(y * image.width + x) * 4 + 3] >= 32) {
+        top = Math.min(top, y);
+        bottom = Math.max(bottom, y);
+      }
+    }
+  }
+  if (bottom !== 461 || bottom - top + 1 < 429 || bottom - top + 1 > 430) {
+    throw new Error(`Gaze frame scale or baseline shifted: ${file}`);
+  }
+  checked += 1;
+}
+
 console.log(`Verified ${checked} transparent frames.`);

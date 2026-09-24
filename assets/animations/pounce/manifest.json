@@ -1,0 +1,424 @@
+{
+  "version": 2,
+  "bodyPlan": "quadruped",
+  "frameSize": 512,
+  "grid": {
+    "columns": 4,
+    "rows": 2
+  },
+  "animations": [
+    {
+      "name": "pounce",
+      "fps": 12,
+      "frameDurationMs": 83,
+      "loop": false,
+      "airborne": true,
+      "frameCount": 8,
+      "frames": [
+        "pounce/frame-00.png",
+        "pounce/frame-01.png",
+        "pounce/frame-02.png",
+        "pounce/frame-03.png",
+        "pounce/frame-04.png",
+        "pounce/frame-05.png",
+        "pounce/frame-06.png",
+        "pounce/frame-07.png"
+      ],
+      "frameMeta": [
+        {
+          "index": 0,
+          "sourceIndex": 0,
+          "file": "pounce/frame-00.png"
+        },
+        {
+          "index": 1,
+          "sourceIndex": 1,
+          "file": "pounce/frame-01.png"
+        },
+        {
+          "index": 2,
+          "sourceIndex": 2,
+          "file": "pounce/frame-02.png"
+        },
+        {
+          "index": 3,
+          "sourceIndex": 3,
+          "file": "pounce/frame-03.png"
+        },
+        {
+          "index": 4,
+          "sourceIndex": 4,
+          "file": "pounce/frame-04.png"
+        },
+        {
+          "index": 5,
+          "sourceIndex": 5,
+          "file": "pounce/frame-05.png"
+        },
+        {
+          "index": 6,
+          "sourceIndex": 6,
+          "file": "pounce/frame-06.png"
+        },
+        {
+          "index": 7,
+          "sourceIndex": 7,
+          "file": "pounce/frame-07.png"
+        }
+      ],
+      "exports": {
+        "grid": "pounce/sheet.png",
+        "strip": "pounce/strip.png"
+      },
+      "processing": {
+        "components": [
+          {
+            "componentCount": 20,
+            "removedPixels": 36,
+            "removedComponents": [
+              8,
+              4,
+              3,
+              3,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "componentCount": 37,
+            "removedPixels": 53,
+            "removedComponents": [
+              5,
+              4,
+              3,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "componentCount": 23,
+            "removedPixels": 47,
+            "removedComponents": [
+              7,
+              6,
+              5,
+              4,
+              4,
+              4,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "componentCount": 25,
+            "removedPixels": 34,
+            "removedComponents": [
+              4,
+              4,
+              2,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "componentCount": 36,
+            "removedPixels": 48,
+            "removedComponents": [
+              5,
+              4,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "componentCount": 32,
+            "removedPixels": 49,
+            "removedComponents": [
+              6,
+              4,
+              3,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "componentCount": 25,
+            "removedPixels": 39,
+            "removedComponents": [
+              6,
+              6,
+              3,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          },
+          {
+            "componentCount": 36,
+            "removedPixels": 51,
+            "removedComponents": [
+              4,
+              3,
+              3,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              2,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1,
+              1
+            ]
+          }
+        ],
+        "scale": {
+          "targetSize": 516.0193794810424,
+          "sizes": [
+            451.8108011103763,
+            540.6237138713026,
+            491.1781754109195,
+            567.4715851917169,
+            586.4196449642525,
+            516.0193794810424,
+            477.69969646211837,
+            454.9483487166428
+          ],
+          "scales": [
+            1.1421138631765027,
+            1,
+            1.0505747309504148,
+            0.9093307805124873,
+            0.8799489988308601,
+            1,
+            1.0802170972741298,
+            1.1342372841591226
+          ]
+        },
+        "baseline": {
+          "targetBaseline": 461,
+          "detected": [
+            467,
+            427,
+            433,
+            412,
+            383,
+            409,
+            406,
+            461
+          ],
+          "shifted": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ]
+        },
+        "center": {
+          "targetCenterX": 256.0,
+          "detected": [
+            231.0566267714223,
+            231.51938419456084,
+            226.98578526083355,
+            222.03728431261982,
+            279.8350726369989,
+            274.5427514206423,
+            250.0957816293499,
+            233.30907959277425
+          ],
+          "shifted": [
+            25,
+            24,
+            29,
+            34,
+            -24,
+            -19,
+            6,
+            23
+          ]
+        }
+      },
+      "source": "assets/animation-source/pounce.png"
+    }
+  ],
+  "provenance": "promptwhisper/sprite-generator@12a5c31"
+}
