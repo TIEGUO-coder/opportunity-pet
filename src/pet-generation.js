@@ -1,13 +1,53 @@
 const fs = require('fs');
 const path = require('path');
-const { randomUUID } = require('crypto');
+const { createHash, randomUUID } = require('crypto');
 const { spawn } = require('child_process');
 const { pathToFileURL } = require('url');
 const { PNG } = require('pngjs');
+const { writePoseGuides } = require('./pose-guides');
 
-const ACTIONS = ['idle', 'walk', 'sleep', 'happy', 'chase', 'yawn'];
+const ACTION_PACK_VERSION = 6;
+const ACTION_SPECS = Object.freeze({
+  idle: {
+    files: ['idle.png'], columns: 4, rows: 2, fps: 4, loop: true,
+    beats: ['neutral', 'inhale', 'blink starts', 'eyes closed', 'eyes reopen', 'exhale', 'ear attends', 'neutral return']
+  },
+  walk: {
+    files: ['walk.png'], columns: 4, rows: 2, fps: 8, loop: true,
+    beats: ['left contact', 'left load', 'left mid-stance', 'left push-off', 'right contact', 'right load', 'right mid-stance', 'right push-off']
+  },
+  settle: {
+    files: ['settle.png'], columns: 4, rows: 2, fps: 6, loop: false,
+    beats: ['last walking step', 'shorter step', 'front paws plant', 'hindquarters lower', 'body turns forward', 'seated adjustment', 'tail settles', 'stable seated pose']
+  },
+  gaze: {
+    files: ['gaze-a.png', 'gaze-b.png'], columns: 4, rows: 2, fps: 8, loop: false,
+    beats: ['up-left', 'up-left to up', 'up', 'up to up-right', 'up-right', 'up-right to right', 'right', 'right to down-right', 'down-right', 'down-right to down', 'down', 'down to down-left', 'down-left', 'down-left to left', 'left', 'left to up-left']
+  },
+  sleep: {
+    files: ['sleep.png'], columns: 4, rows: 2, fps: 4, loop: false,
+    beats: ['seated', 'looks down', 'front lowers', 'side lowers', 'paws tuck', 'tail wraps', 'head rests', 'stable curled sleep']
+  },
+  happy: {
+    files: ['happy.png'], columns: 4, rows: 2, fps: 7, loop: false,
+    beats: ['neutral', 'notices owner', 'ears lift', 'body rises', 'happy peak', 'small bounce', 'body settles', 'neutral return']
+  },
+  chase: {
+    files: ['chase.png'], columns: 4, rows: 2, fps: 9, loop: false,
+    beats: ['notices target', 'head tracks', 'weight shifts', 'body crouches', 'first stalking step', 'second stalking step', 'accelerates', 'ready to pounce']
+  },
+  catch: {
+    files: ['catch.png'], columns: 4, rows: 2, fps: 10, loop: false,
+    beats: ['ready crouch', 'hind legs load', 'front paws reach', 'grounded pounce', 'contact', 'front paws land', 'hind paws recover', 'stable landing']
+  },
+  yawn: {
+    files: ['yawn.png'], columns: 4, rows: 2, fps: 5, loop: false,
+    beats: ['calm', 'eyes soften', 'mouth starts opening', 'mouth half open', 'peak yawn', 'mouth closing', 'eyes reopen', 'calm return']
+  }
+});
+const ACTIONS = Object.freeze(Object.keys(ACTION_SPECS));
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
-const GENERATION_TIMEOUT_MS = Math.max(60 * 1000, Number(process.env.OPPORTUNITY_PET_CODEX_TIMEOUT_MS || 6 * 60 * 1000));
+const GENERATION_TIMEOUT_MS = Math.max(60 * 1000, Number(process.env.OPPORTUNITY_PET_CODEX_TIMEOUT_MS || 15 * 60 * 1000));
 const INACTIVITY_TIMEOUT_MS = 7 * 60 * 1000;
 const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
 
@@ -42,22 +82,50 @@ function isGreen(r, g, b) {
 }
 
 function removeChromaKey(image) {
-  for (let i = 0; i < image.data.length; i += 4) {
-    const r = image.data[i];
-    const g = image.data[i + 1];
-    const b = image.data[i + 2];
-    if (image.data[i + 3] < 12 || isGreen(r, g, b)) {
-      image.data[i] = 0;
-      image.data[i + 1] = 0;
-      image.data[i + 2] = 0;
-      image.data[i + 3] = 0;
-      continue;
+  const background = new Uint8Array(image.width * image.height);
+  const queue = [];
+  const isBackground = (pixel) => {
+    const offset = pixel * 4;
+    return image.data[offset + 3] < 12 || isGreen(image.data[offset], image.data[offset + 1], image.data[offset + 2]);
+  };
+  const seed = (pixel) => {
+    if (!background[pixel] && isBackground(pixel)) {
+      background[pixel] = 1;
+      queue.push(pixel);
     }
-    const greenDominance = g - Math.max(r, b);
-    if (g > 100 && greenDominance > 12) {
-      image.data[i + 1] = Math.min(g, Math.max(r, b) + 10);
-      image.data[i + 3] = Math.max(0, Math.min(image.data[i + 3], 255 - greenDominance * 10));
-    }
+  };
+  for (let x = 0; x < image.width; x += 1) {
+    seed(x);
+    seed((image.height - 1) * image.width + x);
+  }
+  for (let y = 1; y + 1 < image.height; y += 1) {
+    seed(y * image.width);
+    seed(y * image.width + image.width - 1);
+  }
+  for (let cursor = 0; cursor < queue.length; cursor += 1) {
+    const pixel = queue[cursor];
+    const x = pixel % image.width;
+    const y = Math.floor(pixel / image.width);
+    const neighbors = [
+      x ? pixel - 1 : -1,
+      x + 1 < image.width ? pixel + 1 : -1,
+      y ? pixel - image.width : -1,
+      y + 1 < image.height ? pixel + image.width : -1
+    ];
+    neighbors.forEach((neighbor) => {
+      if (neighbor >= 0 && !background[neighbor] && isBackground(neighbor)) {
+        background[neighbor] = 1;
+        queue.push(neighbor);
+      }
+    });
+  }
+  for (let pixel = 0; pixel < background.length; pixel += 1) {
+    if (!background[pixel]) continue;
+    const offset = pixel * 4;
+    image.data[offset] = 0;
+    image.data[offset + 1] = 0;
+    image.data[offset + 2] = 0;
+    image.data[offset + 3] = 0;
   }
 }
 
@@ -123,7 +191,7 @@ function cropToContent(image) {
   }
   if (maxX < minX || maxY < minY) throw new Error('Generated action frame appears empty after background removal.');
 
-  const pad = 4;
+  const pad = 0;
   minX = Math.max(0, minX - pad);
   minY = Math.max(0, minY - pad);
   maxX = Math.min(image.width - 1, maxX + pad);
@@ -133,34 +201,178 @@ function cropToContent(image) {
   return result;
 }
 
-function splitStrip(buffer) {
-  const strip = PNG.sync.read(buffer);
-  if (strip.width < 4 || strip.height < 1) throw new Error('Generated action strip is too small.');
-  const matte = inspectMatte(strip);
-  if (!matte.supported) {
-    throw new Error('Generated action strip uses a white or gray background. Regenerate with transparent background or flat #00FF00 chroma green; white mattes cut holes in pale fur.');
+function keepDominantSubject(image) {
+  const visible = new Uint8Array(image.width * image.height);
+  const seen = new Uint8Array(visible.length);
+  for (let pixel = 0; pixel < visible.length; pixel += 1) visible[pixel] = image.data[pixel * 4 + 3] > 20 ? 1 : 0;
+  const components = [];
+  for (let start = 0; start < visible.length; start += 1) {
+    if (!visible[start] || seen[start]) continue;
+    const component = [];
+    const queue = [start];
+    seen[start] = 1;
+    for (let cursor = 0; cursor < queue.length; cursor += 1) {
+      const pixel = queue[cursor];
+      component.push(pixel);
+      const x = pixel % image.width;
+      const y = Math.floor(pixel / image.width);
+      const neighbors = [
+        x ? pixel - 1 : -1,
+        x + 1 < image.width ? pixel + 1 : -1,
+        y ? pixel - image.width : -1,
+        y + 1 < image.height ? pixel + image.width : -1
+      ];
+      neighbors.forEach((neighbor) => {
+        if (neighbor >= 0 && visible[neighbor] && !seen[neighbor]) {
+          seen[neighbor] = 1;
+          queue.push(neighbor);
+        }
+      });
+    }
+    components.push(component);
   }
-  const cellWidth = Math.floor(strip.width / 4);
-  const frames = [];
-
-  for (let col = 0; col < 4; col += 1) {
-    const width = col === 3 ? strip.width - col * cellWidth : cellWidth;
-    const cell = new PNG({ width, height: strip.height });
-    PNG.bitblt(strip, cell, col * cellWidth, 0, width, strip.height, 0, 0);
-    removeChromaKey(cell);
-    frames.push(cropToContent(cell));
+  components.sort((a, b) => b.length - a.length);
+  if (!components.length) throw new Error('Generated frame contains no visible pet.');
+  if (components[1] && components[1].length > Math.max(512, components[0].length * 0.02)) {
+    throw new Error('Generated frame contains a detached body part or neighbouring-cell fragment.');
   }
+  const keep = new Uint8Array(visible.length);
+  components[0].forEach((pixel) => { keep[pixel] = 1; });
+  for (let pixel = 0; pixel < keep.length; pixel += 1) {
+    if (!keep[pixel]) image.data[pixel * 4 + 3] = 0;
+  }
+}
 
-  const framePadding = 8;
-  const width = Math.max(...frames.map((frame) => frame.width)) + framePadding * 2;
-  const height = Math.max(...frames.map((frame) => frame.height)) + framePadding * 2;
-  return frames.map((frame) => {
-    const canvas = new PNG({ width, height });
-    const offsetX = Math.floor((width - frame.width) / 2);
-    const offsetY = height - frame.height - framePadding;
-    PNG.bitblt(frame, canvas, 0, 0, frame.width, frame.height, offsetX, offsetY);
+function resizePng(source, width, height) {
+  const output = new PNG({ width, height });
+  for (let y = 0; y < height; y += 1) {
+    const sourceY = Math.max(0, Math.min(source.height - 1, (y + 0.5) * source.height / height - 0.5));
+    const y0 = Math.floor(sourceY);
+    const y1 = Math.min(source.height - 1, y0 + 1);
+    const fy = sourceY - y0;
+    for (let x = 0; x < width; x += 1) {
+      const sourceX = Math.max(0, Math.min(source.width - 1, (x + 0.5) * source.width / width - 0.5));
+      const x0 = Math.floor(sourceX);
+      const x1 = Math.min(source.width - 1, x0 + 1);
+      const fx = sourceX - x0;
+      const to = (y * width + x) * 4;
+      const samples = [
+        [(y0 * source.width + x0) * 4, (1 - fx) * (1 - fy)],
+        [(y0 * source.width + x1) * 4, fx * (1 - fy)],
+        [(y1 * source.width + x0) * 4, (1 - fx) * fy],
+        [(y1 * source.width + x1) * 4, fx * fy]
+      ];
+      let alpha = 0;
+      let red = 0;
+      let green = 0;
+      let blue = 0;
+      samples.forEach(([from, weight]) => {
+        const weightedAlpha = source.data[from + 3] * weight;
+        alpha += weightedAlpha;
+        red += source.data[from] * weightedAlpha;
+        green += source.data[from + 1] * weightedAlpha;
+        blue += source.data[from + 2] * weightedAlpha;
+      });
+      output.data[to + 3] = Math.round(alpha);
+      if (alpha > 0) {
+        output.data[to] = Math.round(red / alpha);
+        output.data[to + 1] = Math.round(green / alpha);
+        output.data[to + 2] = Math.round(blue / alpha);
+      }
+    }
+  }
+  return output;
+}
+
+function normalizeFrameSet(subjects, targetDiagonal = 390) {
+  const diagonals = subjects.map((subject) => Math.hypot(subject.width, subject.height)).sort((a, b) => a - b);
+  const median = diagonals[Math.floor(diagonals.length / 2)];
+  const corrections = subjects.map((subject) => {
+    const ratio = median / Math.hypot(subject.width, subject.height);
+    return Math.abs(1 - ratio) <= 0.05 ? 1 : Math.min(1.18, Math.max(0.82, ratio));
+  });
+  const fitScale = Math.min(
+    targetDiagonal / median,
+    440 / Math.max(...subjects.map((subject, index) => subject.width * corrections[index])),
+    430 / Math.max(...subjects.map((subject, index) => subject.height * corrections[index]))
+  );
+  return subjects.map((subject, index) => {
+    const scale = corrections[index] * fitScale;
+    const width = Math.max(1, Math.round(subject.width * scale));
+    const height = Math.max(1, Math.round(subject.height * scale));
+    const resized = resizePng(subject, width, height);
+    const canvas = new PNG({ width: 512, height: 512 });
+    const offsetX = Math.floor((canvas.width - width) / 2);
+    const offsetY = 462 - height;
+    PNG.bitblt(resized, canvas, 0, 0, width, height, offsetX, offsetY);
     return PNG.sync.write(canvas);
   });
+}
+
+function extractSheetFrames(buffer, { columns = 4, rows = 2 } = {}) {
+  const sheet = PNG.sync.read(buffer);
+  if (sheet.width < columns || sheet.height < rows) throw new Error('Generated action sheet is too small.');
+  const matte = inspectMatte(sheet);
+  if (!matte.supported) {
+    throw new Error('Generated action sheet uses a white or gray background. Regenerate with transparent background or flat #00FF00 chroma green; white mattes cut holes in pale fur.');
+  }
+  const frames = [];
+  const cellWidth = Math.floor(sheet.width / columns);
+  const cellHeight = Math.floor(sheet.height / rows);
+  for (let row = 0; row < rows; row += 1) {
+    for (let col = 0; col < columns; col += 1) {
+      const width = col === columns - 1 ? sheet.width - col * cellWidth : cellWidth;
+      const height = row === rows - 1 ? sheet.height - row * cellHeight : cellHeight;
+      const cell = new PNG({ width, height });
+      PNG.bitblt(sheet, cell, col * cellWidth, row * cellHeight, width, height, 0, 0);
+      removeChromaKey(cell);
+      keepDominantSubject(cell);
+      frames.push(cropToContent(cell));
+    }
+  }
+  return frames;
+}
+
+function splitSheet(buffer, spec = {}) {
+  return normalizeFrameSet(extractSheetFrames(buffer, spec), spec.targetDiagonal);
+}
+
+function splitStrip(buffer) {
+  return splitSheet(buffer, { columns: 4, rows: 1 });
+}
+
+function changedPixelRatio(first, second) {
+  const a = PNG.sync.read(first);
+  const b = PNG.sync.read(second);
+  if (a.width !== b.width || a.height !== b.height) return 1;
+  let visible = 0;
+  let changed = 0;
+  for (let y = 0; y < a.height; y += 2) {
+    for (let x = 0; x < a.width; x += 2) {
+      const index = (y * a.width + x) * 4;
+      const alphaA = a.data[index + 3];
+      const alphaB = b.data[index + 3];
+      if (Math.max(alphaA, alphaB) <= 20) continue;
+      visible += 1;
+      const colorDifference =
+        Math.abs(a.data[index] * alphaA - b.data[index] * alphaB) / 255 +
+        Math.abs(a.data[index + 1] * alphaA - b.data[index + 1] * alphaB) / 255 +
+        Math.abs(a.data[index + 2] * alphaA - b.data[index + 2] * alphaB) / 255;
+      if (Math.abs(alphaA - alphaB) > 16 || colorDifference > 48) changed += 1;
+    }
+  }
+  return visible ? changed / visible : 0;
+}
+
+function validateMeaningfulMotion(action, frames) {
+  const unique = [];
+  frames.forEach((frame) => {
+    if (!unique.some((candidate) => changedPixelRatio(frame, candidate) < 0.002)) unique.push(frame);
+  });
+  const minimum = action === 'gaze' ? 12 : 6;
+  if (unique.length < minimum) {
+    throw new Error(`Generated ${action} action has only ${unique.length} meaningfully different frames; ${minimum} are required.`);
+  }
 }
 
 function loadGeneratedActions(outputDir) {
@@ -176,12 +388,56 @@ function loadGeneratedActions(outputDir) {
       throw error;
     }
   }
+  const manifestPath = path.join(outputDir, 'manifest.json');
+  if (!fs.existsSync(manifestPath)) throw new Error('Codex did not create output/manifest.json.');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  if (manifest.version !== ACTION_PACK_VERSION) throw new Error(`Unsupported action-pack version: ${manifest.version || 'missing'}.`);
+  if (!['quadruped', 'biped', 'flyer', 'serpent', 'blob'].includes(manifest.bodyPlan)) {
+    throw new Error('The generated action-pack manifest is missing a supported bodyPlan.');
+  }
+  for (const [action, spec] of Object.entries(ACTION_SPECS)) {
+    if (JSON.stringify(manifest.actions?.[action]) !== JSON.stringify(spec.files)) {
+      throw new Error(`The generated action-pack manifest does not satisfy the ${action} file contract.`);
+    }
+    if (manifest.playback?.[action]?.fps !== spec.fps || manifest.playback?.[action]?.loop !== spec.loop) {
+      throw new Error(`The generated action-pack manifest does not satisfy the ${action} playback contract.`);
+    }
+  }
+  if (!fs.existsSync(path.join(outputDir, 'character-sheet.png'))) {
+    throw new Error('Codex did not create output/character-sheet.png.');
+  }
+  const qualityReportPath = path.join(outputDir, 'quality-report.json');
+  if (!fs.existsSync(qualityReportPath)) throw new Error('Codex did not create output/quality-report.json.');
+  const qualityReport = JSON.parse(fs.readFileSync(qualityReportPath, 'utf8'));
+  const anchorPath = path.join(outputDir, 'character-sheet.png');
+  const anchorSha256 = createHash('sha256').update(fs.readFileSync(anchorPath)).digest('hex');
+  if (qualityReport.version !== ACTION_PACK_VERSION || qualityReport.identityAnchor !== 'character-sheet.png' || qualityReport.identityAnchorSha256 !== anchorSha256) {
+    throw new Error('The identity quality report is not bound to the delivered character sheet.');
+  }
+  const jobDir = path.dirname(outputDir);
+  const job = JSON.parse(fs.readFileSync(path.join(jobDir, 'job.json'), 'utf8'));
+  const poseGuideManifestPath = path.join(jobDir, 'pose-guides', 'manifest.json');
+  if (!fs.existsSync(poseGuideManifestPath)) throw new Error('The generation job is missing its deterministic pose guides.');
+  const poseGuideManifestSha256 = createHash('sha256').update(fs.readFileSync(poseGuideManifestPath)).digest('hex');
+  if (job.poseGuideManifestSha256 !== poseGuideManifestSha256 || qualityReport.poseGuideManifestSha256 !== poseGuideManifestSha256) {
+    throw new Error('The quality report is not bound to the deterministic pose guides used by this job.');
+  }
+  for (const action of ACTIONS) {
+    const audit = qualityReport.actions?.[action];
+    if (!audit || audit.identityLocked !== true || audit.anatomyComplete !== true || audit.motionApproved !== true || !Number.isInteger(audit.attempts) || audit.attempts < 1 || audit.attempts > 3) {
+      throw new Error(`The generated ${action} action did not pass the identity, anatomy, and motion audit.`);
+    }
+  }
   fs.mkdirSync(framesRoot, { recursive: true });
 
-  for (const action of ACTIONS) {
-    const stripPath = path.join(outputDir, `${action}.png`);
-    if (!fs.existsSync(stripPath)) throw new Error(`Codex did not create output/${action}.png.`);
-    const frames = splitStrip(fs.readFileSync(stripPath));
+  for (const [action, spec] of Object.entries(ACTION_SPECS)) {
+    const subjects = spec.files.flatMap((fileName) => {
+      const sheetPath = path.join(outputDir, fileName);
+      if (!fs.existsSync(sheetPath)) throw new Error(`Codex did not create output/${fileName}.`);
+      return extractSheetFrames(fs.readFileSync(sheetPath), spec);
+    });
+    const frames = normalizeFrameSet(subjects, spec.targetDiagonal);
+    validateMeaningfulMotion(action, frames);
     const actionDir = path.join(framesRoot, action);
     fs.mkdirSync(actionDir, { recursive: true });
     actions[action] = frames.map((frame, index) => {
@@ -277,7 +533,7 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
       lastActivityAt = Date.now();
       writeLog();
       if (/image|generat|character|sprite|action/i.test(String(chunk))) {
-        onProgress('Codex is generating and checking the six action strips...');
+        onProgress('Codex is generating and checking the standardized action sheets...');
       }
     };
     child.stdout.on('data', collect);
@@ -310,6 +566,16 @@ async function generatePetWithCodex({ photos, petName }, options) {
   if (!Array.isArray(photos) || photos.length < 3 || photos.length > 5) {
     return { ok: false, error: 'Choose 3-5 pet photos first.' };
   }
+  let decodedPhotos;
+  try {
+    decodedPhotos = photos.map(decodePhoto);
+  } catch (error) {
+    return { ok: false, error: error.message || String(error) };
+  }
+  const uniquePhotoHashes = new Set(decodedPhotos.map(({ buffer }) => createHash('sha256').update(buffer).digest('hex')));
+  if (uniquePhotoHashes.size < 3) {
+    return { ok: false, error: 'Choose at least 3 different pet photos. Repeating the same image does not provide another useful angle.' };
+  }
   const codexPath = findCodexExecutable(options.codexPath);
   if (!codexPath) return { ok: false, error: 'Codex CLI was not found. Install and sign in to Codex before generating a pet.' };
 
@@ -322,25 +588,29 @@ async function generatePetWithCodex({ photos, petName }, options) {
   fs.mkdirSync(outputDir, { recursive: true });
 
   try {
-    const photoPaths = photos.map((dataUrl, index) => {
-      const decoded = decodePhoto(dataUrl, index);
+    const photoPaths = decodedPhotos.map((decoded, index) => {
       const file = path.join(inputDir, `photo-${String(index + 1).padStart(2, '0')}.${decoded.extension}`);
       fs.writeFileSync(file, decoded.buffer);
       return file;
     });
     fs.copyFileSync(options.skillPath, path.join(jobDir, 'SKILL.md'));
+    const poseGuideManifestSha256 = writePoseGuides(path.join(jobDir, 'pose-guides'), ACTION_SPECS, ACTION_PACK_VERSION);
     fs.writeFileSync(path.join(jobDir, 'job.json'), JSON.stringify({
-      version: 1,
+      version: ACTION_PACK_VERSION,
       petName: String(petName || 'My pet').slice(0, 80),
       sourcePhotoCount: photos.length,
-      outputDirectory: 'output'
+      outputDirectory: 'output',
+      poseGuideDirectory: 'pose-guides',
+      poseGuideManifestSha256,
+      requiredActions: ACTION_SPECS
     }, null, 2));
 
     const codexModel = options.codexModel || process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL;
     await runCodex(codexPath, jobDir, photoPaths, options.onProgress, codexModel);
     options.onProgress('The action pack is ready. Cleaning and aligning frames...');
     const actions = loadGeneratedActions(outputDir);
-    return { ok: true, actions, jobId, jobDir, logPath, codexPath, codexModel };
+    const actionMetadata = Object.fromEntries(Object.entries(ACTION_SPECS).map(([action, spec]) => [action, { fps: spec.fps, loop: spec.loop }]));
+    return { ok: true, actions, actionMetadata, jobId, jobDir, logPath, codexPath, codexModel };
   } catch (error) {
     return { ok: false, error: error.message || String(error), jobId, jobDir, logPath, codexPath, codexModel: options.codexModel || process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL };
   } finally {
@@ -350,9 +620,13 @@ async function generatePetWithCodex({ photos, petName }, options) {
 
 module.exports = {
   ACTIONS,
+  ACTION_SPECS,
+  ACTION_PACK_VERSION,
   DEFAULT_CODEX_MODEL,
   findCodexExecutable,
   generatePetWithCodex,
   loadGeneratedActions,
-  splitStrip
+  splitSheet,
+  splitStrip,
+  validateMeaningfulMotion
 };
