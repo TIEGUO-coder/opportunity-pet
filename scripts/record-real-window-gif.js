@@ -1,0 +1,157 @@
+const fs = require('fs');
+const path = require('path');
+const { app, BrowserWindow, desktopCapturer, ipcMain } = require('electron');
+const GIFEncoder = require('gif-encoder-2');
+
+const ROOT = path.join(__dirname, '..');
+const OUT_DIR = path.join(ROOT, 'docs', 'demo');
+const OUT_FILE = path.join(OUT_DIR, 'pet-finds-lead-real.gif');
+const WIDTH = 360;
+const HEIGHT = 520;
+const FPS = 12;
+const DURATION_MS = 3600;
+const FRAME_DELAY_MS = Math.round(1000 / FPS);
+
+function wait(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function makeGif(frames) {
+  const encoder = new GIFEncoder(WIDTH, HEIGHT, 'neuquant', true);
+  encoder.setRepeat(0);
+  encoder.setDelay(FRAME_DELAY_MS);
+  encoder.setQuality(10);
+  encoder.start();
+  frames.forEach((frame) => encoder.addFrame(frame));
+  encoder.finish();
+  return encoder.out.getData();
+}
+
+async function captureWindowFrame() {
+  const sources = await desktopCapturer.getSources({
+    types: ['window'],
+    thumbnailSize: { width: WIDTH, height: HEIGHT },
+    fetchWindowIcons: false
+  });
+  const source = sources.find((item) => /Opportunity Pet|Electron/i.test(item.name));
+  if (!source) {
+    throw new Error(`Could not find demo window. Sources: ${sources.map((item) => item.name).join(', ')}`);
+  }
+  return source.thumbnail.resize({ width: WIDTH, height: HEIGHT, quality: 'best' });
+}
+
+async function main() {
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+  app.setPath('userData', path.join(app.getPath('temp'), `opportunity-pet-window-record-${Date.now()}`));
+  await app.whenReady();
+
+  ipcMain.handle('window:set-mode', () => true);
+  ipcMain.handle('window:set-always-on-top', () => true);
+  ipcMain.handle('window:minimize', () => true);
+  ipcMain.handle('window:move-by', () => true);
+  ipcMain.handle('window:quit', () => true);
+  ipcMain.handle('cursor:get-position', () => null);
+  ipcMain.handle('pet:codex-status', () => ({ available: true, path: 'Codex CLI', model: 'demo' }));
+
+  const win = new BrowserWindow({
+    width: WIDTH,
+    height: HEIGHT,
+    show: true,
+    frame: false,
+    transparent: false,
+    backgroundColor: '#0d1117',
+    title: 'Opportunity Pet Demo Recording',
+    alwaysOnTop: true,
+    webPreferences: {
+      preload: path.join(ROOT, 'src', 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false
+    }
+  });
+
+  await win.loadFile(path.join(ROOT, 'src', 'renderer.html'));
+  await win.webContents.executeJavaScript(`
+    localStorage.clear();
+    const style = document.createElement('style');
+    style.textContent = \`
+      body, body[data-view="setup"] {
+        background: radial-gradient(circle at 50% 78%, rgba(239, 223, 196, .17), transparent 35%), #0d1117 !important;
+      }
+      #petSetup, #resultCard, #toolbar, .toolbar, .tool-button,
+      .lead-card .evidence-grid, .lead-card .action-stack,
+      .change-pet-action, .close-card, #scoutNow, #pin, #resetPet, #minimize, #quit {
+        display: none !important;
+      }
+      body[data-view="pet"] .pet-wrap {
+        left: 50% !important; right: auto !important; bottom: 46px !important;
+        width: 154px !important; height: 150px !important; transform: translateX(-50%); z-index: 4;
+      }
+      body[data-view="pet"] .pet-wrap.pacing { animation: demoPaceAround 1.9s ease-in-out both !important; }
+      body[data-view="lead"] .pet-wrap {
+        left: 50% !important; bottom: 30px !important; width: 128px !important; height: 126px !important;
+        transform: translateX(-50%) translateY(0) !important; z-index: 4;
+      }
+      body[data-view="lead"] .pet-wrap.found { animation: demoSit 520ms ease-out both; }
+      body[data-view="lead"] .pet-wrap.found #pet { animation: none !important; }
+      .lead-notice {
+        left: 24px !important; right: 24px !important; top: 26px !important; width: auto !important;
+        font-size: 15px !important; line-height: 1.14 !important; padding: 9px 14px !important;
+      }
+      body[data-view="lead"] .lead-notice { display: block !important; }
+      .lead-card {
+        left: 26px !important; right: 26px !important; top: 74px !important; min-height: 0 !important;
+        padding: 16px 18px 18px !important; border-radius: 18px !important; overflow: visible !important;
+      }
+      .lead-card .eyebrow { font-size: 13px !important; }
+      .lead-card h1 { margin-top: 18px !important; font-size: 24px !important; line-height: 1.05 !important; }
+      .lead-card .summary { font-size: 14px !important; line-height: 1.28 !important; }
+      .lead-card .status-pill { font-size: 13px !important; padding: 8px 12px !important; }
+      @keyframes demoPaceAround {
+        0% { transform: translateX(-96px); }
+        46% { transform: translateX(72px); }
+        54% { transform: translateX(84px); }
+        100% { transform: translateX(-18px); }
+      }
+      @keyframes demoSit {
+        0% { transform: translateX(-50%) translateY(10px) scale(.95); }
+        100% { transform: translateX(-50%) translateY(0) scale(1); }
+      }
+    \`;
+    document.head.appendChild(style);
+    document.getElementById('petNameInput').value = 'Iron';
+  `);
+
+  await wait(700);
+  const frames = [];
+  const startedAt = Date.now();
+  await win.webContents.executeJavaScript(`
+    document.getElementById('createPet').click();
+    setTimeout(() => {
+      document.getElementById('leadSummary').textContent = 'Turn one messy template, guide, or prompt pack into a product page, delivery file, FAQ, launch copy, and proof dashboard.';
+    }, 2000);
+  `);
+
+  const frameCount = Math.ceil(DURATION_MS / FRAME_DELAY_MS);
+  for (let index = 0; index < frameCount; index += 1) {
+    const targetTime = startedAt + index * FRAME_DELAY_MS;
+    const sleepFor = targetTime - Date.now();
+    if (sleepFor > 0) await wait(sleepFor);
+    const image = await captureWindowFrame();
+    if (process.env.OPPORTUNITY_PET_DEMO_PREVIEW === '1' && (index === 3 || index === frameCount - 6)) {
+      fs.writeFileSync(path.join('/tmp', `opportunity-pet-window-record-frame-${index}.png`), image.toPNG());
+    }
+    frames.push(image.toBitmap());
+  }
+
+  fs.writeFileSync(OUT_FILE, makeGif(frames));
+  const sizeKb = Math.round(fs.statSync(OUT_FILE).size / 1024);
+  console.log(`Recorded desktop window GIF: ${OUT_FILE} (${sizeKb} KB, ${frames.length} frames)`);
+  win.destroy();
+  app.quit();
+}
+
+main().catch((error) => {
+  console.error(error);
+  app.quit();
+  process.exit(1);
+});

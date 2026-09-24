@@ -33,13 +33,14 @@ your pet photos
   <img src="docs/screenshots/setup-page.png" width="360" alt="Opportunity Pet photo import screen">
 </p>
 
-Start with 3-5 clear photos from different angles. Opportunity Pet uses your signed-in Codex CLI to identify the animal's stable features, build a consistent multi-view character, and prepare the actions needed by each stage of the workflow.
+Start with 3-5 different, clear photos from different angles, each at least 480 pixels on its shortest side. The setup screen rejects exact duplicates and undersized images before generation. Opportunity Pet uses the photos only as identity references: your signed-in Codex CLI reconstructs one consistent illustrated character first, then derives every animation from that locked identity. The original photos are never cut out and moved around as sprites.
 
 The generated action pack is not one photo sliding around the screen. It contains distinct states:
 
 - **Idle:** faces you, blinks, breathes, and occasionally yawns.
 - **Scout:** walks left and right in side view with its tail raised.
 - **Rest:** curls into a ball and stays still long enough to feel asleep.
+- **Look:** follows the butterfly through sixteen complete head-and-eye directions without rotating a cut-out face.
 - **Found:** turns toward you when it brings back an opportunity.
 - **Send:** chases a butterfly while the approved opportunity is handed directly to MAH.
 - **Happy:** reacts briefly when clicked or when a task moves forward.
@@ -137,8 +138,9 @@ Gumroad is only one possible destination. The same loop can point to Etsy, Shopi
 ## What Works Today
 
 - Import 3-5 pet photos and a name.
-- Generate a multi-view identity and six aligned action states through the signed-in Codex CLI.
-- Fall back to a local transparent scout if image generation is unavailable.
+- Reconstruct one multi-view illustrated identity, then generate a standardized 80-frame action pack through the signed-in Codex CLI using deterministic, anatomy-specific pose guides.
+- Validate nine behavior states, including a walk-to-rest transition and sixteen-direction gaze, on one 512×512 canvas and baseline, with an identity audit bound to the final character sheet.
+- Reject incomplete generation instead of silently importing a raw-photo cutout, recolored template, partial pack, or Iron frames under another pet's name.
 - Run as a small transparent Electron desktop pet on top of ordinary work.
 - Scout curated opportunity cards and let the user approve or reject them.
 - Hand approved leads directly to MAH without clipboard copying or an intermediate plan document.
@@ -168,7 +170,7 @@ npm run check
 npm run start
 ```
 
-For personalized generation, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps **Generate with Codex** as the primary path. If the full AI action pack fails or takes too long, Opportunity Pet automatically builds a local animated scout from the uploaded photos and moves into the lead card instead of leaving you stuck on setup.
+For personalized generation, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps **Generate with Codex** as the personalized path. If identity locking or any required action fails validation, nothing partial is imported: improve the photo set or retry. Iron remains available as an explicitly separate sample.
 
 Opportunity Pet uses `gpt-5.6-luna` by default. To choose another available Codex model:
 
@@ -176,7 +178,7 @@ Opportunity Pet uses `gpt-5.6-luna` by default. To choose another available Code
 OPPORTUNITY_PET_CODEX_MODEL=gpt-5.5 npm run start
 ```
 
-The Codex action-pack attempt waits up to 6 minutes by default before falling back to the local renderer. To wait longer:
+The complete identity and 80-frame action-pack attempt waits up to 15 minutes by default. To choose a different limit:
 
 ```bash
 OPPORTUNITY_PET_CODEX_TIMEOUT_MS=1200000 npm run start
