@@ -19,6 +19,24 @@ const petPhotoPreview = document.getElementById('petPhotoPreview');
 const photoPrompt = document.getElementById('photoPrompt');
 const petNameInput = document.getElementById('petNameInput');
 const assetNote = document.getElementById('assetNote');
+const identityPreview = document.getElementById('identityPreview');
+const identityPreviewImage = document.getElementById('identityPreviewImage');
+const approveIdentity = document.getElementById('approveIdentity');
+const retryIdentity = document.getElementById('retryIdentity');
+const identityFeedback = document.getElementById('identityFeedback');
+const identityFeedbackChoices = document.getElementById('identityFeedbackChoices');
+const identityFeedbackNote = document.getElementById('identityFeedbackNote');
+const submitIdentityFeedback = document.getElementById('submitIdentityFeedback');
+const cancelIdentityFeedback = document.getElementById('cancelIdentityFeedback');
+const actionProgress = document.getElementById('actionProgress');
+const actionProgressLabel = document.getElementById('actionProgressLabel');
+const actionProgressFill = document.getElementById('actionProgressFill');
+const actionProgressHint = document.getElementById('actionProgressHint');
+const codexHandoff = document.getElementById('codexHandoff');
+const codexHandoffText = document.getElementById('codexHandoffText');
+const openCodexHandoff = document.getElementById('openCodexHandoff');
+const refreshCodexHandoff = document.getElementById('refreshCodexHandoff');
+const copyCodexInstruction = document.getElementById('copyCodexInstruction');
 const generatePet = document.getElementById('generatePet');
 const spriteSheetInput = document.getElementById('spriteSheetInput');
 const spritePreview = document.getElementById('spritePreview');
@@ -49,9 +67,12 @@ const bridge = window.teiguoWindow || {
   setMode: () => Promise.resolve(),
   minimize: () => Promise.resolve(),
   getCursorPosition: () => Promise.resolve(null),
-  getCodexStatus: () => Promise.resolve({ available: false }),
-  generatePetWithCodex: () => Promise.resolve({ ok: false, error: 'Codex integration is unavailable.' }),
-  onGenerationProgress: () => () => {},
+  discardPetGeneration: () => Promise.resolve({ ok: false, error: 'Codex integration is unavailable.' }),
+  prepareCodexHandoff: () => Promise.resolve({ ok: false, error: 'Codex handoff is unavailable.' }),
+  getCodexHandoffStatus: () => Promise.resolve({ ok: false, error: 'Codex handoff is unavailable.' }),
+  advanceCodexHandoff: () => Promise.resolve({ ok: false, error: 'Codex handoff is unavailable.' }),
+  openCodexHandoffFolder: () => Promise.resolve({ ok: false, error: 'Codex handoff is unavailable.' }),
+  copyCodexInstruction: () => Promise.resolve({ ok: false, error: 'Codex handoff is unavailable.' }),
   getMahStatus: () => Promise.resolve({ connected: false, mode: 'preview', label: 'MAH preview adapter' }),
   openMahOpportunity: () => Promise.resolve({ opened: false, target: 'unconfigured' }),
   registerMahProjectEntry: () => Promise.resolve({ id: 'preview-entry:opportunity-pet', isLive: false }),
@@ -188,9 +209,11 @@ let importedSpriteSheet = localStorage.getItem('opportunityPet.spriteSheet') || 
 let petMotionTimer = null;
 let isScouting = false;
 let scoutingRunToken = 0;
-let codexAvailable = false;
 let generationBusy = false;
-let generationStatusTimer = null;
+let pendingGenerationJobId = '';
+let codexHandoffTimer = null;
+const identityFeedbackOptions = ['Face / proportions', 'Coat / markings', 'Body shape', 'Pose / size', 'Illustration style'];
+let selectedIdentityFeedback = new Set();
 let preferenceCueTimer = null;
 let lastButterflyPoint = null;
 let preferenceButterflyTarget = null;
@@ -235,11 +258,6 @@ function updateGeneratePetButton() {
     generatePet.textContent = 'Generating with Codex...';
     return;
   }
-  if (!codexAvailable) {
-    generatePet.disabled = true;
-    generatePet.textContent = 'Codex not detected';
-    return;
-  }
   if (selectedPhotoDataUrls.length < 3) {
     const needed = 3 - selectedPhotoDataUrls.length;
     generatePet.disabled = true;
@@ -254,7 +272,7 @@ function updateGeneratePetButton() {
     return;
   }
   generatePet.disabled = false;
-  generatePet.textContent = 'Generate with Codex';
+  generatePet.textContent = 'Prepare in Codex';
 }
 
 function setPetMotion(motion, duration = 0) {
@@ -1319,6 +1337,79 @@ function updatePipeline(step) {
   document.getElementById(step === 'photos' ? 'stepPhotos' : step === 'identity' ? 'stepIdentity' : 'stepSprite').classList.add('active');
 }
 
+function showIdentityPreview(dataUrl) {
+  if (!String(dataUrl || '').startsWith('data:image/png;base64,')) return;
+  identityPreviewImage.src = dataUrl;
+  identityPreview.hidden = false;
+  identityFeedback.hidden = true;
+  retryIdentity.hidden = false;
+  selectedIdentityFeedback.clear();
+  identityFeedbackChoices.querySelectorAll('button').forEach((button) => button.setAttribute('aria-pressed', 'false'));
+  identityFeedbackNote.value = '';
+  updatePipeline('identity');
+  assetNote.textContent = 'Your illustrated pet is ready to review. Approve it before the app spends time creating the full movement pack.';
+}
+
+function showActionProgress(completed = 0, total = 10, final = false) {
+  const safeTotal = Math.max(1, Number(total) || 10);
+  const safeCompleted = Math.max(0, Math.min(safeTotal, Number(completed) || 0));
+  actionProgress.hidden = false;
+  actionProgressLabel.textContent = `${safeCompleted} / ${safeTotal}`;
+  actionProgressFill.style.width = `${Math.round(safeCompleted / safeTotal * 100)}%`;
+  actionProgressHint.textContent = final || safeCompleted === safeTotal
+    ? 'All action sheets are ready. Verifying and aligning frames…'
+    : safeCompleted
+      ? `Generated ${safeCompleted} of ${safeTotal} action sheets. The rest are still being checked.`
+      : 'Waiting for the first action sheet…';
+}
+
+function showCodexHandoff(stage) {
+  codexHandoff.hidden = false;
+  codexHandoffText.textContent = stage === 'actions'
+    ? 'Portrait approved. This app is waiting for you to paste and send the movement message in the same Codex chat. It will pick up the finished movements automatically.'
+    : 'Your Codex task folder is ready. Open that exact folder in Codex, then paste and send the copied message. Codex will make the portrait first and this app will show it automatically.';
+}
+
+async function checkCodexHandoff() {
+  if (!pendingGenerationJobId) return;
+  const result = await bridge.getCodexHandoffStatus({ jobId: pendingGenerationJobId });
+  if (!result.ok) return;
+  if (result.state === 'error') {
+    clearInterval(codexHandoffTimer);
+    codexHandoffTimer = null;
+    assetNote.textContent = result.error;
+    return;
+  }
+  if (result.state === 'identity-ready') {
+    clearInterval(codexHandoffTimer);
+    codexHandoffTimer = null;
+    codexHandoff.hidden = true;
+    showIdentityPreview(result.previewDataUrl);
+    return;
+  }
+  if (result.state === 'waiting' && result.stage === 'actions') {
+    if (result.completed > 0) {
+      showActionProgress(result.completed, result.total);
+      assetNote.textContent = `Codex is creating your movements: ${result.completed} of ${result.total} sheets are ready.`;
+    }
+    return;
+  }
+  if (result.state === 'actions-ready') {
+    clearInterval(codexHandoffTimer);
+    codexHandoffTimer = null;
+    codexHandoff.hidden = true;
+    actionProgress.hidden = true;
+    await activateGeneratedPet(result.actions, 'codex-action-pack', { generationJobId: pendingGenerationJobId }, result.actionMetadata);
+    pendingGenerationJobId = '';
+    assetNote.textContent = 'Your Codex-generated pet is ready to scout.';
+  }
+}
+
+function watchCodexHandoff() {
+  clearInterval(codexHandoffTimer);
+  codexHandoffTimer = setInterval(checkCodexHandoff, 2500);
+}
+
 function processPixel(data, index) {
   const r = data[index];
   const g = data[index + 1];
@@ -1380,21 +1471,8 @@ function setGenerationBusy(busy) {
   if (busy) {
     createPet.textContent = 'Use Iron while Codex works';
   } else {
-    clearInterval(generationStatusTimer);
-    generationStatusTimer = null;
     createPet.textContent = 'Use Iron sample';
   }
-}
-
-function startGenerationStatusTimer(logPath = '') {
-  const startedAt = Date.now();
-  clearInterval(generationStatusTimer);
-  generationStatusTimer = setInterval(() => {
-    if (!generationBusy) return;
-    const elapsed = Math.max(1, Math.round((Date.now() - startedAt) / 60000));
-    const logHint = logPath ? ` Log: ${logPath}` : '';
-    assetNote.textContent = `Codex is still generating the action pack in the background (${elapsed} min). Image generation can take several minutes; you can use the Iron sample while it works.${logHint}`;
-  }, 30000);
 }
 
 async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {}, nextActionMetadata = {}) {
@@ -1419,34 +1497,126 @@ async function activateGeneratedPet(nextActions, generatedFrom, extraProfile = {
   if (scoutPreferences) await scoutForLead();
 }
 
-generatePet.addEventListener('click', async () => {
+async function startIdentityGeneration() {
   if (selectedPhotoDataUrls.length < 3 || photoValidationIssue) {
     assetNote.textContent = photoValidationIssue || 'Choose 3-5 pet photos first. This helps the pet feel like your actual pet, not a one-photo sticker.';
     return;
   }
+  const feedback = Array.from(selectedIdentityFeedback);
+  const feedbackNote = identityFeedbackNote.value.trim();
   setGenerationBusy(true);
   updatePipeline('identity');
-  assetNote.textContent = 'Starting Codex. It will build one locked pet identity, then generate the complete standardized action pack. This can take 10-15 minutes.';
-  startGenerationStatusTimer();
+  pendingGenerationJobId = '';
+  identityPreview.hidden = true;
+  actionProgress.hidden = true;
+  codexHandoff.hidden = true;
+  identityPreviewImage.removeAttribute('src');
+  assetNote.textContent = 'Preparing your photos and pet rules for Codex.';
   try {
-    const result = await bridge.generatePetWithCodex({
+    const result = await bridge.prepareCodexHandoff({
       petName: petName(),
-      photos: selectedPhotoDataUrls
+      photos: selectedPhotoDataUrls,
+      feedback,
+      feedbackNote
     });
     if (!result.ok) {
       const detail = result.logPath ? ` Log: ${result.logPath}` : '';
-      assetNote.textContent = `${result.error || 'Codex could not generate a complete pet action pack.'}${detail} Nothing partial was imported. Improve the photo set or try again; Iron remains available only as a separate sample.`;
+      assetNote.textContent = `${result.error || 'Codex could not prepare a pet task.'}${detail}`;
       updatePipeline('photos');
       return;
     }
-    await activateGeneratedPet(result.actions, 'codex-action-pack', { generationJobId: result.jobId }, result.actionMetadata);
-    assetNote.textContent = 'Standard pet action pack ready: the locked identity, transitions, 16-direction gaze, and complete behavior set were generated and imported.';
+    pendingGenerationJobId = result.jobId;
+    showCodexHandoff('identity');
+    assetNote.textContent = 'Ready: first create the pet portrait in Codex, then return here to approve it.';
+    watchCodexHandoff();
   } catch (error) {
-    assetNote.textContent = `Codex generation failed, so no partial or recolored substitute was imported: ${error.message || error}`;
+    assetNote.textContent = `Codex identity generation failed, so no partial or recolored substitute was imported: ${error.message || error}`;
     updatePipeline('photos');
   } finally {
     setGenerationBusy(false);
   }
+}
+
+generatePet.addEventListener('click', startIdentityGeneration);
+
+approveIdentity.addEventListener('click', async () => {
+  if (!pendingGenerationJobId || generationBusy) return;
+  setGenerationBusy(true);
+  updatePipeline('sprite');
+  actionProgress.hidden = true;
+  assetNote.textContent = 'Identity approved. Preparing the Codex movement task.';
+  try {
+    const result = await bridge.advanceCodexHandoff({ jobId: pendingGenerationJobId });
+    if (!result.ok) {
+      const detail = result.logPath ? ` Log: ${result.logPath}` : '';
+      assetNote.textContent = `${result.error || 'Codex could not generate the full movement pack.'}${detail} Nothing partial was imported. Try the identity again with clearer photos.`;
+      updatePipeline('identity');
+      return;
+    }
+    identityPreview.hidden = true;
+    actionProgress.hidden = true;
+    showCodexHandoff('actions');
+    watchCodexHandoff();
+  } catch (error) {
+    assetNote.textContent = `Codex movement generation failed, so no partial substitute was imported: ${error.message || error}`;
+    updatePipeline('identity');
+  } finally {
+    setGenerationBusy(false);
+  }
+});
+
+retryIdentity.addEventListener('click', async () => {
+  if (!pendingGenerationJobId || generationBusy) return;
+  identityFeedback.hidden = false;
+  retryIdentity.hidden = true;
+});
+
+cancelIdentityFeedback.addEventListener('click', () => {
+  identityFeedback.hidden = true;
+  retryIdentity.hidden = false;
+});
+
+submitIdentityFeedback.addEventListener('click', async () => {
+  if (!pendingGenerationJobId || generationBusy) return;
+  const jobId = pendingGenerationJobId;
+  pendingGenerationJobId = '';
+  identityPreview.hidden = true;
+  identityFeedback.hidden = true;
+  await bridge.discardPetGeneration({ jobId });
+  assetNote.textContent = 'Using your feedback to build a fresh illustrated pet preview.';
+  startIdentityGeneration();
+});
+
+openCodexHandoff.addEventListener('click', async () => {
+  const result = await bridge.openCodexHandoffFolder({ jobId: pendingGenerationJobId });
+  if (!result.ok) assetNote.textContent = result.error || 'Could not show the Codex task folder.';
+  else assetNote.textContent = 'The Codex task folder is open. In Codex, choose Open folder, select this exact folder, then paste and send the copied message.';
+});
+
+refreshCodexHandoff.addEventListener('click', checkCodexHandoff);
+
+copyCodexInstruction.addEventListener('click', async () => {
+  const result = await bridge.copyCodexInstruction({ jobId: pendingGenerationJobId });
+  if (!result.ok) {
+    assetNote.textContent = result.error || 'Could not copy the Codex message.';
+    return;
+  }
+  copyCodexInstruction.textContent = 'Message copied';
+  assetNote.textContent = 'Message copied. Return to the same Codex chat, paste it, and send it. Progress appears here only after Codex begins writing movement sheets.';
+  setTimeout(() => { copyCodexInstruction.textContent = 'Copy movement message'; }, 1800);
+});
+
+identityFeedbackOptions.forEach((label) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = label;
+  button.setAttribute('aria-pressed', 'false');
+  button.addEventListener('click', () => {
+    if (selectedIdentityFeedback.has(label)) selectedIdentityFeedback.delete(label);
+    else selectedIdentityFeedback.add(label);
+    button.setAttribute('aria-pressed', String(selectedIdentityFeedback.has(label)));
+  });
+  identityFeedbackChoices.append(button);
 });
 
 spriteSheetInput.addEventListener('change', async () => {
@@ -1602,27 +1772,7 @@ async function watchGlobalCursor() {
 renderPreferenceChoices();
 renderFeedbackChoices();
 applyPetProfile();
-bridge.onGenerationProgress((message) => {
-  const logMatch = /Log: (.+)$/.exec(message);
-  if (logMatch) startGenerationStatusTimer(logMatch[1]);
-  assetNote.textContent = /generating|started|still running|studying/i.test(message)
-    ? `${message} This can take 10-15 minutes because Codex is creating one locked identity and 80 standardized animation frames.`
-    : message;
-  if (/action sheet|generating|checking/i.test(message)) updatePipeline('sprite');
-});
-bridge.getCodexStatus().then((status) => {
-  codexAvailable = Boolean(status && status.available);
-  generatePet.disabled = !codexAvailable;
-  if (codexAvailable && !petProfile) {
-    assetNote.textContent = `Codex detected at ${status.path}. Model: ${status.model || 'default'}. Choose 3-5 photos, then click Generate with Codex.`;
-  } else if (!codexAvailable && !petProfile) {
-    assetNote.textContent = 'Codex CLI was not found. Install and sign in to Codex to reconstruct your own pet, or use Iron as the clearly separate sample.';
-  }
-  updateGeneratePetButton();
-}).catch(() => {
-  codexAvailable = false;
-  updateGeneratePetButton();
-});
+updateGeneratePetButton();
 bridge.getMahStatus().then((status) => {
   mahStatus = status;
   approveLead.textContent = 'Make this happen →';

@@ -48,6 +48,7 @@ const ACTION_SPECS = Object.freeze({
 const ACTIONS = Object.freeze(Object.keys(ACTION_SPECS));
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 const GENERATION_TIMEOUT_MS = Math.max(60 * 1000, Number(process.env.OPPORTUNITY_PET_CODEX_TIMEOUT_MS || 15 * 60 * 1000));
+const IDENTITY_TIMEOUT_MS = Math.min(GENERATION_TIMEOUT_MS, 90 * 1000);
 const INACTIVITY_TIMEOUT_MS = 7 * 60 * 1000;
 const DEFAULT_CODEX_MODEL = 'gpt-5.6-luna';
 
@@ -375,7 +376,7 @@ function validateMeaningfulMotion(action, frames) {
   }
 }
 
-function loadGeneratedActions(outputDir) {
+function loadGeneratedActions(outputDir, { requireLocalJob = true } = {}) {
   const actions = {};
   const framesRoot = path.join(outputDir, 'frames');
   const errorPath = path.join(outputDir, 'error.json');
@@ -414,13 +415,15 @@ function loadGeneratedActions(outputDir) {
   if (qualityReport.version !== ACTION_PACK_VERSION || qualityReport.identityAnchor !== 'character-sheet.png' || qualityReport.identityAnchorSha256 !== anchorSha256) {
     throw new Error('The identity quality report is not bound to the delivered character sheet.');
   }
-  const jobDir = path.dirname(outputDir);
-  const job = JSON.parse(fs.readFileSync(path.join(jobDir, 'job.json'), 'utf8'));
-  const poseGuideManifestPath = path.join(jobDir, 'pose-guides', 'manifest.json');
-  if (!fs.existsSync(poseGuideManifestPath)) throw new Error('The generation job is missing its deterministic pose guides.');
-  const poseGuideManifestSha256 = createHash('sha256').update(fs.readFileSync(poseGuideManifestPath)).digest('hex');
-  if (job.poseGuideManifestSha256 !== poseGuideManifestSha256 || qualityReport.poseGuideManifestSha256 !== poseGuideManifestSha256) {
-    throw new Error('The quality report is not bound to the deterministic pose guides used by this job.');
+  if (requireLocalJob) {
+    const jobDir = path.dirname(outputDir);
+    const job = JSON.parse(fs.readFileSync(path.join(jobDir, 'job.json'), 'utf8'));
+    const poseGuideManifestPath = path.join(jobDir, 'pose-guides', 'manifest.json');
+    if (!fs.existsSync(poseGuideManifestPath)) throw new Error('The generation job is missing its deterministic pose guides.');
+    const poseGuideManifestSha256 = createHash('sha256').update(fs.readFileSync(poseGuideManifestPath)).digest('hex');
+    if (job.poseGuideManifestSha256 !== poseGuideManifestSha256 || qualityReport.poseGuideManifestSha256 !== poseGuideManifestSha256) {
+      throw new Error('The quality report is not bound to the deterministic pose guides used by this job.');
+    }
   }
   for (const action of ACTIONS) {
     const audit = qualityReport.actions?.[action];
@@ -451,8 +454,14 @@ function loadGeneratedActions(outputDir) {
 
 function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexModel = process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL) {
   return new Promise((resolve, reject) => {
-    const prompt = 'Read and follow ./SKILL.md. Use every attached pet photo, generate the complete action pack under ./output, and satisfy the completion contract without asking questions.';
-    const args = ['exec', '--ephemeral', '--skip-git-repo-check', '--sandbox', 'workspace-write', '--model', codexModel, '--cd', jobDir];
+    const job = JSON.parse(fs.readFileSync(path.join(jobDir, 'job.json'), 'utf8'));
+    const isIdentityStage = job.stage === 'identity';
+    const timeoutMs = isIdentityStage ? IDENTITY_TIMEOUT_MS : GENERATION_TIMEOUT_MS;
+    const prompt = isIdentityStage
+      ? 'Read and follow ./SKILL.md. This is the identity-preview stage: use every attached pet photo and create only ./output/character-sheet.png (or ./output/error.json). Do not generate action sheets yet. If job.json includes revisionFeedback or revisionNote, treat them as owner-approved visual corrections. Do not ask questions.'
+      : 'Read and follow ./SKILL.md. This is the action-pack stage: preserve the existing ./output/character-sheet.png exactly, use every attached pet photo, generate the complete action pack under ./output, and satisfy the completion contract without asking questions.';
+    // Keep generation deterministic: unrelated user plugins can spend the preview budget updating.
+    const args = ['exec', '--ephemeral', '--ignore-user-config', '--skip-git-repo-check', '--sandbox', 'workspace-write', '--model', codexModel, '--cd', jobDir];
     photoPaths.forEach((photo) => args.push('--image', photo));
     args.push('--', '-');
 
@@ -480,6 +489,8 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
     let output = '';
     let settled = false;
     let firstOutputSeen = false;
+    let identityPreviewSent = false;
+    let lastActionProgress = -1;
     let lastHeartbeatAt = 0;
     let lastActivityAt = Date.now();
     const writeLog = () => {
@@ -492,7 +503,31 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
         return 0;
       }
     };
+    const publishActionProgress = (final = false) => {
+      if (isIdentityStage) return;
+      const files = new Set();
+      try { fs.readdirSync(outputDir).forEach((file) => files.add(file)); } catch {}
+      const completed = Object.values(ACTION_SPECS).flatMap((spec) => spec.files).filter((file) => files.has(file)).length;
+      const total = Object.values(ACTION_SPECS).flatMap((spec) => spec.files).length;
+      if (final || completed !== lastActionProgress) {
+        lastActionProgress = completed;
+        onProgress({ type: 'action-progress', completed, total, final });
+      }
+    };
+    const publishIdentityPreview = () => {
+      if (identityPreviewSent) return;
+      const characterSheetPath = path.join(outputDir, 'character-sheet.png');
+      try {
+        const characterSheet = fs.readFileSync(characterSheetPath);
+        if (!characterSheet.length) return;
+        identityPreviewSent = true;
+        onProgress({ type: 'identity-preview', dataUrl: `data:image/png;base64,${characterSheet.toString('base64')}` });
+      } catch {
+        // The file is not ready yet; the next progress check will retry.
+      }
+    };
     writeLog();
+    publishActionProgress();
     child.stdin.on('error', () => {});
     child.stdin.end(prompt);
     const timer = setTimeout(() => {
@@ -500,10 +535,14 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
       settled = true;
       child.kill();
       writeLog();
-      reject(new Error(`Codex generation timed out after ${Math.round(GENERATION_TIMEOUT_MS / 60000)} minutes before completing the action pack.`));
-    }, GENERATION_TIMEOUT_MS);
+      reject(new Error(isIdentityStage
+        ? `Character preview timed out after ${Math.round(timeoutMs / 1000)} seconds without creating an image. Try again; no action pack was started.`
+        : `Codex generation timed out after ${Math.round(timeoutMs / 60000)} minutes before completing the action pack.`));
+    }, timeoutMs);
     const heartbeat = setInterval(() => {
       if (settled) return;
+      publishIdentityPreview();
+      publishActionProgress();
       const files = outputFileCount();
       if (files > 0) {
         if (!firstOutputSeen) onProgress(`Codex has started writing output files. Log: ${logPath}`);
@@ -514,7 +553,9 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
       const elapsed = Date.now() - Date.parse(startedAt);
       if (elapsed - lastHeartbeatAt >= 30000) {
         lastHeartbeatAt = elapsed;
-        onProgress(`Codex is still running; no output files yet. Log: ${logPath}`);
+        onProgress(isIdentityStage
+          ? `Codex is still building the first character preview; no image file yet. Log: ${logPath}`
+          : `Codex is still building the movement pack; no output files yet. Log: ${logPath}`);
       }
       if (!firstOutputSeen && Date.now() - lastActivityAt > INACTIVITY_TIMEOUT_MS) {
         settled = true;
@@ -527,13 +568,17 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
     }, 15000);
 
     onProgress(`Codex started with ${codexModel}. Log: ${logPath}`);
-    onProgress('Codex is studying the pet photos and building a character sheet...');
+    onProgress(isIdentityStage
+      ? 'Codex is studying the pet photos and building a character preview...'
+      : 'Codex is using the approved character preview to build and check the movement pack...');
     const collect = (chunk) => {
       output = `${output}${chunk}`;
       lastActivityAt = Date.now();
       writeLog();
       if (/image|generat|character|sprite|action/i.test(String(chunk))) {
-        onProgress('Codex is generating and checking the standardized action sheets...');
+        onProgress(isIdentityStage
+          ? 'Codex is checking the illustrated pet identity...'
+          : 'Codex is generating and checking the standardized action sheets...');
       }
     };
     child.stdout.on('data', collect);
@@ -552,6 +597,8 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
       clearTimeout(timer);
       clearInterval(heartbeat);
       writeLog();
+      publishIdentityPreview();
+      publishActionProgress(true);
       if (code === 0) resolve(output);
       else if (/model is not supported/i.test(output)) {
         reject(new Error(`Codex model ${codexModel} is not supported by this account. Set OPPORTUNITY_PET_CODEX_MODEL to a supported Codex model and try again. Inspect codex.log in the generation job folder.`));
@@ -562,7 +609,130 @@ function runCodex(codexPath, jobDir, photoPaths, onProgress = () => {}, codexMod
   });
 }
 
-async function generatePetWithCodex({ photos, petName }, options) {
+function generationPaths(userDataPath, jobId) {
+  const root = path.resolve(userDataPath, 'Opportunity Pet Tasks');
+  const jobDir = path.resolve(root, jobId);
+  if (!jobDir.startsWith(`${root}${path.sep}`)) throw new Error('Invalid generation job.');
+  return {
+    root,
+    jobDir,
+    logPath: path.join(jobDir, 'codex.log'),
+    inputDir: path.join(jobDir, 'inputs'),
+    outputDir: path.join(jobDir, 'output')
+  };
+}
+
+function createGenerationJobId(petName) {
+  const readableName = String(petName || 'my-pet')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 32) || 'my-pet';
+  return `opportunity-pet-${readableName}-${randomUUID().slice(0, 8)}`;
+}
+
+function actionMetadata() {
+  return Object.fromEntries(Object.entries(ACTION_SPECS).map(([action, spec]) => [action, { fps: spec.fps, loop: spec.loop }]));
+}
+
+function actionSheetProgress(outputDir) {
+  const files = Object.values(ACTION_SPECS).flatMap((spec) => spec.files);
+  return {
+    completed: files.filter((file) => fs.existsSync(path.join(outputDir, file))).length,
+    total: files.length
+  };
+}
+
+function readIdentityPreview(outputDir) {
+  const errorPath = path.join(outputDir, 'error.json');
+  if (fs.existsSync(errorPath)) {
+    const payload = JSON.parse(fs.readFileSync(errorPath, 'utf8'));
+    throw new Error(payload.error || 'Codex could not lock the pet identity from these photos.');
+  }
+  const characterSheet = fs.readFileSync(path.join(outputDir, 'character-sheet.png'));
+  const image = PNG.sync.read(characterSheet);
+  if (!image.width || !image.height) throw new Error('Codex created an unusable pet identity preview.');
+  return `data:image/png;base64,${characterSheet.toString('base64')}`;
+}
+
+function validatePetPhotos(photos) {
+  if (!Array.isArray(photos) || photos.length < 3 || photos.length > 5) throw new Error('Choose 3-5 pet photos first.');
+  const decodedPhotos = photos.map(decodePhoto);
+  const hashes = new Set(decodedPhotos.map(({ buffer }) => createHash('sha256').update(buffer).digest('hex')));
+  if (hashes.size < 3) throw new Error('Choose at least 3 different pet photos. Repeating the same image does not provide another useful angle.');
+  return decodedPhotos;
+}
+
+function writeCodexHandoff(jobDir, stage) {
+  const instructions = stage === 'actions'
+    ? 'Open this folder as a Codex task. Read SKILL.md and job.json. The owner approved output/character-sheet.png. Generate the complete action pack into output/, preserve character-sheet.png byte-for-byte, and finish only when manifest.json and quality-report.json pass the contract.'
+    : 'Open this folder as a Codex task. Read SKILL.md and job.json. Use every image in inputs/ to create only output/character-sheet.png (or output/error.json). Do not create any action sheets. Finish after the static identity preview is ready.';
+  fs.writeFileSync(path.join(jobDir, 'RUN_IN_CODEX.md'), `${instructions}\n`);
+}
+
+function preparePetCodexHandoff({ photos, petName, feedback = [], feedbackNote = '' }, options) {
+  let jobId;
+  let paths;
+  try {
+    const decodedPhotos = validatePetPhotos(photos);
+    jobId = createGenerationJobId(petName);
+    paths = generationPaths(options.userDataPath, jobId);
+    fs.mkdirSync(paths.inputDir, { recursive: true });
+    fs.mkdirSync(paths.outputDir, { recursive: true });
+    decodedPhotos.forEach((decoded, index) => fs.writeFileSync(path.join(paths.inputDir, `photo-${String(index + 1).padStart(2, '0')}.${decoded.extension}`), decoded.buffer));
+    fs.copyFileSync(options.skillPath, path.join(paths.jobDir, 'SKILL.md'));
+    const poseGuideManifestSha256 = writePoseGuides(path.join(paths.jobDir, 'pose-guides'), ACTION_SPECS, ACTION_PACK_VERSION);
+    fs.writeFileSync(path.join(paths.jobDir, 'job.json'), JSON.stringify({
+      version: ACTION_PACK_VERSION,
+      petName: String(petName || 'My pet').slice(0, 80),
+      sourcePhotoCount: photos.length,
+      stage: 'identity',
+      revisionFeedback: Array.isArray(feedback) ? feedback.map((item) => String(item).slice(0, 48)).filter(Boolean).slice(0, 5) : [],
+      revisionNote: String(feedbackNote || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 180),
+      outputDirectory: 'output', poseGuideDirectory: 'pose-guides', poseGuideManifestSha256, requiredActions: ACTION_SPECS
+    }, null, 2));
+    writeCodexHandoff(paths.jobDir, 'identity');
+    return { ok: true, jobId, jobDir: paths.jobDir };
+  } catch (error) {
+    return { ok: false, error: error.message || String(error), jobId, jobDir: paths?.jobDir };
+  }
+}
+
+function getPetCodexHandoffStatus({ jobId }, options) {
+  try {
+    const paths = generationPaths(options.userDataPath, String(jobId || ''));
+    const job = JSON.parse(fs.readFileSync(path.join(paths.jobDir, 'job.json'), 'utf8'));
+    const errorPath = path.join(paths.outputDir, 'error.json');
+    if (fs.existsSync(errorPath)) return { ok: true, state: 'error', error: JSON.parse(fs.readFileSync(errorPath, 'utf8')).error || 'Codex could not generate this pet.' };
+    const characterPath = path.join(paths.outputDir, 'character-sheet.png');
+    if (!fs.existsSync(characterPath)) return { ok: true, state: 'waiting', stage: job.stage };
+    if (job.stage === 'identity') return { ok: true, state: 'identity-ready', previewDataUrl: readIdentityPreview(paths.outputDir) };
+    if (!fs.existsSync(path.join(paths.outputDir, 'manifest.json'))) {
+      return { ok: true, state: 'waiting', stage: 'actions', ...actionSheetProgress(paths.outputDir) };
+    }
+    return { ok: true, state: 'actions-ready', actions: loadGeneratedActions(paths.outputDir), actionMetadata: actionMetadata() };
+  } catch (error) {
+    return { ok: false, error: error.message || String(error) };
+  }
+}
+
+function advancePetCodexHandoff({ jobId }, options) {
+  try {
+    const paths = generationPaths(options.userDataPath, String(jobId || ''));
+    const jobPath = path.join(paths.jobDir, 'job.json');
+    const job = JSON.parse(fs.readFileSync(jobPath, 'utf8'));
+    if (job.stage !== 'identity') throw new Error('This preview is no longer waiting for approval.');
+    readIdentityPreview(paths.outputDir);
+    job.stage = 'actions';
+    fs.writeFileSync(jobPath, JSON.stringify(job, null, 2));
+    writeCodexHandoff(paths.jobDir, 'actions');
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message || String(error) };
+  }
+}
+
+async function generatePetIdentityWithCodex({ photos, petName, feedback = [], feedbackNote = '' }, options) {
   if (!Array.isArray(photos) || photos.length < 3 || photos.length > 5) {
     return { ok: false, error: 'Choose 3-5 pet photos first.' };
   }
@@ -579,11 +749,8 @@ async function generatePetWithCodex({ photos, petName }, options) {
   const codexPath = findCodexExecutable(options.codexPath);
   if (!codexPath) return { ok: false, error: 'Codex CLI was not found. Install and sign in to Codex before generating a pet.' };
 
-  const jobId = randomUUID();
-  const jobDir = path.join(options.userDataPath, 'pet-generation', jobId);
-  const logPath = path.join(jobDir, 'codex.log');
-  const inputDir = path.join(jobDir, 'inputs');
-  const outputDir = path.join(jobDir, 'output');
+  const jobId = createGenerationJobId(petName);
+  const { jobDir, logPath, inputDir, outputDir } = generationPaths(options.userDataPath, jobId);
   fs.mkdirSync(inputDir, { recursive: true });
   fs.mkdirSync(outputDir, { recursive: true });
 
@@ -599,6 +766,9 @@ async function generatePetWithCodex({ photos, petName }, options) {
       version: ACTION_PACK_VERSION,
       petName: String(petName || 'My pet').slice(0, 80),
       sourcePhotoCount: photos.length,
+      stage: 'identity',
+      revisionFeedback: Array.isArray(feedback) ? feedback.map((item) => String(item).slice(0, 48)).filter(Boolean).slice(0, 5) : [],
+      revisionNote: String(feedbackNote || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 180),
       outputDirectory: 'output',
       poseGuideDirectory: 'pose-guides',
       poseGuideManifestSha256,
@@ -607,15 +777,57 @@ async function generatePetWithCodex({ photos, petName }, options) {
 
     const codexModel = options.codexModel || process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL;
     await runCodex(codexPath, jobDir, photoPaths, options.onProgress, codexModel);
-    options.onProgress('The action pack is ready. Cleaning and aligning frames...');
-    const actions = loadGeneratedActions(outputDir);
-    const actionMetadata = Object.fromEntries(Object.entries(ACTION_SPECS).map(([action, spec]) => [action, { fps: spec.fps, loop: spec.loop }]));
-    return { ok: true, actions, actionMetadata, jobId, jobDir, logPath, codexPath, codexModel };
+    const previewDataUrl = readIdentityPreview(outputDir);
+    options.onProgress({ type: 'identity-preview', dataUrl: previewDataUrl });
+    return { ok: true, jobId, previewDataUrl, logPath, codexPath, codexModel };
   } catch (error) {
     return { ok: false, error: error.message || String(error), jobId, jobDir, logPath, codexPath, codexModel: options.codexModel || process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL };
-  } finally {
-    fs.rmSync(inputDir, { recursive: true, force: true });
   }
+}
+
+async function generatePetActionsWithCodex({ jobId }, options) {
+  let paths;
+  try {
+    paths = generationPaths(options.userDataPath, String(jobId || ''));
+    const jobPath = path.join(paths.jobDir, 'job.json');
+    const job = JSON.parse(fs.readFileSync(jobPath, 'utf8'));
+    if (job.stage !== 'identity') throw new Error('This pet preview is no longer waiting for approval. Start again from the photos.');
+    const photoPaths = fs.readdirSync(paths.inputDir)
+      .filter((file) => /^photo-\d+\.(png|jpg|jpeg|webp)$/i.test(file))
+      .sort()
+      .map((file) => path.join(paths.inputDir, file));
+    if (photoPaths.length < 3) throw new Error('The temporary pet photos are no longer available. Choose the photos again.');
+    readIdentityPreview(paths.outputDir);
+    job.stage = 'actions';
+    fs.writeFileSync(jobPath, JSON.stringify(job, null, 2));
+    const codexPath = findCodexExecutable(options.codexPath);
+    if (!codexPath) throw new Error('Codex CLI was not found. Install and sign in to Codex before generating motions.');
+    const codexModel = options.codexModel || process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL;
+    await runCodex(codexPath, paths.jobDir, photoPaths, options.onProgress, codexModel);
+    options.onProgress('The action pack is ready. Cleaning and aligning frames...');
+    const actions = loadGeneratedActions(paths.outputDir);
+    return { ok: true, actions, actionMetadata: actionMetadata(), jobId, jobDir: paths.jobDir, logPath: paths.logPath, codexPath, codexModel };
+  } catch (error) {
+    return { ok: false, error: error.message || String(error), jobId, jobDir: paths?.jobDir, logPath: paths?.logPath };
+  } finally {
+    if (paths?.inputDir) fs.rmSync(paths.inputDir, { recursive: true, force: true });
+  }
+}
+
+function discardPetGeneration({ jobId }, options) {
+  try {
+    const { jobDir } = generationPaths(options.userDataPath, String(jobId || ''));
+    fs.rmSync(jobDir, { recursive: true, force: true });
+    return { ok: true };
+  } catch (error) {
+    return { ok: false, error: error.message || String(error) };
+  }
+}
+
+async function generatePetWithCodex(payload, options) {
+  const identity = await generatePetIdentityWithCodex(payload, options);
+  if (!identity.ok) return identity;
+  return generatePetActionsWithCodex({ jobId: identity.jobId }, options);
 }
 
 module.exports = {
@@ -624,6 +836,12 @@ module.exports = {
   ACTION_PACK_VERSION,
   DEFAULT_CODEX_MODEL,
   findCodexExecutable,
+  preparePetCodexHandoff,
+  getPetCodexHandoffStatus,
+  advancePetCodexHandoff,
+  generatePetIdentityWithCodex,
+  generatePetActionsWithCodex,
+  discardPetGeneration,
   generatePetWithCodex,
   loadGeneratedActions,
   splitSheet,

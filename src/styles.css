@@ -824,6 +824,175 @@ body[data-view="setup"] .pipeline-steps span {
   color: #fffdf5;
 }
 
+.identity-preview {
+  display: grid;
+  grid-template-columns: 72px 1fr;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 0;
+  padding: 6px;
+  border: 1px solid rgba(101, 119, 104, 0.24);
+  border-radius: 11px;
+  background: rgba(245, 248, 240, 0.76);
+}
+
+.identity-preview[hidden] {
+  display: none;
+}
+
+.identity-preview img {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(255, 252, 243, 0.78);
+}
+
+.identity-preview figcaption {
+  color: #52685c;
+  font-size: 10px;
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.identity-preview-actions {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.identity-preview-actions button {
+  min-height: 27px;
+  padding: 5px 6px;
+  font-size: 8px;
+}
+
+.identity-feedback {
+  grid-column: 1 / -1;
+  padding-top: 2px;
+}
+
+.identity-feedback[hidden] {
+  display: none;
+}
+
+.identity-feedback p,
+.identity-feedback label {
+  display: block;
+  margin: 0 0 5px;
+  color: #625e56;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.identity-feedback-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.identity-feedback-choices button {
+  padding: 4px 6px;
+  border: 1px solid rgba(87, 82, 72, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 252, 243, 0.76);
+  color: #625e56;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+.identity-feedback-choices button[aria-pressed="true"] {
+  border-color: rgba(82, 111, 100, 0.64);
+  background: #66796c;
+  color: #fffdf5;
+}
+
+.identity-feedback input {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 3px;
+  padding: 5px 6px;
+  border: 1px solid rgba(87, 82, 72, 0.2);
+  border-radius: 7px;
+  background: rgba(255, 252, 243, 0.86);
+  color: var(--ink);
+  font: inherit;
+}
+
+.identity-feedback-actions {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.identity-feedback-actions button {
+  min-height: 27px;
+  padding: 5px 6px;
+  font-size: 8px;
+}
+
+.action-progress {
+  margin: 7px 0;
+  padding: 7px 8px;
+  border: 1px solid rgba(101, 119, 104, 0.24);
+  border-radius: 10px;
+  background: rgba(245, 248, 240, 0.76);
+}
+
+.action-progress[hidden] {
+  display: none;
+}
+
+.action-progress > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  color: #52685c;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.action-progress-track {
+  height: 6px;
+  margin-top: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(101, 119, 104, 0.16);
+}
+
+.action-progress-track span {
+  display: block;
+  width: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: #66796c;
+  transition: width 220ms ease;
+}
+
+.action-progress p {
+  margin: 5px 0 0;
+  color: #777067;
+  font-size: 8px;
+  font-weight: 650;
+}
+
+.codex-handoff {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 6px;
+  margin: 7px 0;
+  padding: 8px;
+  border: 1px solid rgba(101, 119, 104, 0.24);
+  border-radius: 10px;
+  background: rgba(245, 248, 240, 0.76);
+}
+
+.codex-handoff[hidden] { display: none; }
+.codex-handoff p { grid-column: 1 / -1; margin: 0; color: #52685c; font-size: 9px; font-weight: 720; line-height: 1.35; }
+.codex-handoff button { min-height: 28px; padding: 5px 6px; font-size: 8px; }
+
 .photo-drop input {
   display: none;
 }

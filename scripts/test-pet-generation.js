@@ -9,6 +9,11 @@ const {
   ACTIONS,
   ACTION_SPECS,
   ACTION_PACK_VERSION,
+  generatePetIdentityWithCodex,
+  generatePetActionsWithCodex,
+  preparePetCodexHandoff,
+  getPetCodexHandoffStatus,
+  advancePetCodexHandoff,
   generatePetWithCodex,
   loadGeneratedActions,
   splitSheet,
@@ -96,8 +101,10 @@ async function main() {
 const path = require('path');
 const prompt = fs.readFileSync(0, 'utf8');
 if (!/Read and follow \\.\\/SKILL\\.md/.test(prompt)) throw new Error('generation prompt missing');
+if (!process.argv.includes('--ignore-user-config')) throw new Error('generation must not load unrelated user plugins');
 const job = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'job.json'), 'utf8'));
 if (job.version !== 6) throw new Error('motion contract version missing');
+if (job.revisionNote === 'slimmer face' && !job.revisionFeedback.includes('Face / proportions')) throw new Error('identity feedback missing');
 for (const [action, spec] of Object.entries(job.requiredActions)) {
   const expected = action === 'gaze' ? 16 : 8;
   if (!Array.isArray(spec.beats) || spec.beats.length !== expected) throw new Error(action + ' motion beats missing');
@@ -112,7 +119,14 @@ for (const bodyPlan of ['quadruped', 'biped', 'flyer', 'serpent', 'blob']) {
 }
 const output = path.join(process.cwd(), 'output');
 fs.mkdirSync(output, { recursive: true });
+if (job.stage === 'identity') {
+  fs.copyFileSync(path.join(process.env.OPPORTUNITY_PET_FAKE_SHEETS, 'character-sheet.png'), path.join(output, 'character-sheet.png'));
+  process.exit(0);
+}
+if (job.stage !== 'actions') throw new Error('generation stage missing');
+if (!fs.existsSync(path.join(output, 'character-sheet.png'))) throw new Error('approved identity preview missing');
 for (const file of fs.readdirSync(process.env.OPPORTUNITY_PET_FAKE_SHEETS)) {
+  if (file === 'character-sheet.png') continue;
   fs.copyFileSync(path.join(process.env.OPPORTUNITY_PET_FAKE_SHEETS, file), path.join(output, file));
 }
 const qualityReportPath = path.join(output, 'quality-report.json');
@@ -135,14 +149,53 @@ fs.writeFileSync(qualityReportPath, JSON.stringify(qualityReport));
     assert.equal(duplicatePhotos.ok, false);
     assert.match(duplicatePhotos.error, /3 different pet photos/);
 
+    const handoff = preparePetCodexHandoff({ photos, petName: 'Test Pet' }, {
+      userDataPath: path.join(tempRoot, 'user-data-handoff'),
+      skillPath: path.join(__dirname, '..', 'skills', 'pet-action-pack', 'SKILL.md')
+    });
+    assert.equal(handoff.ok, true, handoff.error);
+    assert.match(path.basename(handoff.jobDir), /^opportunity-pet-test-pet-[a-f0-9]{8}$/);
+    assert.match(fs.readFileSync(path.join(handoff.jobDir, 'RUN_IN_CODEX.md'), 'utf8'), /static identity preview/);
+    assert.equal(getPetCodexHandoffStatus({ jobId: handoff.jobId }, { userDataPath: path.join(tempRoot, 'user-data-handoff') }).state, 'waiting');
+    fs.copyFileSync(path.join(fakeSheets, 'character-sheet.png'), path.join(handoff.jobDir, 'output', 'character-sheet.png'));
+    assert.equal(getPetCodexHandoffStatus({ jobId: handoff.jobId }, { userDataPath: path.join(tempRoot, 'user-data-handoff') }).state, 'identity-ready');
+    assert.equal(advancePetCodexHandoff({ jobId: handoff.jobId }, { userDataPath: path.join(tempRoot, 'user-data-handoff') }).ok, true);
+    const waitingForActions = getPetCodexHandoffStatus({ jobId: handoff.jobId }, { userDataPath: path.join(tempRoot, 'user-data-handoff') });
+    assert.deepEqual({ state: waitingForActions.state, stage: waitingForActions.stage, completed: waitingForActions.completed, total: waitingForActions.total }, { state: 'waiting', stage: 'actions', completed: 0, total: 10 });
+    fs.copyFileSync(path.join(fakeSheets, 'idle.png'), path.join(handoff.jobDir, 'output', 'idle.png'));
+    assert.equal(getPetCodexHandoffStatus({ jobId: handoff.jobId }, { userDataPath: path.join(tempRoot, 'user-data-handoff') }).completed, 1);
+    assert.match(fs.readFileSync(path.join(handoff.jobDir, 'RUN_IN_CODEX.md'), 'utf8'), /complete action pack/);
+
+    const preview = await generatePetIdentityWithCodex({ photos, petName: 'Test Pet', feedback: ['Face / proportions'], feedbackNote: 'slimmer face' }, {
+      codexPath: fakeCodex,
+      userDataPath: path.join(tempRoot, 'user-data-staged'),
+      skillPath: path.join(__dirname, '..', 'skills', 'pet-action-pack', 'SKILL.md'),
+      onProgress: () => {}
+    });
+    assert.equal(preview.ok, true, preview.error);
+    assert.match(preview.previewDataUrl, /^data:image\/png;base64,/);
+    const stagedInputDir = path.join(tempRoot, 'user-data-staged', 'Opportunity Pet Tasks', preview.jobId, 'inputs');
+    assert.equal(fs.existsSync(stagedInputDir), true, 'source photos should remain only until the preview is approved');
+    const stagedResult = await generatePetActionsWithCodex({ jobId: preview.jobId }, {
+      codexPath: fakeCodex,
+      userDataPath: path.join(tempRoot, 'user-data-staged'),
+      skillPath: path.join(__dirname, '..', 'skills', 'pet-action-pack', 'SKILL.md'),
+      onProgress: () => {}
+    });
+    assert.equal(stagedResult.ok, true, stagedResult.error);
+    assert.equal(fs.existsSync(stagedInputDir), false, 'source photos should be deleted after movement generation');
+
+    const progressEvents = [];
     const result = await generatePetWithCodex({ photos, petName: 'Test Pet' }, {
       codexPath: fakeCodex,
       userDataPath: path.join(tempRoot, 'user-data'),
       skillPath: path.join(__dirname, '..', 'skills', 'pet-action-pack', 'SKILL.md'),
-      onProgress: () => {}
+      onProgress: (event) => progressEvents.push(event)
     });
 
     assert.equal(result.ok, true, result.error);
+    assert.ok(progressEvents.some((event) => event?.type === 'identity-preview' && event.dataUrl.startsWith('data:image/png;base64,')), 'the identity preview should arrive before the complete action pack is imported');
+    assert.ok(progressEvents.some((event) => event?.type === 'action-progress' && event.completed === event.total), 'the complete action-sheet progress should be reported');
     assert.deepEqual(result.actionMetadata.walk, { fps: 8, loop: true });
     assert.deepEqual(result.actionMetadata.sleep, { fps: 4, loop: false });
     const actionMedianDiagonals = [];
@@ -183,6 +236,10 @@ fs.writeFileSync(qualityReportPath, JSON.stringify(qualityReport));
     }
     assert.ok(Math.max(...actionMedianDiagonals) / Math.min(...actionMedianDiagonals) <= 1.035, 'actions should share one apparent character scale even when source sheets differ');
     const qualityReportPath = path.join(result.jobDir, 'output', 'quality-report.json');
+    const externalOutput = path.join(tempRoot, 'codex-native-output');
+    fs.cpSync(path.join(result.jobDir, 'output'), externalOutput, { recursive: true });
+    const importedExternalActions = loadGeneratedActions(externalOutput, { requireLocalJob: false });
+    assert.equal(importedExternalActions.gaze.length, 16, 'a complete Codex-native output folder should import without an app-owned job directory');
     const qualityReport = JSON.parse(fs.readFileSync(qualityReportPath, 'utf8'));
     qualityReport.identityAnchorSha256 = '0'.repeat(64);
     fs.writeFileSync(qualityReportPath, JSON.stringify(qualityReport));
@@ -191,7 +248,7 @@ fs.writeFileSync(qualityReportPath, JSON.stringify(qualityReport));
       /not bound to the delivered character sheet/,
       'an audit for another identity anchor must be rejected'
     );
-    const inputDir = path.join(tempRoot, 'user-data', 'pet-generation', result.jobId, 'inputs');
+    const inputDir = path.join(tempRoot, 'user-data', 'Opportunity Pet Tasks', result.jobId, 'inputs');
     assert.equal(fs.existsSync(inputDir), false, 'temporary input photos should be deleted');
     assert.throws(
       () => splitSheet(makeSheet(0, 'white')),

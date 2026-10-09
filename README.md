@@ -33,7 +33,7 @@ your pet photos
   <img src="docs/screenshots/setup-page.png" width="360" alt="Opportunity Pet photo import screen">
 </p>
 
-Start with 3-5 different, clear photos from different angles, each at least 480 pixels on its shortest side. The setup screen rejects exact duplicates and undersized images before generation. Opportunity Pet uses the photos only as identity references: your signed-in Codex CLI reconstructs one consistent illustrated character first, then derives every animation from that locked identity. The original photos are never cut out and moved around as sprites.
+Upload 3-5 different, clear photos in Opportunity Pet. It creates one readable local Codex task under `Documents/Opportunity Pet Tasks`, containing the photos and fixed pet rules. In Codex, create and approve the illustrated identity first; then create the motion pack in that same task. Opportunity Pet watches for each finished stage and brings the preview and completed pet back automatically. The original photos are identity references only; they are never cut out and moved around as sprites.
 
 The generated action pack is not one photo sliding around the screen. It contains distinct states:
 
@@ -137,8 +137,8 @@ Gumroad is only one possible destination. The same loop can point to Etsy, Shopi
 
 ## What Works Today
 
-- Import 3-5 pet photos and a name.
-- Reconstruct one multi-view illustrated identity, then generate a standardized 80-frame action pack through the signed-in Codex CLI using deterministic, anatomy-specific pose guides.
+- Upload 3-5 pet photos and a name once, then continue in one prepared Codex task.
+- Reconstruct one multi-view illustrated identity in Codex, approve it in Opportunity Pet, then generate a standardized 80-frame action pack.
 - Validate nine behavior states, including a walk-to-rest transition and sixteen-direction gaze, on one 512×512 canvas and baseline, with an identity audit bound to the final character sheet.
 - Reject incomplete generation instead of silently importing a raw-photo cutout, recolored template, partial pack, or Iron frames under another pet's name.
 - Run as a small transparent Electron desktop pet on top of ordinary work.
@@ -170,19 +170,7 @@ npm run check
 npm run start
 ```
 
-For personalized generation, install and sign in to Codex before starting Opportunity Pet. The app detects the CLI automatically and keeps **Generate with Codex** as the personalized path. If identity locking or any required action fails validation, nothing partial is imported: improve the photo set or retry. Iron remains available as an explicitly separate sample.
-
-Opportunity Pet uses `gpt-5.6-luna` by default. To choose another available Codex model:
-
-```bash
-OPPORTUNITY_PET_CODEX_MODEL=gpt-5.5 npm run start
-```
-
-The complete identity and 80-frame action-pack attempt waits up to 15 minutes by default. To choose a different limit:
-
-```bash
-OPPORTUNITY_PET_CODEX_TIMEOUT_MS=1200000 npm run start
-```
+For personalized generation, Opportunity Pet prepares a local Codex task from the photos you choose. Open that prepared folder in Codex and paste the short message the app provides. Codex uses its native image generation in the foreground, shows the static identity for approval first, and only then creates the complete action pack. Opportunity Pet does not impersonate that capability through a background CLI call. If identity locking or any required action fails validation, nothing partial is imported. Iron remains a clearly separate sample.
 
 If Electron's post-install download fails:
 
@@ -203,9 +191,9 @@ Build output is written to `release/`. The included GitHub Actions workflow buil
 
 ## Privacy And Boundaries
 
-Opportunity Pet has no paid backend and requires no Opportunity Pet API key. Its personalized generation path uses the downloader's signed-in Codex CLI and may count against that account's usage limits.
+Opportunity Pet has no paid backend and requires no Opportunity Pet API key. Personalized creation happens in the user's own Codex task and may count against that user's Codex usage limits.
 
-Selected photos are copied into the app's local user-data directory for the generation job. Temporary input copies are deleted afterward; generated action assets remain local.
+The user chooses photos in Opportunity Pet once. It copies them only into the prepared local Codex task; generated action assets remain local.
 
 Opportunity Pet does not choose what someone should build, promise revenue, publish unreviewed claims, or make business decisions. It turns “maybe this is interesting” into a visible choice and a direct handoff to a managed workflow.
 

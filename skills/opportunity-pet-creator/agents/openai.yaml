@@ -1,0 +1,4 @@
+interface:
+  display_name: "Opportunity Pet Creator"
+  short_description: "Turn pet photos into an importable animated Opportunity Pet"
+  default_prompt: "Create an animated Opportunity Pet from my pet photos. Show me the illustrated identity first, then generate the complete action pack after I approve it."

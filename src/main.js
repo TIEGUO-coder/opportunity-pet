@@ -1,6 +1,6 @@
-const { app, BrowserWindow, ipcMain, screen, shell } = require('electron');
+const { app, BrowserWindow, clipboard, ipcMain, screen, shell } = require('electron');
 const path = require('path');
-const { DEFAULT_CODEX_MODEL, findCodexExecutable, generatePetWithCodex } = require('./pet-generation');
+const { discardPetGeneration, preparePetCodexHandoff, getPetCodexHandoffStatus, advancePetCodexHandoff } = require('./pet-generation');
 const { createMahIntegration } = require('./mah-integration');
 const { nextWindowOrigin } = require('./window-layout');
 const { launchMahOpportunity } = require('./mah-launch');
@@ -60,6 +60,10 @@ function createWindow() {
 function petActionPackSkillPath() {
   const root = app.isPackaged ? process.resourcesPath : app.getAppPath();
   return path.join(root, 'skills', 'pet-action-pack', 'SKILL.md');
+}
+
+function petTaskStoragePath() {
+  return app.getPath('documents');
 }
 
 function mahAdapter() {
@@ -138,18 +142,39 @@ ipcMain.handle('cursor:get-position', () => {
   };
 });
 
-ipcMain.handle('pet:codex-status', () => {
-  const path = findCodexExecutable();
-  return { available: Boolean(path), path, model: process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL };
+ipcMain.handle('pet:discard-generation', async (_event, payload) => {
+  return discardPetGeneration(payload || {}, { userDataPath: petTaskStoragePath() });
 });
 
-ipcMain.handle('pet:generate-with-codex', async (event, payload) => {
-  return generatePetWithCodex(payload || {}, {
-    codexModel: process.env.OPPORTUNITY_PET_CODEX_MODEL || DEFAULT_CODEX_MODEL,
-    userDataPath: app.getPath('userData'),
-    skillPath: petActionPackSkillPath(),
-    onProgress: (message) => event.sender.send('pet:generation-progress', message)
-  });
+ipcMain.handle('pet:prepare-codex-handoff', async (_event, payload) => {
+  return preparePetCodexHandoff(payload || {}, { userDataPath: petTaskStoragePath(), skillPath: petActionPackSkillPath() });
+});
+
+ipcMain.handle('pet:get-codex-handoff-status', async (_event, payload) => {
+  return getPetCodexHandoffStatus(payload || {}, { userDataPath: petTaskStoragePath() });
+});
+
+ipcMain.handle('pet:advance-codex-handoff', async (_event, payload) => {
+  return advancePetCodexHandoff(payload || {}, { userDataPath: petTaskStoragePath() });
+});
+
+ipcMain.handle('pet:open-codex-handoff-folder', async (_event, payload) => {
+  const status = getPetCodexHandoffStatus(payload || {}, { userDataPath: petTaskStoragePath() });
+  if (!status.ok) return status;
+  const jobId = String(payload?.jobId || '');
+  const jobDir = path.join(petTaskStoragePath(), 'Opportunity Pet Tasks', jobId);
+  const error = await shell.openPath(jobDir);
+  return error ? { ok: false, error } : { ok: true, jobDir };
+});
+
+ipcMain.handle('pet:copy-codex-instruction', (_event, payload) => {
+  const status = getPetCodexHandoffStatus(payload || {}, { userDataPath: petTaskStoragePath() });
+  if (!status.ok) return status;
+  const message = status.stage === 'actions'
+    ? 'Continue this Opportunity Pet task. Read RUN_IN_CODEX.md, then build the complete movement pack. Keep the approved portrait unchanged and write the finished pet into output/.'
+    : 'Start this Opportunity Pet task. Read RUN_IN_CODEX.md, then use the photos already in inputs/ to make only the illustrated pet portrait. Write it to output/character-sheet.png so the app can show it for approval.';
+  clipboard.writeText(message);
+  return { ok: true };
 });
 
 ipcMain.handle('mah:get-status', async () => mahAdapter().getStatus());

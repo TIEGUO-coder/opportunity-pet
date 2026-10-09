@@ -5,13 +5,14 @@ description: Generate one identity-locked, standardized Opportunity Pet animatio
 
 # Standard Opportunity Pet Action Pack
 
-Create a complete personalized desktop-pet bundle in the current job workspace. This skill is called non-interactively by Opportunity Pet. When `job.json` and `inputs/` are present, do not ask questions.
+Create a complete personalized desktop-pet bundle in the current job workspace. This skill is called non-interactively by Opportunity Pet. When `job.json` and `inputs/` are present, do not ask questions. When the Codex-native `opportunity-pet-creator` skill links here, use this file only as the action, animation, and quality contract; that interactive skill owns the source photos, approval conversation, and output workspace.
 
 The uploaded photos are identity references only. Never crop, trace, segment, paste, or animate a source photo directly. First reconstruct one clean illustrated pet identity; then derive every action from that immutable identity.
 
 ## Inputs and failure behavior
 
 - Read `job.json` for the pet name and output directory.
+- If present, apply `revisionFeedback` and `revisionNote` as the owner's concrete corrections to the next identity preview. They refine the supplied photos; they must not override visible species, anatomy, age, markings, or other facts in those photos.
 - Inspect every supported image under `inputs/`.
 - Use the built-in image-generation tool for raster assets.
 - Use at most five image references in one generation call.
@@ -20,7 +21,14 @@ The uploaded photos are identity references only. Never crop, trace, segment, pa
 - If image generation is unavailable, write `output/error.json` and stop.
 - Never substitute the bundled Iron sample, a recolored template, or a raw photo cutout.
 
-## Required output
+## Staged output contract
+
+Read `stage` in `job.json` before doing anything.
+
+- When `stage` is `identity`, create only `output/character-sheet.png` (or `output/error.json`) and stop. Do not create action sheets, a quality report, or a manifest. This image is shown to the owner for approval.
+- When `stage` is `actions`, `output/character-sheet.png` is already approved. Never overwrite, regenerate, resize, recolor, or otherwise modify it. Create the complete output below from that exact anchor.
+
+The complete action-stage output is:
 
 ```text
 output/character-sheet.png
@@ -40,7 +48,7 @@ output/manifest.json
 
 Every action image is an exact 4×2, eight-frame, row-major sheet. `gaze-a.png` and `gaze-b.png` form one continuous sixteen-frame gaze set.
 
-## Stage 1: reconstruct and lock identity
+## Identity stage: reconstruct and lock identity
 
 Infer only stable features visible across the photos:
 
@@ -54,9 +62,9 @@ Generate `character-sheet.png` first as a polished 2×2 illustrated reference: f
 
 Use genuine transparency when reliable. Otherwise use perfectly flat `#00FF00`, without a floor, shadow, gradient, texture, room, or green spill. Never use white, gray, cream, studio, or photographic backgrounds.
 
-This character sheet is the immutable identity anchor. Attach it first for every later image-generation call, followed by up to four useful original photos. Do not regenerate or redesign the identity between actions.
+This character sheet is the immutable identity anchor. At the identity stage, write it and stop. At the action stage, attach this existing, byte-for-byte unchanged file first for every later image-generation call, followed by up to four useful original photos. Do not regenerate or redesign the identity between actions.
 
-## Stage 2: generate complete action sheets
+## Action stage: generate complete action sheets
 
 Read `requiredActions` in `job.json` before generating. Its `beats` array is the code-authored motion map: cell 1 must depict beat 1, cell 2 beat 2, and so on. For `gaze`, continue all sixteen beats across `gaze-a.png` and then `gaze-b.png`. Do not replace the beats with visually similar filler frames or ask the image model to invent timing.
 

@@ -6,13 +6,12 @@ contextBridge.exposeInMainWorld('teiguoWindow', {
   setMode: (mode) => ipcRenderer.invoke('window:set-mode', mode),
   minimize: () => ipcRenderer.invoke('window:minimize'),
   getCursorPosition: () => ipcRenderer.invoke('cursor:get-position'),
-  getCodexStatus: () => ipcRenderer.invoke('pet:codex-status'),
-  generatePetWithCodex: (payload) => ipcRenderer.invoke('pet:generate-with-codex', payload),
-  onGenerationProgress: (callback) => {
-    const listener = (_event, message) => callback(message);
-    ipcRenderer.on('pet:generation-progress', listener);
-    return () => ipcRenderer.removeListener('pet:generation-progress', listener);
-  },
+  discardPetGeneration: (payload) => ipcRenderer.invoke('pet:discard-generation', payload),
+  prepareCodexHandoff: (payload) => ipcRenderer.invoke('pet:prepare-codex-handoff', payload),
+  getCodexHandoffStatus: (payload) => ipcRenderer.invoke('pet:get-codex-handoff-status', payload),
+  advanceCodexHandoff: (payload) => ipcRenderer.invoke('pet:advance-codex-handoff', payload),
+  openCodexHandoffFolder: (payload) => ipcRenderer.invoke('pet:open-codex-handoff-folder', payload),
+  copyCodexInstruction: (payload) => ipcRenderer.invoke('pet:copy-codex-instruction', payload),
   getMahStatus: () => ipcRenderer.invoke('mah:get-status'),
   openMahOpportunity: (payload) => ipcRenderer.invoke('mah:open-opportunity', payload),
   registerMahProjectEntry: (payload) => ipcRenderer.invoke('mah:register-project-entry', payload),

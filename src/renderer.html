@@ -22,12 +22,40 @@
           <span id="stepIdentity">2 Pet style</span>
           <span id="stepSprite">3 Animated scout</span>
         </div>
+        <figure id="identityPreview" class="identity-preview" hidden>
+          <img id="identityPreviewImage" alt="Generated illustrated pet identity preview">
+          <figcaption>Does this still look like your pet?</figcaption>
+          <div class="identity-preview-actions">
+            <button type="button" id="approveIdentity" class="review-action">Yes, build movements</button>
+            <button type="button" id="retryIdentity" class="secondary-action">Improve this look</button>
+          </div>
+          <section id="identityFeedback" class="identity-feedback" hidden aria-label="Improve the pet identity">
+            <p>What feels off? Pick any that apply.</p>
+            <div id="identityFeedbackChoices" class="identity-feedback-choices"></div>
+            <label>Optional detail <input id="identityFeedbackNote" maxlength="180" placeholder="e.g. slimmer face, longer legs"></label>
+            <div class="identity-feedback-actions">
+              <button type="button" id="submitIdentityFeedback" class="review-action">Regenerate preview</button>
+              <button type="button" id="cancelIdentityFeedback" class="secondary-action">Keep this one</button>
+            </div>
+          </section>
+        </figure>
+        <section id="actionProgress" class="action-progress" hidden aria-live="polite">
+          <div><span>Building movement sheets</span><strong id="actionProgressLabel">0 / 10</strong></div>
+          <div class="action-progress-track"><span id="actionProgressFill"></span></div>
+          <p id="actionProgressHint">Waiting for the first action sheet…</p>
+        </section>
+        <section id="codexHandoff" class="codex-handoff" hidden aria-live="polite">
+          <p id="codexHandoffText">Your Codex task is ready.</p>
+          <button type="button" id="copyCodexInstruction" class="secondary-action">Copy movement message</button>
+          <button type="button" id="openCodexHandoff" class="review-action">Show Codex task folder</button>
+          <button type="button" id="refreshCodexHandoff" class="secondary-action">Check for my pet</button>
+        </section>
         <p id="assetNote" class="asset-note">Best order: front view, side full-body view, standing view, then sleeping or curled-up view. Distinct markings should be visible in more than one photo.</p>
         <input id="petNameInput" class="name-input" type="text" placeholder="Pet name, e.g. Iron">
         <div class="generation-actions">
-          <button type="button" id="generatePet" class="review-action" disabled>Generate with Codex</button>
+          <button type="button" id="generatePet" class="review-action" disabled>Prepare in Codex</button>
         </div>
-        <p class="privacy-note">AI generation uses your signed-in Codex and sends the selected photos to it. Temporary input copies are deleted after the action pack is created.</p>
+        <p class="privacy-note">Your photos are copied only into this pet task. Codex makes a portrait first; you approve it before it creates any movement.</p>
         <details class="advanced-assets">
           <summary>Advanced asset import and preview</summary>
           <p>Personal pets are accepted only after the complete identity-locked action pack passes validation. A partial or recolored substitute is never imported automatically.</p>
