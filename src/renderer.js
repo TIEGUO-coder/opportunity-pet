@@ -86,6 +86,10 @@ const preferenceApi = window.SCOUT_PREFERENCE_API;
 const sourceOpportunities = window.OPPORTUNITIES || [];
 const SCOUT_PREFERENCES_KEY = 'opportunityPet.scoutPreferences';
 const SCOUT_FEEDBACK_KEY = 'opportunityPet.scoutFeedback';
+const PENDING_MAH_KEY = 'opportunityPet.pendingMahOpportunity';
+function pendingMahOpportunity() {
+  try { return JSON.parse(localStorage.getItem(PENDING_MAH_KEY)); } catch { return null; }
+}
 let scoutPreferences = loadScoutPreferences();
 let scoutFeedback = loadScoutFeedback();
 let pendingRole = scoutPreferences?.role || '';
@@ -629,6 +633,11 @@ function setResultText(result = {}) {
 function loadPetProfile() {
   try {
     const profile = JSON.parse(localStorage.getItem('opportunityPet.profile')) || null;
+    if (!profile && new URLSearchParams(window.location.search).get('fromMah') === '1') {
+      const sample = defaultIronProfile();
+      localStorage.setItem('opportunityPet.profile', JSON.stringify(sample));
+      return sample;
+    }
     const staleGeneratedPack = profile &&
       profile.generatedFrom === 'codex-action-pack' &&
       profile.actionPackPolicyVersion !== ACTION_PACK_POLICY_VERSION;
@@ -879,7 +888,9 @@ function nextLead() {
   hideSkipFeedback();
   currentMahSnapshot = null;
   workflowRestoreToken += 1;
-  currentLeadIndex = (currentLeadIndex + 1) % opportunities.length;
+  const pendingIndex = currentLeadIndex === -1
+    ? opportunities.findIndex((lead) => lead.id === pendingMahOpportunity()?.opportunity?.id) : -1;
+  currentLeadIndex = pendingIndex >= 0 ? pendingIndex : (currentLeadIndex + 1) % opportunities.length;
   currentLead = opportunities[currentLeadIndex];
   setLeadText(currentLead);
   reviewPlan.disabled = true;
@@ -910,7 +921,7 @@ async function restoreProjectForLead(lead) {
   const token = ++workflowRestoreToken;
   document.getElementById('leadStatus').textContent = 'Restoring MAH project...';
   approveLead.disabled = true;
-  approveLead.textContent = 'Restoring project...';
+  approveLead.textContent = 'Make this happen →';
   try {
     const snapshot = await bridge.getMahProjectSnapshot(projectId);
     if (token !== workflowRestoreToken || currentLead?.id !== lead.id) return;
@@ -919,7 +930,7 @@ async function restoreProjectForLead(lead) {
   } catch (error) {
     if (token !== workflowRestoreToken || currentLead?.id !== lead.id) return;
     document.getElementById('leadStatus').textContent = `Saved MAH project unavailable: ${error.message || error}`;
-    approveLead.textContent = 'Reconnect MAH to resume';
+    approveLead.textContent = 'Make this happen →';
     approveLead.disabled = true;
   }
 }
@@ -935,7 +946,10 @@ async function showLeadCard() {
   document.body.dataset.view = 'lead';
   setBriefOpen(false);
   briefPanel.classList.remove('visible');
-  document.getElementById('leadStatus').textContent = 'Waiting for owner approval';
+  const pending = pendingMahOpportunity()?.opportunity?.id === currentLead?.id;
+  approveLead.textContent = 'Make this happen →';
+  document.getElementById('leadStatus').textContent = pending
+    ? 'Your opportunity is saved. Ready when you are.' : 'Waiting for owner approval';
   // Finish curling down before the one-minute resting hold begins.
   playActionOnce('sleep', undefined, 'sleep', () => {
     if (document.body.dataset.view !== 'lead') return;
@@ -1091,7 +1105,7 @@ function renderMahSnapshot(snapshot) {
     : `Local preview ${snapshot.project?.id}. No live MAH routemap, task, schedule, listing, order, or revenue has been created.`;
   reviewPlan.disabled = false;
   approveLead.disabled = true;
-  approveLead.textContent = 'Workflow started';
+  approveLead.textContent = 'Make this happen →';
   skipLead.disabled = true;
   if (!briefPanel.classList.contains('visible')) reviewPlan.textContent = 'View managed workflow';
   if (snapshot.result && currentLead?.result) {
@@ -1133,47 +1147,51 @@ function startWorkflowPolling() {
 async function approveCurrentLead() {
   if (!currentLead || approveLead.disabled) return;
   approveLead.disabled = true;
-  approveLead.textContent = 'Opening MAH...';
-  document.getElementById('leadStatus').textContent = 'Sending this opportunity to MAH...';
+  approveLead.textContent = 'Make this happen →';
+  document.getElementById('leadStatus').textContent = 'Preparing your next step...';
+  // Keep the current pose, frame, size, and anchor while the external handoff runs.
+  clearTimeout(ambientTimer);
+  clearTimeout(settleTimer);
+  clearTimeout(petMotionTimer);
+  cancelCurrentAnimation();
+  let handoffTimer;
   try {
-    const launch = await bridge.openMahOpportunity(opportunityRoutemapPayload());
+    const saved = pendingMahOpportunity();
+    const payload = saved?.opportunity?.id === currentLead.id ? saved : opportunityRoutemapPayload();
+    localStorage.setItem(PENDING_MAH_KEY, JSON.stringify(payload));
+    const launch = await Promise.race([
+      bridge.openMahOpportunity(payload),
+      new Promise((_, reject) => {
+        handoffTimer = setTimeout(() => reject(new Error('Handoff timed out.')), 12000);
+      })
+    ]);
     if (!launch?.opened) {
       leadCard.dataset.approved = 'false';
-      document.getElementById('leadStatus').textContent = launch?.message || 'MAH download page is not configured yet.';
+      document.getElementById('leadStatus').textContent = 'Could not continue. Please try again.';
       approveLead.disabled = false;
       approveLead.textContent = 'Make this happen →';
       return;
     }
-    leadCard.dataset.approved = 'true';
-    leadCard.dataset.mahLaunchTarget = launch.target || '';
+    leadCard.dataset.approved = 'false';
     document.getElementById('leadStatus').textContent = {
-      desktop: 'Opening this opportunity in MAH...',
-      web: 'Opening MAH web with this opportunity attached...',
-      download: 'MAH is not installed yet. Opening the official download page...'
-    }[launch.target] || 'Opening MAH...';
-    setPetMotion('chasing');
-    playActionOnce('chase', undefined, 'idle', () => {
-      setPetMotion('found');
-      startAnimation('idle');
-    });
+      desktop: 'MAH is open, but this version has no external roadmap handoff. Your opportunity is saved; no roadmap has been created or opened.',
+      web: 'Your workspace is open. Review the opportunity there; task creation is not confirmed.',
+      download: 'Install MAH from the download page, then click “Make this happen” to continue. Your opportunity is saved.'
+    }[launch.target] || 'Your opportunity is saved.';
   } catch (error) {
     leadCard.dataset.approved = 'false';
-    leadCard.dataset.mahLaunchTarget = '';
-    document.getElementById('leadStatus').textContent = `Could not open MAH: ${error.message || error}`;
+    document.getElementById('leadStatus').textContent = 'Could not continue. Your opportunity is saved; please try again.';
     approveLead.disabled = false;
     approveLead.textContent = 'Make this happen →';
   } finally {
-    if (leadCard.dataset.approved === 'true') {
-      approveLead.textContent = launchTargetLabel(leadCard.dataset.mahLaunchTarget);
-    }
+    clearTimeout(handoffTimer);
+    approveLead.disabled = false;
+    approveLead.textContent = 'Make this happen →';
   }
 }
 
-function launchTargetLabel(target) {
-  return target === 'download' ? 'Download MAH to continue' : 'Opened in MAH';
-}
-
 async function skipCurrentLead() {
+  if (pendingMahOpportunity()?.opportunity?.id === currentLead?.id) localStorage.removeItem(PENDING_MAH_KEY);
   hideSetupPanel();
   hideSkipFeedback();
   leadCard.dataset.approved = 'false';
@@ -1786,6 +1804,7 @@ bridge.getMahStatus().then((status) => {
 bridge.registerMahProjectEntry({
   key: 'opportunity-pet',
   title: 'Opportunity Pet',
+  launchUrl: 'opportunity-pet://open',
   launchSurfaces: ['mah-project', 'desktop']
 }).catch(() => {
   // Status messaging already explains whether the production MAH connection is available.

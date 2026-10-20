@@ -7,6 +7,8 @@
     "install:electron": "npx install-electron --no",
     "prepare:assets": "node scripts/extract-sprites.js",
     "start": "electron .",
+    "start:mah": "node scripts/launch-from-mah.js",
+    "mah:autostart": "node scripts/mah-autostart.js",
     "check": "node scripts/verify-assets.js && node scripts/test-pet-generation.js && node scripts/test-pet-animation-timing.js && node scripts/test-window-layout.js && node scripts/test-result-close-safety.js && node scripts/test-scout-preferences.js && node scripts/test-creator-store-blueprint.js && node scripts/test-mah-integration.js && node scripts/test-mah-launch.js",
     "check:local-fallback": "electron scripts/test-local-cartoon-fallback.js",
     "capture:demo": "electron scripts/capture-demo-screenshots.js",
@@ -35,6 +37,7 @@
   "build": {
     "appId": "com.tieguocoder.opportunitypet",
     "productName": "Opportunity Pet",
+    "protocols": [{ "name": "Opportunity Pet", "schemes": ["opportunity-pet"] }],
     "asar": true,
     "artifactName": "Opportunity-Pet-${version}-${os}-${arch}.${ext}",
     "directories": {

@@ -42,7 +42,7 @@ The generated action pack is not one photo sliding around the screen. It contain
 - **Rest:** curls into a ball and stays still long enough to feel asleep.
 - **Look:** follows the butterfly through sixteen complete head-and-eye directions without rotating a cut-out face.
 - **Found:** turns toward you when it brings back an opportunity.
-- **Send:** chases a butterfly while the approved opportunity is handed directly to MAH.
+- **Send:** holds its current pose while opening the next step, without chasing or changing size.
 - **Happy:** reacts briefly when clicked or when a task moves forward.
 
 The setup window disappears after generation, leaving only the small transparent desktop pet. Iron is just the included sample pet; you can replace him with your own animal.
@@ -82,9 +82,13 @@ The pet does not claim that every lead will make money. Its job is to make plaus
 
 ## 3. Accept The Lead In MAH
 
-Approving a card does not produce another plan or document to copy. Opportunity Pet packages the useful context and opens [MAH](https://mah.bot/) with the opportunity already attached. If the MAH desktop app is installed, it opens the native import route. Otherwise, the same action opens the official [MAH download page](https://mah.bot/download).
+The opportunity card stays focused on the opportunity, with **Make this happen** as its primary action. The action opens the installed MAH desktop; if it is missing, it opens the official [MAH download page](https://mah.bot/download). Install it, return to the pet, and click **Make this happen** again. The selected opportunity and preferences stay saved locally, including after restarting the pet. Opening the desktop does not create or open a roadmap: the inspected MAH 0.1.1896 build has no external opportunity/roadmap receiver.
 
-The handoff keeps the useful context instead of forcing another interview loop. It includes:
+When launched from a managed MAH project, the same action saves the opportunity in that project's `.mah/opportunity-pet/` folder and opens MAH. The primary label stays **Make this happen** throughout the flow; progress and limitations appear in the status text. An unconfirmed handoff stays retryable; there is no clipboard or save-only detour. The pet holds its current pose and position during launch. MAH's Project Tools can launch the pet directly with `npm --prefix components/app run start:mah`; first launch offers the sample pet immediately, and repeated launches focus the same instance.
+
+For this local macOS managed-project setup, the pet can also appear automatically whenever MAH starts. In the pet component, run `npm run mah:autostart -- enable` once. This compiles a small native listener using the installed Swift tools and installs a user LaunchAgent; it listens for MAH application-launch events, with no polling or AI task. The setup is currently a local integration, not a feature enabled automatically for everyone who downloads MAH. Inspect it with `npm run mah:autostart -- status`, or turn it off with `npm run mah:autostart -- disable`. Closing the pet leaves it closed until MAH is launched again.
+
+The locally saved opportunity prepares the useful context for future MAH import. It includes:
 
 - Who already pays for this outcome.
 - What the smallest deliverable should be.
@@ -92,16 +96,17 @@ The handoff keeps the useful context instead of forcing another interview loop. 
 - What MAH can delegate to an agent, and where a person must decide.
 - What should count as a useful first result.
 
-For a creator-store lead, a practical first experiment is one asset, one storefront, one price, and one launch channel. MAH owns task delegation and long-running execution; you choose the niche, validate demand, and approve claims or external publishing when required.
+For a creator-store lead, a practical first experiment is one asset, one storefront, one price, and one launch channel. After a supported integration is connected, MAH can own task delegation and long-running execution; you choose the niche, validate demand, and approve external publishing when required.
 
 ## 4. Let MAH Run The Work
 
-Opportunity Pet is MAH's playful business interface. It discovers and presents the lead, captures the owner's decision, and hands execution to MAH.
+Opportunity Pet is a playful entry into MAH. It discovers and presents the lead, captures the owner's decision, and opens MAH. Execution handoff is the next integration stage.
 
 MAH is the running base underneath it: routemap evolution, task delegation, agent routing, retries, scheduled storefront checks, and long-running state. The pet does not reimplement those mechanisms.
 
 ```text
-lead card -> owner accepts -> MAH opens with the opportunity -> MAH takes over
+lead card -> owner chooses MAH -> open desktop / download and retry
+future supported import -> MAH receives opportunity -> MAH runs the work
 ```
 
 The web fallback uses MAH's official public domain, while the native desktop route remains configurable until its final protocol is published. The pet does not imitate MAH execution inside its own UI. See [the MAH integration contract](docs/mah-integration-contract.md).
@@ -143,9 +148,10 @@ Gumroad is only one possible destination. The same loop can point to Etsy, Shopi
 - Reject incomplete generation instead of silently importing a raw-photo cutout, recolored template, partial pack, or Iron frames under another pet's name.
 - Run as a small transparent Electron desktop pet on top of ordinary work.
 - Scout curated opportunity cards and let the user approve or reject them.
-- Hand approved leads directly to MAH without clipboard copying or an intermediate plan document.
-- Open the installed MAH desktop import route with a structured, idempotent opportunity payload.
+- Open the installed MAH desktop, or guide the user to download it and retry without losing the selected opportunity.
+- Prepare a structured, idempotent opportunity payload for a confirmed MAH import endpoint; task creation is not yet connected by default.
 - Fall back to the official [MAH download page](https://mah.bot/download) when the desktop app is not installed.
+- Let MAH launch the packaged pet through `opportunity-pet://open` once its project entry is configured.
 - Open a result page that explicitly labels the intended business outcome as illustrative.
 - Build packaged desktop downloads for macOS, Windows, and Linux.
 

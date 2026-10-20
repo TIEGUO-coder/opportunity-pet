@@ -7,14 +7,14 @@ window.OPPORTUNITIES = [
     interests: ['digital-products', 'content-ip'],
     effortLevel: 3,
     riskLevel: 2,
-    summary: 'Spot one useful asset, workflow, or repeatable know-how that fits the owner, then turn it into a focused digital product with a storefront, delivery package, and result that MAH can keep watching.',
+    summary: 'Package a Notion template, checklist, guide, or repeatable client workflow into a small digital product for freelancers or solo businesses. Create a clear product page, ready-to-download files, a quick-start guide, and an FAQ. Start with one asset and one target buyer, then test demand before building a full store.',
     evidence: 'Before acting, collect at least two recent public examples with source links and dates that show similar products sell or that creators struggle to package this kind of asset.',
     risk: 'The first version must package one narrow asset into a sellable product. It should not promise passive income, fake sales, or automate spammy social posting.',
     v1: 'Package one user-owned asset into the Freelance Client Portal Kit: a complete ZIP download, quick-start guide, storefront copy, FAQ, cover brief, and reviewable $29-$79 price range.',
     recommendedDirection: [
       'Use the owner profile to find one template, prompt pack, checklist, guide, workflow, or repeated client process the owner already understands.',
       'Aim the first product at a narrow buyer, such as freelancers or solo service businesses that need repeatable onboarding and delivery.',
-      'After the owner accepts the opportunity, let MAH turn it into tasks, approvals, publishing, and ongoing result monitoring.'
+      'Turn the chosen opportunity into tasks, approvals, publishing, and ongoing result monitoring.'
     ],
     routemapChecks: [
       'The user confirms ownership or permission to sell the source material.',

@@ -4,13 +4,34 @@ Opportunity Pet is the business interaction layer. MAH owns the project entry, r
 
 ## User-facing launch contract
 
-Accept never opens an intermediate plan or workflow document inside Opportunity Pet. The desktop app passes a compact, versioned opportunity payload to MAH and then gets out of the way.
+The required acquisition path is: a pet shows an opportunity, the owner chooses **Make this happen**, and an installed MAH opens the corresponding roadmap for action. If MAH is absent, open its download page and retain the opportunity for retry after installation. Opening the application alone does not meet this requirement.
 
-- Installed MAH: open `OPPORTUNITY_PET_MAH_DEEP_LINK` (default protocol shape: `mah://import/opportunity`) with `source` and `handoff` query parameters.
-- MAH not installed: open the HTTPS address in `OPPORTUNITY_PET_MAH_WEB_URL` with the same parameters so the web entry can retain context while prompting installation.
-- `handoff` is base64url-encoded UTF-8 JSON and includes an idempotency key, opportunity identity, summary, evidence, risk, smallest experiment, directions, and checks.
+1. Save the selected opportunity and preferences locally before attempting a launch.
+2. Detect the application registered for `mah:`. Open its application path through the OS when available. The fallback is `mah://account`, a route supported by the inspected MAH 0.1.1896 build; it opens the account surface rather than importing a task.
+3. If absent or the launch fails, open `https://mah.bot/download?source=opportunity-pet`. Never include the opportunity payload in an ordinary download-page URL.
+4. Keep **Make this happen** enabled until a roadmap handoff is acknowledged. Each click checks installation again. The saved opportunity survives a pet restart and is selected on the next opportunity display.
+5. Opening an app is not a receipt for a task. Keep the opportunity locally and label the result as a launch request until MAH provides an import acknowledgement.
+6. Packaged pets expose `opportunity-pet://open` and focus the existing instance. MAH can use that URL for a project/plugin entry. The pet passes `launchUrl` to the existing adapter registration; an actual MAH-side entry still requires its production adapter.
 
-The two final release URLs must come from MAH. Pre-release builds deliberately leave the web URL unset rather than sending users to an invented address.
+### Managed project entry (configured locally)
+
+The user's managed project is `电子铁锅-mah`, with the app in `components/app`. Its native Project Tools entry **打开机会宠物** runs `npm --prefix components/app run start:mah` in detached mode. This entry is registered using `mah project entry`, not the preview adapter. The launcher removes MAH's inherited `ELECTRON_RUN_AS_NODE` setting, binds the containing project, and starts the sample pet on first launch without requiring photo generation. Further launches focus the existing instance.
+
+The card, initial status, summary and supporting note do not name MAH before the user chooses **Make this happen**. Regardless of launch origin, that action saves the opportunity and attempts to open MAH or its download page. Managed launches save structured JSON under `<project>/.mah/opportunity-pet/`; standalone launches use the pet's local user-data directory. No clipboard workflow or separate save-only action is provided. The label remains **Make this happen**, the pet holds its current frame and position, and unconfirmed handoffs remain retryable. Saving/opening does not submit an agent task or open a roadmap; the UI explicitly reports this limitation. No MAH source files or account settings are modified.
+
+### Outstanding MAH-side requirement
+
+MAH 0.1.1896 exposes account/fleet deep links, but no external project/roadmap navigation or opportunity import route. Its internal `mah:openEvolutionDesktop` IPC is not an external integration API. The missing receiver must accept an idempotent opportunity payload, create or resolve the correct project/roadmap, navigate to it, and acknowledge its identifiers. Do not substitute the pet source project's governance roadmap for the user's business opportunity, or treat an OS application-launch result as this acknowledgement.
+
+### Automatic launch on this Mac
+
+The installed MAH entry schema has no autostart field and no MAH source checkout was found locally. The local integration therefore uses `scripts/mah-pet-bridge.swift`: a user-session `NSWorkspace.didLaunchApplicationNotification` listener for bundle ID `bot.mah.desktop`. It starts this managed project's pet when MAH launches; the listener also checks for an already-running MAH when it starts. It does not poll, create tasks, or restart a pet the user closes during the same MAH session. The pet's single-instance lock prevents duplicate windows.
+
+`npm run mah:autostart -- enable` compiles and installs the bridge in `~/Library/Application Support/opportunity-pet/mah-autostart/` and registers `~/Library/LaunchAgents/com.tieguocoder.opportunitypet.mah-bridge.plist`. `status` checks the service; `disable` unloads it and retains the plist with a `.disabled` suffix. This setting is local to the current macOS user and bound component path; it is not a vendor MAH startup plugin, not a project-switch hook, and is not yet included in public desktop downloads. Moving the project requires re-enabling it from the new component path.
+
+Verified 2026-10-16: quit both the pet and MAH, confirmed neither was running, then opened MAH alone. The pet reappeared with `fromMah=1`; the native bridge process was its direct parent. Existing automatic checks also passed.
+
+The installed MAH 0.1.1896 parser rejects `mah://import/opportunity` and query parameters. Do not use that invented route as the default. Once a real opportunity import endpoint is supplied, set `OPPORTUNITY_PET_MAH_DEEP_LINK`; that explicit integration receives `source` and a base64url JSON `handoff` containing the idempotency key, opportunity and preferences. `OPPORTUNITY_PET_MAH_WEB_URL` is likewise only for a confirmed web import receiver, not the general website. `OPPORTUNITY_PET_MAH_DOWNLOAD_URL` overrides the download page if needed.
 
 The repository does not guess unpublished MAH CLI commands. Until the production Skill and CLI are available, the app previews the same resource boundaries locally and labels every resource as non-live.
 

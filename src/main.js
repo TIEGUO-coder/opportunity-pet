@@ -3,7 +3,10 @@ const path = require('path');
 const { discardPetGeneration, preparePetCodexHandoff, getPetCodexHandoffStatus, advancePetCodexHandoff } = require('./pet-generation');
 const { createMahIntegration } = require('./mah-integration');
 const { nextWindowOrigin } = require('./window-layout');
-const { launchMahOpportunity } = require('./mah-launch');
+const { launchMahOpportunity, openMahApplication } = require('./mah-launch');
+const { findMahProjectRoot, saveMahOpportunity } = require('./mah-project');
+
+let mahProjectRoot = findMahProjectRoot(process.env.OPPORTUNITY_PET_MAH_PROJECT_ROOT || path.join(__dirname, '..'));
 
 let petWindow;
 let managedWorkflowAdapter;
@@ -51,7 +54,9 @@ function createWindow() {
     }
   });
 
-  petWindow.loadFile(path.join(__dirname, 'renderer.html')).then(() => {
+  petWindow.loadFile(path.join(__dirname, 'renderer.html'), {
+    query: process.argv.includes('--from-mah') ? { fromMah: '1' } : {}
+  }).then(() => {
     petWindow.show();
     petWindow.focus();
   });
@@ -73,7 +78,34 @@ function mahAdapter() {
   return managedWorkflowAdapter;
 }
 
+// MAH can use this entry without coupling the pet to MAH login or task APIs.
+function showPet() {
+  if (!petWindow || petWindow.isDestroyed()) {
+    if (app.isReady()) createWindow();
+    return;
+  }
+  if (petWindow.isMinimized()) petWindow.restore();
+  petWindow.show();
+  petWindow.focus();
+}
+
+if (!app.requestSingleInstanceLock({ projectRoot: mahProjectRoot })) app.exit(0);
+app.on('second-instance', (_event, argv, _workingDirectory, data) => {
+  if (argv.includes('--from-mah')) {
+    if (data?.projectRoot) mahProjectRoot = findMahProjectRoot(data.projectRoot);
+  }
+  showPet();
+});
+if (app.isPackaged) {
+  app.on('open-url', (event, url) => {
+    if (url !== 'opportunity-pet://open' && url !== 'opportunity-pet://open/') return;
+    event.preventDefault();
+    showPet();
+  });
+}
+
 app.whenReady().then(() => {
+  if (app.isPackaged) app.setAsDefaultProtocolClient('opportunity-pet');
   createWindow();
 
   app.on('activate', () => {
@@ -180,10 +212,20 @@ ipcMain.handle('pet:copy-codex-instruction', (_event, payload) => {
 ipcMain.handle('mah:get-status', async () => mahAdapter().getStatus());
 
 ipcMain.handle('mah:open-opportunity', async (_event, payload) => {
-  return launchMahOpportunity(payload || {}, {
-    getApplicationInfoForProtocol: app.getApplicationInfoForProtocol?.bind(app),
+  const saved = saveMahOpportunity(payload || {}, { projectRoot: mahProjectRoot, userDataPath: app.getPath('userData') });
+  const launch = await launchMahOpportunity(payload || {}, {
+    getApplicationInfoForProtocol: async (url) => {
+      if (process.platform === 'darwin') {
+        const standardPaths = ['/Applications/MAH.app', path.join(app.getPath('home'), 'Applications', 'MAH.app')];
+        const installedPath = standardPaths.find((candidate) => require('fs').existsSync(candidate));
+        if (installedPath) return { path: installedPath };
+      }
+      return app.getApplicationInfoForProtocol(url);
+    },
+    openApplication: (applicationPath) => openMahApplication(applicationPath, shell.openPath),
     openExternal: (url) => shell.openExternal(url, { activate: true })
   });
+  return { ...launch, projectSaved: saved.projectSaved };
 });
 
 ipcMain.handle('mah:register-project-entry', async (_event, payload) => {

@@ -1,5 +1,20 @@
-const DEFAULT_DESKTOP_URL = 'mah://import/opportunity';
+const DEFAULT_DESKTOP_URL = 'mah://account';
 const DEFAULT_DOWNLOAD_URL = 'https://mah.bot/download';
+
+async function openMahApplication(applicationPath, openPath) {
+  if (process.platform === 'darwin') {
+    // Use the OS launcher with a bounded timeout so an app-open request cannot wait indefinitely.
+    await new Promise((resolve, reject) => {
+      require('child_process').execFile('/usr/bin/open', ['-a', applicationPath], { timeout: 8000 }, (error) => {
+        if (error) reject(new Error('MAH could not be opened. Please try again.'));
+        else resolve();
+      });
+    });
+    return;
+  }
+  const error = await openPath(applicationPath);
+  if (error) throw new Error(error);
+}
 
 function clean(value, limit = 1600) {
   return typeof value === 'string' ? value.trim().slice(0, limit) : '';
@@ -69,7 +84,7 @@ function buildMahLaunchTargets(payload, options = {}) {
   const downloadBase = options.downloadUrl || process.env.OPPORTUNITY_PET_MAH_DOWNLOAD_URL || DEFAULT_DOWNLOAD_URL;
   return {
     handoff,
-    desktopUrl: handoffUrl(desktopBase, handoff, 'mah:'),
+    desktopUrl: desktopBase === DEFAULT_DESKTOP_URL ? desktopBase : handoffUrl(desktopBase, handoff, 'mah:'),
     webUrl: handoffUrl(webBase, handoff, webBase ? 'https:' : ''),
     downloadUrl: downloadUrl(downloadBase)
   };
@@ -80,20 +95,35 @@ async function launchMahOpportunity(payload, dependencies = {}, options = {}) {
   const getApplicationInfoForProtocol = dependencies.getApplicationInfoForProtocol;
   const openExternal = dependencies.openExternal;
   let installed = false;
+  let application;
 
   if (typeof getApplicationInfoForProtocol === 'function') {
+    let lookupTimer;
     try {
-      await getApplicationInfoForProtocol(targets.desktopUrl);
+      application = await Promise.race([
+        getApplicationInfoForProtocol(targets.desktopUrl),
+        new Promise((_, reject) => {
+          lookupTimer = setTimeout(() => reject(Object.assign(new Error('MAH installation check timed out. Please try again.'), { code: 'MAH_LOOKUP_TIMEOUT' })), options.lookupTimeoutMs || 8000);
+        })
+      ]);
       installed = true;
-    } catch {
+    } catch (error) {
+      // A stalled system lookup is not evidence that MAH is absent.
+      if (error.code === 'MAH_LOOKUP_TIMEOUT') throw error;
       installed = false;
+    } finally {
+      clearTimeout(lookupTimer);
     }
   }
 
   if (installed) {
     try {
-      await openExternal(targets.desktopUrl);
-      return { opened: true, target: 'desktop', url: targets.desktopUrl };
+      if (targets.desktopUrl === DEFAULT_DESKTOP_URL && application?.path && dependencies.openApplication) {
+        await dependencies.openApplication(application.path);
+      } else {
+        await openExternal(targets.desktopUrl);
+      }
+      return { opened: true, target: 'desktop', url: targets.desktopUrl, contextAttached: targets.desktopUrl !== DEFAULT_DESKTOP_URL, roadmapOpened: false };
     } catch (error) {
       if (!targets.webUrl && !targets.downloadUrl) throw error;
     }
@@ -107,6 +137,7 @@ async function launchMahOpportunity(payload, dependencies = {}, options = {}) {
 }
 
 module.exports = {
+  openMahApplication,
   DEFAULT_DESKTOP_URL,
   DEFAULT_DOWNLOAD_URL,
   buildMahLaunchTargets,
